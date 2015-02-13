@@ -9,23 +9,27 @@ import sys
 from osext.argparse_actions import ReadableDirectoryAction
 import requests
 
+
 if __name__ == '__main__':
     log = logging.getLogger('xirvik-start-torrents')
     parser = argparse.ArgumentParser()
 
-    #parser.add_argument('-d', '--debug', action='store_true')
-    #parser.add_argument('-v', '--verbose', action='store_true')
+    # parser.add_argument('-d', '--debug', action='store_true')
+    # parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
-    #parser.add_argument('-C', '--client', default='rutorrent3')
+    # parser.add_argument('-C', '--client', default='rutorrent3')
     parser.add_argument('-H', '--host', nargs=1, required=True)
     parser.add_argument('-p', '--port', nargs=1, default=[443])
     parser.add_argument('--start-stopped', action='store_true')
-    parser.add_argument('directory', metavar='DIRECTORY', action=ReadableDirectoryAction)
+    parser.add_argument('directory',
+                        metavar='DIRECTORY',
+                        action=ReadableDirectoryAction)
 
     args = parser.parse_args()
     user, _, password = netrc(args.netrc_path).authenticators(args.host[0])
 
-    post_url = 'https://{host:s}:{port:d}/rtorrent/php/addtorrent.php?'.format(host=args.host[0], port=args.port[0])
+    post_url = ('https://{host:s}:{port:d}/rtorrent/php/'
+                'addtorrent.php?'.format(host=args.host[0], port=args.port[0]))
     form_data = {}
     exceptions_caught = []
 
@@ -56,7 +60,7 @@ if __name__ == '__main__':
         rm(item)
 
     if exceptions_caught:
+        print('Exceptions caught:', file=sys.stderr)
         for e in exceptions_caught:
-            print('Exceptions!', file=sys.stderr)
             print(vars(e), file=sys.stderr)
         sys.exit(1)
