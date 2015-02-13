@@ -1,0 +1,4 @@
+[Project]
+Manager=KDevGenericManager
+Name=xirvik-sync
+VersionControlSupport=kdevgit
