@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+import paramiko
+
+
+if __name__ == '__main__':
+    host = ''
+    port = 54022
+
+    t = paramiko.Transport((host, port,))
+    t.connect(username='', password='')
+    s = paramiko.SFTPClient.from_transport(t)
+    print(sorted(s.listdir()))
