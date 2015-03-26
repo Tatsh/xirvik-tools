@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from logging.handlers import SysLogHandler
 from netrc import netrc
-from os import close as close_fd, listdir, remove as rm
-from os.path import basename, dirname, expanduser, join as path_join
+from os import close as close_fd, listdir, makedirs, remove as rm
+from os.path import basename, dirname, expanduser, isdir, join as path_join, realpath, splitext
 from tempfile import mkstemp
 import argparse
 import logging
@@ -35,6 +35,13 @@ def ctrl_c(signum, frame):
 
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, ctrl_c)
+
+    cache_dir = realpath(expanduser('~/.cache/xirvik'))
+
+    if not isdir(cache_dir):
+        makedirs(cache_dir)
+
     log = logging.getLogger('xirvik-start-torrents')
     parser = argparse.ArgumentParser()
 
@@ -86,8 +93,6 @@ if __name__ == '__main__':
     if args.start_stopped:
         form_data['torrents_start_stopped'] = 'on'
 
-    count = 0
-
     for item in listdir(args.directory):
         if not item.lower().endswith('.torrent'):
             continue
@@ -95,7 +100,8 @@ if __name__ == '__main__':
         item = path_join(args.directory, item)
 
         # Workaround for surrogates not allowed error, rename the file
-        fd, name = mkstemp(dir=args.directory, suffix='.torrent')
+        prefix = '{n:s}-'.format(n=splitext(basename(item))[0])
+        fd, name = mkstemp(dir=cache_dir, prefix=prefix, suffix='.torrent')
         with open(name, 'wb') as w:
             with open(item, 'rb') as r:
                 w.write(r.read())
@@ -114,11 +120,6 @@ if __name__ == '__main__':
                 r.raise_for_status()
             except Exception as e:
                 log.error('Caught exception: {e!s}'.format(e))
-
-        rm(item)
-        count += 1
-
-    log.info('Uploaded {} torrents'.format(count))
 
     if exceptions_caught:
         log.error('Exceptions caught, exiting with failure status')
