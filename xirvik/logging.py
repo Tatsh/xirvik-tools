@@ -35,7 +35,7 @@ def get_logger(name,
         syslogh = SysLogHandler(address='/dev/log')
 
         syslogh.setFormatter(logging.Formatter('%(message)s'))
-        syslogh.setLevel(logging.DEBUG if debug else logging.INFO)
+        syslogh.setLevel(logging.INFO)
         log.addHandler(syslogh)
 
     return log
