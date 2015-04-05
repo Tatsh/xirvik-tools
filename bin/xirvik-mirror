@@ -121,6 +121,7 @@ if __name__ == '__main__':
         log.info('Nothing found to mirror')
         sys.exit()
 
+    # NOTE This could be done with paramiko but later
     lftp_e = '; '.join([
         'set color:use-color false',
         'lcd {}'.format(local_dir),
@@ -133,6 +134,7 @@ if __name__ == '__main__':
 
     # Move to _seeding directory and set label
     for bn, (hash, fullpath) in names.items():
+        # TODO Create function for this
         log.info('Moving "{}" to "{}" directory'.format(bn, move_to))
         data = {
             'hash': hash,
@@ -150,6 +152,7 @@ if __name__ == '__main__':
             log.error('Errors occurred: {} (not setting label)'.format(json['errors']))
             continue
 
+        # TODO Create function for this
         log.info('Setting label to "{}" for "{}"'.format(args.label, bn))
         data = {
             'mode': 'setlabel',
