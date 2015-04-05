@@ -14,9 +14,11 @@ import sh
 
 from xirvik.logging import get_logger
 from xirvik.util import ctrl_c_handler, cleanup_and_exit
+from xirvik.client import ruTorrentClient
+import xirvik.client
 
 
-TORRENT_PATH_INDEX = 25
+TORRENT_PATH_INDEX = xirvik.client.TORRENT_PATH_INDEX
 
 
 if __name__ == '__main__':
@@ -43,7 +45,12 @@ if __name__ == '__main__':
                      syslog=args.syslog)
     if args.debug:
         sh.logging_enabled = True
-        for name in ('requests.packages.urllib3', 'command'):
+        logs_to_follow = (
+            'requests.packages.urllib3',
+            'command',
+            xirvik.client.LOG_NAME,
+        )
+        for name in logs_to_follow:
             _log = logging.getLogger(name)
             formatter = logging.Formatter('%(asctime)s - %(name)s - '
                                           '%(levelname)s - %(message)s')
@@ -65,6 +72,8 @@ if __name__ == '__main__':
     log.debug('Read user and password from netrc file')
     log.debug('SFTP URI: {}'.format(sftp_host))
 
+    client = ruTorrentClient(args.host, user, password)
+
     http_prefix = 'https://{host:s}'.format(host=args.host)
     multirpc_action_uri = ('{}/rtorrent/plugins/multirpc/'
                            'action.php'.format(http_prefix))
@@ -79,14 +88,7 @@ if __name__ == '__main__':
     log.debug('Moving finished torrents to: {}'.format(move_to))
 
     log.info('Getting current torrent information (ruTorrent)')
-    data = {
-        'mode': 'list',
-        'cmd': 'd.custom=addtime',
-    }
-    r = requests.post(multirpc_action_uri, data=data)
-    r.raise_for_status()
-
-    for hash, v in r.json()['t'].items():
+    for hash, v in client.list_torrents().items():
         if not v[TORRENT_PATH_INDEX].startswith(look_for):
             continue
         bn = basename(v[TORRENT_PATH_INDEX])
@@ -129,7 +131,7 @@ if __name__ == '__main__':
 
     if not len(names.items()):
         log.info('Nothing found to mirror')
-        sys.exit()
+        cleanup_and_exit()
 
     # NOTE This could be done with paramiko but later
     lftp_e = '; '.join([
@@ -144,35 +146,10 @@ if __name__ == '__main__':
 
     # Move to _seeding directory and set label
     for bn, (hash, fullpath) in names.items():
-        # TODO Create function for this
         log.info('Moving "{}" to "{}" directory'.format(bn, move_to))
-        data = {
-            'hash': hash,
-            'datadir': move_to,
-            'move_addpath': '1',
-            'move_datafiles': '1',
-            'move_fastresume': '1',
-        }
-        r = requests.post(datadir_action_uri, data=data)
+        client.move_torrent(hash, move_to)
 
-        r.raise_for_status()
-
-        json = r.json()
-        if 'errors' in json and len(json['errors']):
-            log.error('Errors occurred: {} '
-                      '(not setting label)'.format(json['errors']))
-            continue
-
-        # TODO Create function for this
         log.info('Setting label to "{}" for "{}"'.format(args.label, bn))
-        data = {
-            'mode': 'setlabel',
-            'hash': hash,
-            'v': args.label,
-            's': 'label',
-        }
-        r = requests.post(multirpc_action_uri, data=data)
-
-        r.raise_for_status()
+        client.set_label(hash, args.label)
 
     cleanup_and_exit()
