@@ -2,10 +2,10 @@ from distutils.core import setup
 
 setup(
     name='xirvik-tools',
-    version='0.0.1',
+    version='0.0.2',
     author='Fa An',
     author_email='2998784916@qq.com',
-    packages=['xirvik'],
+    packages=['xirvik', 'xirvik.client'],
     url='https://faan/xirvik-tools',
     license='LICENSE.txt',
     description='Xirvik (ruTorrent mostly) tools.',
