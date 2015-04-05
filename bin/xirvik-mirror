@@ -45,7 +45,8 @@ if __name__ == '__main__':
         sh.logging_enabled = True
         for name in ('requests.packages.urllib3', 'command'):
             _log = logging.getLogger(name)
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            formatter = logging.Formatter('%(asctime)s - %(name)s - '
+                                          '%(levelname)s - %(message)s')
             channel = logging.StreamHandler(sys.stderr)
 
             _log.setLevel(logging.DEBUG)
@@ -65,8 +66,10 @@ if __name__ == '__main__':
     log.debug('SFTP URI: {}'.format(sftp_host))
 
     http_prefix = 'https://{host:s}'.format(host=args.host)
-    multirpc_action_uri = '{}/rtorrent/plugins/multirpc/action.php'.format(http_prefix)
-    datadir_action_uri = '{}/rtorrent/plugins/datadir/action.php'.format(http_prefix)
+    multirpc_action_uri = ('{}/rtorrent/plugins/multirpc/'
+                           'action.php'.format(http_prefix))
+    datadir_action_uri = ('{}/rtorrent/plugins/datadir/'
+                          'action.php'.format(http_prefix))
     assumed_path_prefix = '/torrents/{}'.format(user)
     look_for = '{}/{}/'.format(assumed_path_prefix, args.remote_dir[0])
     move_to = '{}/{}'.format(assumed_path_prefix, args.move_to)
@@ -91,15 +94,20 @@ if __name__ == '__main__':
 
         log.info('Completed torrent "{}" found with hash {}'.format(bn, hash,))
 
-    log.info('Verifying contents of {} with previous response'.format(look_for))
+    log.info('Verifying contents of {} with previous '
+             'response'.format(look_for))
     lftp_e = '; '.join([
         'set color:use-color false',
         'cd {}'.format(args.remote_dir[0]),
         'ls',
         'exit',
     ])
-    ls_regex = re.compile(r'^[\-d](?:[\-r][\-w][\-x]){3}\s+[a-zA-Z0-9]+/[a-zA-Z0-9]+\s+\d+\s+[0-9]{4}\-[0-9]{2}\-[0-9]{2}\s[0-9]{2}\:[0-9]{2}\:[0-9]{2}\s+(.*)$')
-    ls_out = lftp(['-p', args.port, '-e', lftp_e, sftp_host]).strip().split('\n')
+    ls_regex = re.compile(r'^[\-d](?:[\-r][\-w][\-x]){3}\s+[a-zA-Z0-9]+'
+                          '/[a-zA-Z0-9]+\s+\d+\s+[0-9]{4}\-[0-9]{2}\-[0-9]{2}'
+                          '\s[0-9]{2}\:[0-9]{2}\:[0-9]{2}\s+(.*)$')
+    ls_out = lftp(['-p', args.port,
+                   '-e', lftp_e,
+                   sftp_host]).strip().split('\n')
 
     for line in ls_out:
         parsed = ls_regex.match(line)
@@ -112,10 +120,12 @@ if __name__ == '__main__':
             continue
 
         if name not in names:
-            log.error('File or directory "{}" not found in previous response body'.format(name))
+            log.error('File or directory "{}" not found in previous '
+                      'response body'.format(name))
             continue
 
-        log.debug('Found matching torrent "{}" from lftp ls output'.format(name))
+        log.debug('Found matching torrent "{}" from lftp ls '
+                  'output'.format(name))
 
     if not len(names.items()):
         log.info('Nothing found to mirror')
@@ -149,7 +159,8 @@ if __name__ == '__main__':
 
         json = r.json()
         if 'errors' in json and len(json['errors']):
-            log.error('Errors occurred: {} (not setting label)'.format(json['errors']))
+            log.error('Errors occurred: {} '
+                      '(not setting label)'.format(json['errors']))
             continue
 
         # TODO Create function for this

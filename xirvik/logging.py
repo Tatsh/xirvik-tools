@@ -4,6 +4,7 @@ import sys
 
 syslogh = None
 
+
 def cleanup():
     global syslogh
 
@@ -12,7 +13,12 @@ def cleanup():
 
     logging.shutdown()
 
-def get_logger(name, level=logging.INFO, verbose=False, debug=False, syslog=False):
+
+def get_logger(name,
+               level=logging.INFO,
+               verbose=False,
+               debug=False,
+               syslog=False):
     global syslogh
 
     log = logging.getLogger(name)

@@ -1,6 +1,7 @@
 from xirvik.logging import cleanup
 import sys
 
+
 def cleanup_and_exit(status=0):
     cleanup()
     sys.exit(status)
