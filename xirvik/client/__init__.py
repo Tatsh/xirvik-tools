@@ -1,3 +1,4 @@
+from cgi import parse_header
 import logging
 
 from cached_property import cached_property
@@ -76,6 +77,18 @@ class ruTorrentClient:
         r.raise_for_status()
 
         return r.json()['t']
+
+    def get_torrent(self, hash):
+        source_torrent_uri = ('{}/rtorrent/plugins/source/action.php'
+                              '?hash={}'.format(self.http_prefix, hash))
+
+        r = requests.get(self.source_torrent_uri, auth=self.auth, stream=True)
+
+        r.raise_for_status()
+
+        fn = parse_header(r.headers['content-disposition'])[1]['filename']
+
+        return r, fn
 
     def move_torrent(self, hash, target_dir, fast_resume=True):
         data = {
