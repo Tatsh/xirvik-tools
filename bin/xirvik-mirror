@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 from logging.handlers import SysLogHandler
-from os.path import basename, expanduser, realpath
+from os.path import basename, expanduser, join as path_join, realpath
 from netrc import netrc
+from tempfile import gettempdir
 import argparse
+import hashlib
+import json
 import logging
 import re
 import signal
 import sys
 
+from lockfile import LockFile
 from sh import lftp
 import requests
 import sh
@@ -19,10 +23,17 @@ import xirvik.client
 
 
 TORRENT_PATH_INDEX = xirvik.client.TORRENT_PATH_INDEX
+_lock = None
 
+def lock_ctrl_c_handler(signum, frame):
+    if _lock:
+        _lock.release()
+
+    ctrl_c_handler(signum, frame)
+    raise SystemExit('Signal raised')
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, ctrl_c_handler)
+    signal.signal(signal.SIGINT, lock_ctrl_c_handler)
 
     parser = argparse.ArgumentParser()
 
@@ -67,6 +78,13 @@ if __name__ == '__main__':
         user=user,
         host=args.host,
     )
+
+    lf_hash = hashlib.sha256(json.dumps(args._get_kwargs()).encode('utf-8')).hexdigest()
+    lf_path = path_join(gettempdir(), 'xirvik-mirror-{}'.format(lf_hash))
+    log.debug('Acquiring lock at {}'.format(lf_path))
+    _lock = LockFile(lf_path)
+    _lock.acquire()
+    log.debug('Lock acquired')
 
     log.debug('Local directory to sync to: {}'.format(local_dir))
     log.debug('Read user and password from netrc file')
@@ -131,6 +149,7 @@ if __name__ == '__main__':
 
     if not len(names.items()):
         log.info('Nothing found to mirror')
+        _lock.release()
         cleanup_and_exit()
 
     # NOTE This could be done with paramiko but later
@@ -152,4 +171,5 @@ if __name__ == '__main__':
         log.info('Setting label to "{}" for "{}"'.format(args.label, bn))
         client.set_label(hash, args.label)
 
+    _lock.release()
     cleanup_and_exit()
