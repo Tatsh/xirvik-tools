@@ -14,6 +14,7 @@ setup(
     install_requires=[
         'cached-property>=1.0.0',
         'OSExtension>=0.1.5',
+        'lockfile>=0.10.2',
         'requests>=2.6.0',
         'sh>=1.09',
     ],
