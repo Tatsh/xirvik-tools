@@ -2,11 +2,11 @@ from distutils.core import setup
 
 setup(
     name='xirvik-tools',
-    version='0.0.2',
+    version='0.0.3',
     author='Fa An',
     author_email='2998784916@qq.com',
     packages=['xirvik', 'xirvik.client'],
-    url='https://faan/xirvik-tools',
+    url='https://github.com/Tatsh/xirvik-tools',
     license='LICENSE.txt',
     description='Xirvik (ruTorrent mostly) tools.',
     long_description=open('README.rst').read(),
