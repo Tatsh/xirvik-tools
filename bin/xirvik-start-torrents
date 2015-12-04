@@ -74,7 +74,10 @@ if __name__ == '__main__':
             log.setLevel(logging.DEBUG)
 
     if args.syslog:
-        syslogh = SysLogHandler(address='/dev/log')
+        try:
+            syslogh = SysLogHandler(address='/dev/log')
+        except FileNotFoundError:
+            syslogh = SysLogHandler(address='/var/run/syslog')
 
         syslogh.setFormatter(logging.Formatter('%(message)s'))
         syslogh.setLevel(logging.DEBUG if args.debug else logging.INFO)
