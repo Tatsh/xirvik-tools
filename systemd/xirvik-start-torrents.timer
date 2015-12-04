@@ -1,0 +1,8 @@
+[Unit]
+Description=Bi-minutely trigger for Xirvik syncer
+
+[Timer]
+OnCalendar=*-*-* *:0/2:00
+
+[Install]
+WantedBy=multi-user.target
