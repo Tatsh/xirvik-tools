@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>sh.tat.XirvikStartTorrents</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>FULL PATH TO Python 3.4, i.e /Users/tatsh/.virtualenvs/xirvik-tools/bin/python3.4</string>
+            <string>FULL PATH TO xirvik-start-torrents, i.e /Users/tatsh/dev/xirvik-tools/bin/xirvik-start-torrents</string>
+            <string>-H</string>
+            <string>FILL ME IN</string>
+            <string>-s</string>
+            <string>/FULL/PATH</string>
+        </array>
+        <key>StartInterval</key>
+        <!-- Run every 2 minutes -->
+        <integer>120</integer>
+    </dict>
+</plist>
