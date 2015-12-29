@@ -2,7 +2,10 @@ from cgi import parse_header
 import logging
 
 from cached_property import cached_property
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
 import requests
+
 
 __all__ = [
     'LOG_NAME',
@@ -24,11 +27,21 @@ class ruTorrentClient:
     name = None
     password = None
     _log = logging.getLogger(LOG_NAME)
+    _http_adapter = None
+    _session = None
 
-    def __init__(self, host, name, password):
+    def __init__(self, host, name, password, max_retries=10):
         self.host = host
         self.name = name
         self.password = password
+        retry = Retry(connect=max_retries,
+                      read=max_retries,
+                      redirect=False,
+                      backoff_factor=1)
+        self._http_adapter = HTTPAdapter(max_retries=retry)
+        self._session = requests.Session()
+        self._session.mount('http://', self._http_adapter)
+        self._session.mount('https://', self._http_adapter)
 
     @cached_property
     def http_prefix(self):
@@ -60,7 +73,7 @@ class ruTorrentClient:
 
         with open(filepath, 'rb') as f:
             files = dict(torrent_file=f)
-            r = requests.post(self._add_torrent_uri,
+            r = self._session.post(self._add_torrent_uri,
                               data=data,
                               auth=self.auth,
                               files=files)
@@ -72,7 +85,7 @@ class ruTorrentClient:
             'mode': 'list',
             'cmd': 'd.custom=addtime',
         }
-        r = requests.post(self.multirpc_action_uri, data=data, auth=self.auth)
+        r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
 
         r.raise_for_status()
 
@@ -82,7 +95,7 @@ class ruTorrentClient:
         source_torrent_uri = ('{}/rtorrent/plugins/source/action.php'
                               '?hash={}'.format(self.http_prefix, hash))
 
-        r = requests.get(self.source_torrent_uri, auth=self.auth, stream=True)
+        r = self._session.get(self.source_torrent_uri, auth=self.auth, stream=True)
 
         r.raise_for_status()
 
@@ -98,7 +111,7 @@ class ruTorrentClient:
             'move_datafiles': '1',
             'move_fastresume': '1' if fast_resume else '0',
         }
-        r = requests.post(self.datadir_action_uri, data=data, auth=self.auth)
+        r = self._session.post(self.datadir_action_uri, data=data, auth=self.auth)
 
         r.raise_for_status()
 
@@ -114,6 +127,6 @@ class ruTorrentClient:
             'v': label,
             's': 'label',
         }
-        r = requests.post(self.multirpc_action_uri, data=data, auth=self.auth)
+        r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
 
         r.raise_for_status()
