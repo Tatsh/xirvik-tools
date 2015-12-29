@@ -17,6 +17,5 @@ setup(
         'lockfile>=0.10.2',
         'requests>=2.6.0',
         'sh>=1.09',
-        'urllib3>=1.13.1',
     ],
 )
