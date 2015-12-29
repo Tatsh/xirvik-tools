@@ -3,7 +3,7 @@ import logging
 
 from cached_property import cached_property
 from requests.adapters import HTTPAdapter
-from urllib3 import Retry
+from requests.packages.urllib3.util import Retry
 import requests
 
 
