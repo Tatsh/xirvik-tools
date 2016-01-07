@@ -166,6 +166,7 @@ if __name__ == '__main__':
     lftp(['-p', args.port, '-e', lftp_e, sftp_host])
 
     # Move to _seeding directory and set label
+    # TODO Use a single request to do this instead of multiple
     for bn, (hash, fullpath) in names.items():
         log.info('Moving "{}" to "{}" directory'.format(bn, move_to))
         try:
