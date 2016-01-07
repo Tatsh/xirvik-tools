@@ -18,7 +18,7 @@ import sh
 
 from xirvik.logging import get_logger
 from xirvik.util import ctrl_c_handler, cleanup_and_exit
-from xirvik.client import ruTorrentClient
+from xirvik.client import ruTorrentClient, UnexpectedruTorrentError
 import xirvik.client
 
 
@@ -166,10 +166,16 @@ if __name__ == '__main__':
     # Move to _seeding directory and set label
     for bn, (hash, fullpath) in names.items():
         log.info('Moving "{}" to "{}" directory'.format(bn, move_to))
-        client.move_torrent(hash, move_to)
+        try:
+            client.move_torrent(hash, move_to)
+        except UnexpectedruTorrentError as e:
+            log.error(str(e))
 
         log.info('Setting label to "{}" for "{}"'.format(args.label, bn))
-        client.set_label(hash, args.label)
+        try:
+            client.set_label(hash, args.label)
+        except UnexpectedruTorrentError as e:
+            log.error(str(e))
 
     _lock.release()
     cleanup_and_exit()
