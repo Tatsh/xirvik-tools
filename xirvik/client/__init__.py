@@ -127,6 +127,18 @@ class ruTorrentClient:
             'v': label,
             's': 'label',
         }
-        r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
+        allowed_tries = 5
+        n = 0
+        last_json = None
 
-        r.raise_for_status()
+        while n < allowed_tries:
+            r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
+            r.raise_for_status()
+            last_json = r.json()
+
+            if label not in last_json:
+                n += 1
+            else:
+                return
+
+        raise UnexpectedruTorrentError('Did not find label in JSON: {}'.format(last_json))
