@@ -101,6 +101,7 @@ if __name__ == '__main__':
     look_for = '{}/{}/'.format(assumed_path_prefix, args.remote_dir[0])
     move_to = '{}/{}'.format(assumed_path_prefix, args.move_to)
     names = {}
+    hashes = []
 
     log.debug('Full completed directory path name: {}'.format(look_for))
     log.debug('Moving finished torrents to: {}'.format(move_to))
@@ -111,6 +112,7 @@ if __name__ == '__main__':
             continue
         bn = basename(v[TORRENT_PATH_INDEX])
         names[bn] = (hash, v[TORRENT_PATH_INDEX],)
+        hashes.append(hash)
 
         log.info('Completed torrent "{}" found with hash {}'.format(bn, hash,))
 
@@ -171,11 +173,9 @@ if __name__ == '__main__':
         except UnexpectedruTorrentError as e:
             log.error(str(e))
 
-        log.info('Setting label to "{}" for "{}"'.format(args.label, bn))
-        try:
-            client.set_label(hash, args.label)
-        except UnexpectedruTorrentError as e:
-            log.error(str(e))
+        log.info('Setting label to "{}" for downloaded items'.format(args.label))
+
+    client.set_labels(hashes, args.label)
 
     _lock.release()
     cleanup_and_exit()
