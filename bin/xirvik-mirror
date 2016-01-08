@@ -176,7 +176,7 @@ if __name__ == '__main__':
 
         log.info('Setting label to "{}" for downloaded items'.format(args.label))
 
-    client.set_labels(hashes, args.label)
+    client.set_labels(hashes=hashes, label=args.label)
 
     _lock.release()
     cleanup_and_exit()
