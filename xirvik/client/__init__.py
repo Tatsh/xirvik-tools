@@ -159,8 +159,8 @@ class ruTorrentClient:
 
         data += '&v={}'.format(label).encode('utf-8') * len(hashes)
         data += b'&s=label' * len(hashes)
-        self._log.debug('set_labels() with data: {}'.format(
-            data.decode('utf-8')))
+        # self._log.debug('set_labels() with data: {}'.format(
+        #    data.decode('utf-8')))
 
         r = self._session.post(self.multirpc_action_uri,
                                data=data,
@@ -168,10 +168,11 @@ class ruTorrentClient:
         r.raise_for_status()
         json = r.json()
 
+        # This may not be an error, but sometimes just `[]` is returned
         if len(json) != len(hashes):
-            raise UnexpectedruTorrentError('JSON returned should have been an '
-                                           'array with same length as hashes '
-                                           'list passed in: {}'.format(json))
+            self._log.warning('JSON returned should have been an '
+                              'array with same length as hashes '
+                              'list passed in: {}'.format(json))
 
     def set_label(self, label, hash):
         data = {
