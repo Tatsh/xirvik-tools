@@ -74,9 +74,9 @@ class ruTorrentClient:
         with open(filepath, 'rb') as f:
             files = dict(torrent_file=f)
             r = self._session.post(self._add_torrent_uri,
-                              data=data,
-                              auth=self.auth,
-                              files=files)
+                                   data=data,
+                                   auth=self.auth,
+                                   files=files)
 
             r.raise_for_status()
 
@@ -85,7 +85,9 @@ class ruTorrentClient:
             'mode': 'list',
             'cmd': 'd.custom=addtime',
         }
-        r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
+        r = self._session.post(self.multirpc_action_uri,
+                               data=data,
+                               auth=self.auth)
 
         r.raise_for_status()
 
@@ -95,7 +97,9 @@ class ruTorrentClient:
         source_torrent_uri = ('{}/rtorrent/plugins/source/action.php'
                               '?hash={}'.format(self.http_prefix, hash))
 
-        r = self._session.get(self.source_torrent_uri, auth=self.auth, stream=True)
+        r = self._session.get(self.source_torrent_uri,
+                              auth=self.auth,
+                              stream=True)
 
         r.raise_for_status()
 
@@ -111,7 +115,9 @@ class ruTorrentClient:
             'move_datafiles': '1',
             'move_fastresume': '1' if fast_resume else '0',
         }
-        r = self._session.post(self.datadir_action_uri, data=data, auth=self.auth)
+        r = self._session.post(self.datadir_action_uri,
+                               data=data,
+                               auth=self.auth)
 
         r.raise_for_status()
 
@@ -137,13 +143,14 @@ class ruTorrentClient:
         # Example:
         #    mode=setlabel&hash=...&hash=...&v=label&v=label&s=label&s=label
         #
-        #    This method builds this string out since Requests can take in a byte
-        #    string as POST data (and you cannot set a key twice in a dictionary).
+        # This method builds this string out since Requests can take in a byte
+        # string as POST data (and you cannot set a key twice in a dictionary).
         hashes = kwargs.pop('hashes', [])
         label = kwargs.pop('label', None)
 
         if not hashes or not label:
-            raise TypeError('"hashes" (list) and "label" (str) keyword arguments are required')
+            raise TypeError('"hashes" (list) and "label" (str) keyword '
+                            'arguments are required')
 
         data = b'mode=setlabel'
 
@@ -152,14 +159,19 @@ class ruTorrentClient:
 
         data += '&v={}'.format(label).encode('utf-8') * len(hashes)
         data += b'&s=label' * len(hashes)
-        self._log.debug('set_labels() with data: {}'.format(data.decode('utf-8')))
+        self._log.debug('set_labels() with data: {}'.format(
+            data.decode('utf-8')))
 
-        r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
+        r = self._session.post(self.multirpc_action_uri,
+                               data=data,
+                               auth=self.auth)
         r.raise_for_status()
         json = r.json()
 
         if len(json) != len(hashes):
-            raise UnexpectedruTorrentError('JSON returned should have been an array with same length as hashes list passed in: {}'.format(json))
+            raise UnexpectedruTorrentError('JSON returned should have been an '
+                                           'array with same length as hashes '
+                                           'list passed in: {}'.format(json))
 
     def set_label(self, label, hash):
         data = {
@@ -169,9 +181,12 @@ class ruTorrentClient:
             's': 'label',
         }
 
-        r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
+        r = self._session.post(self.multirpc_action_uri,
+                               data=data,
+                               auth=self.auth)
         r.raise_for_status()
         last_json = r.json()
 
         if label not in last_json:
-            raise UnexpectedruTorrentError('Did not find label in JSON: {}'.format(last_json))
+            raise UnexpectedruTorrentError('Did not find label in JSON: '
+                                           '{}'.format(last_json))
