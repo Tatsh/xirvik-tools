@@ -122,19 +122,22 @@ class ruTorrentClient:
 
     def set_labels(self, hashes, label):
         """
-        The way to set a label to multiple torrents is to specify the hashes
-        using hash=, then the v parameter as many times as there are hashes,
-        and then the s=label for as many times as there are hashes.
-
-        Example:
-        mode=setlabel&hash=...&hash=...&v=label&v=label&s=label&s=label
-
-        This method builds this string out since Requests can take in a byte
-        string as POST data (and you cannot set a key twice in a dictionary).
+        Set a label to a list of info hashes. The label can be a new label.
 
         Example use:
             client.set_labels([hash_1, hash_2], 'my new label')
+
+        TODO Better name for this method
         """
+        # The way to set a label to multiple torrents is to specify the hashes
+        # using hash=, then the v parameter as many times as there are hashes,
+        # and then the s=label for as many times as there are hashes.
+        #
+        # Example:
+        #    mode=setlabel&hash=...&hash=...&v=label&v=label&s=label&s=label
+        #
+        #    This method builds this string out since Requests can take in a byte
+        #    string as POST data (and you cannot set a key twice in a dictionary).
         data = b'mode=setlabel'
 
         for hash in hashes:
@@ -142,12 +145,14 @@ class ruTorrentClient:
 
         data += '&v={}'.format(label).encode('utf-8') * len(hashes)
         data += b'&s=label' * len(hashes)
+        self.log.debug('set_labels() with data: {}'.format(data.decode('utf-8')))
 
         r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
         r.raise_for_status()
+        json = r.json()
 
-        if len(r.json()) != len(hashes):
-            raise UnexpectedruTorrentError('JSON returned should have been an array with same length as hashes list passed in')
+        if len(json) != len(hashes):
+            raise UnexpectedruTorrentError('JSON returned should have been an array with same length as hashes list passed in: {}'.format(json))
 
     def set_label(self, hash, label):
         data = {
@@ -159,6 +164,7 @@ class ruTorrentClient:
 
         r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
         r.raise_for_status()
+        last_json = r.json()
 
-        if label not in r.json():
+        if label not in last_json:
             raise UnexpectedruTorrentError('Did not find label in JSON: {}'.format(last_json))
