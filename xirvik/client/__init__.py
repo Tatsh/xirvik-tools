@@ -120,7 +120,7 @@ class ruTorrentClient:
         if 'errors' in json and len(json['errors']):
             raise UnexpectedruTorrentError(str(json['errors']))
 
-    def set_labels(self, **kwargs):
+    def set_label_to_hashes(self, **kwargs):
         """
         Set a label to a list of info hashes. The label can be a new label.
 
@@ -129,8 +129,6 @@ class ruTorrentClient:
 
         Example use:
             client.set_labels(hashes=[hash_1, hash_2], label='my new label')
-
-        TODO Better name for this method
         """
         # The way to set a label to multiple torrents is to specify the hashes
         # using hash=, then the v parameter as many times as there are hashes,
