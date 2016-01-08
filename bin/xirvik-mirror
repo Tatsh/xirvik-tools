@@ -180,11 +180,18 @@ if __name__ == '__main__':
         _lock.release()
         cleanup_and_exit()
 
-    # NOTE This could be done with paramiko but later
+    mirror_args = [
+        '--continue',
+        '--dereference',
+        '--scan-all-first',
+        '--use-cache',
+    ]
+    if args.debug:
+        mirror_args.append('--log={}'.format(expanduser('~/.lftp-mirror.log')))
     lftp_e = '; '.join(lftp_settings + [
         'lcd {}'.format(local_dir),
         'cd {}'.format(args.remote_dir[0]),
-        'mirror',
+        'mirror {}'.format(' '.join(mirror_args)),
         'exit',
     ])
     log.info('Mirroring {}{} to {}'.format(sftp_host, look_for, local_dir))
