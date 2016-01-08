@@ -163,7 +163,7 @@ class ruTorrentClient:
         if len(json) != len(hashes):
             raise UnexpectedruTorrentError('JSON returned should have been an array with same length as hashes list passed in: {}'.format(json))
 
-    def set_label(self, hash, label):
+    def set_label(self, label, hash):
         data = {
             'mode': 'setlabel',
             'hash': hash,
