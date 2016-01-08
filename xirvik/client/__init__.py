@@ -120,12 +120,15 @@ class ruTorrentClient:
         if 'errors' in json and len(json['errors']):
             raise UnexpectedruTorrentError(str(json['errors']))
 
-    def set_labels(self, hashes, label):
+    def set_labels(self, **kwargs):
         """
         Set a label to a list of info hashes. The label can be a new label.
 
+        To remove a label, pass an empty string as the `label` keyword
+        argument.
+
         Example use:
-            client.set_labels([hash_1, hash_2], 'my new label')
+            client.set_labels(hashes=[hash_1, hash_2], label='my new label')
 
         TODO Better name for this method
         """
@@ -138,6 +141,12 @@ class ruTorrentClient:
         #
         #    This method builds this string out since Requests can take in a byte
         #    string as POST data (and you cannot set a key twice in a dictionary).
+        hashes = kwargs.pop('hashes', [])
+        label = kwargs.pop('label', None)
+
+        if not hashes or not label:
+            raise TypeError('"hashes" (list) and "label" (str) keyword arguments are required')
+
         data = b'mode=setlabel'
 
         for hash in hashes:
@@ -145,7 +154,7 @@ class ruTorrentClient:
 
         data += '&v={}'.format(label).encode('utf-8') * len(hashes)
         data += b'&s=label' * len(hashes)
-        self.log.debug('set_labels() with data: {}'.format(data.decode('utf-8')))
+        self._log.debug('set_labels() with data: {}'.format(data.decode('utf-8')))
 
         r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
         r.raise_for_status()
