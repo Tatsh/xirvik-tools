@@ -46,6 +46,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-s', '--syslog', action='store_true')
     parser.add_argument('--max-retries', type=int, default=10)
+    parser.add_argument('--scan-all-first', action='store_true')
     parser.add_argument('remote_dir', metavar='REMOTEDIR', nargs=1)
     parser.add_argument('local_dir', metavar='LOCALDIR', nargs=1)
 
@@ -183,9 +184,10 @@ if __name__ == '__main__':
     mirror_args = [
         '--continue',
         '--dereference',
-        '--scan-all-first',
         '--use-cache',
     ]
+    if args.scan_all_first:
+        mirror_args.append('--scan-all-first')
     if args.debug:
         mirror_args.append('--log={}'.format(expanduser('~/.lftp-mirror.log')))
     lftp_e = '; '.join(lftp_settings + [
