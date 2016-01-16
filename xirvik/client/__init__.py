@@ -159,8 +159,8 @@ class ruTorrentClient:
 
         data += '&v={}'.format(label).encode('utf-8') * len(hashes)
         data += b'&s=label' * len(hashes)
-        # self._log.debug('set_labels() with data: {}'.format(
-        #    data.decode('utf-8')))
+        self._log.debug('set_labels() with data: {}'.format(
+            data.decode('utf-8')))
 
         r = self._session.post(self.multirpc_action_uri,
                                data=data,
