@@ -1,11 +1,21 @@
+from __future__ import print_function
 from os import chmod, makedirs, utime
 from os.path import basename, dirname, isdir, join as path_join
 import inspect
 import os
 import logging
+import re
 import socket
 
 from paramiko.client import SSHClient
+
+__all__ = [
+    'SFTPClient',
+    'LOG_NAME',
+]
+
+
+LOG_NAME = 'xirvik.sftp'
 
 
 class SFTPClient:
@@ -13,17 +23,22 @@ class SFTPClient:
     client = None
     raise_exceptions = False
     original_arguments = {}
-    _log = logging.getLogger('paramiko.transport')
+    debug = False
 
+    _log = logging.getLogger(LOG_NAME)
     _dircache = []
 
     def __init__(self, **kwargs):
         self.original_arguments = kwargs.copy()
+        self._connect(**kwargs)
 
-        kwargs['initial'] = True
-        self._reconnect(**kwargs)
+    def __enter__(self):
+        return self
 
-    def _reconnect(self, **kwargs):
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close_all()
+
+    def _connect(self, **kwargs):
         kwargs_to_paramiko = dict(
             look_for_keys=kwargs.pop('look_for_keys', True),
             username=kwargs.pop('username'),
@@ -44,10 +59,29 @@ class SFTPClient:
         self.client = self.ssh_client.open_sftp()
         self.client.get_channel().settimeout(kwargs_to_paramiko['timeout'])
 
-    def _clean(self):
-        return
+        # 'Extend' the SFTPClient class
+        members = inspect.getmembers(self.client,
+                                     predicate=inspect.ismethod)
+        self._log.debug('Dynamically adding methods from original SFTPClient')
+        for (method_name, method) in members:
+            if method_name[0:2] == '__' or method_name == '_log':
+                self._log.debug('Ignorning {}()'.format(method_name))
+                continue
+
+            if getattr(self, method_name):
+                raise AttributeError('Not overwriting property "{}". This '
+                                     'version of Paramiko is not '
+                                     'supported.'.format(method_name))
+
+            self._log.debug('Adding method {}()'.format(method_name))
+            setattr(self, method_name, method)
+
+    def close_all(self):
         self.client.close()
         self.ssh_client.close()
+
+    def clear_directory_cache(self):
+        self._dircache = []
 
     def listdir_attr_recurse(self, path='.'):
         for da in self.client.listdir_attr(path=path):
@@ -55,7 +89,7 @@ class SFTPClient:
             if is_dir:
                 try:
                     yield from self.listdir_attr_recurse(
-                            path_join(path, da.filename))
+                        path_join(path, da.filename))
                 except IOError as e:
                     if self.raise_exceptions:
                         raise e
@@ -121,6 +155,8 @@ class SFTPClient:
 
                                         f.write(data)
                         else:
+                            self._log.info('Downloading {} -> '
+                                           '{}'.format(_path, dest))
                             self.client.get(_path, dest)
 
                         # Do not count files that were already downloaded
@@ -134,7 +170,7 @@ class SFTPClient:
                             self._log.info('Resuming GET {} at {} '
                                            'bytes'.format(_path,
                                                           resume_seek))
-                        self._reconnect(**self.original_arguments)
+                        self._connect(**self.original_arguments)
 
             # Okay to fix existing files even if they are already downloaded
             if keep_modes:
@@ -147,6 +183,3 @@ class SFTPClient:
     def __str__(self):
         return '{} (wrapped by {}.SFTPClient)'.format(
             str(self.client), __name__)
-
-    def __del__(self):
-        self._clean()
