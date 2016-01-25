@@ -96,7 +96,7 @@ class SFTPClient:
                         resume_seek = current_size
                         self._log.info('Resuming file {} at {} '
                                        'bytes'.format(dest, current_size))
-                        raise IOError()
+                        raise IOError()  # ugly goto
             except IOError:
                 while True:
                     try:
