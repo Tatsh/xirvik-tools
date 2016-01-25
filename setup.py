@@ -15,7 +15,7 @@ setup(
         'cached-property>=1.0.0',
         'OSExtension>=0.1.5',
         'lockfile>=0.10.2',
-        'paramiko>=1.15.1',
+        'paramiko>=1.16',
         'requests>=2.6.0',
     ],
 )
