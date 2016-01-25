@@ -14,7 +14,7 @@ __all__ = [
     'ruTorrentClient',
 ]
 
-LOG_NAME = 'xirvik-rutorrent'
+LOG_NAME = 'xirvik.rutorrent'
 TORRENT_PATH_INDEX = 25
 
 
