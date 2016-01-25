@@ -105,7 +105,7 @@ class SFTPClient:
                         # Only size is used to determine complete-ness
                         # TODO Add hashing using torrent file as source of
                         #      hashes
-                        if resume_seek:
+                        if resume_seek and resume:
                             with self.client.open(_path) as rf:
                                 rf.seek(resume_seek)
                                 rf.prefetch(info.st_size - resume_seek)
@@ -129,9 +129,11 @@ class SFTPClient:
                         break
                     except socket.timeout:
                         resume_seek = os.stat(dest).st_size
-                        self._log.error('Connection timed out. Resuming GET '
-                                        '{} at {} bytes'.format(_path,
-                                                                resume_seek))
+                        self._log.error('Connection timed out')
+                        if resume:
+                            self._log.info('Resuming GET {} at {} '
+                                           'bytes'.format(_path,
+                                                          resume_seek))
                         self._reconnect(**self.original_arguments)
 
             # Okay to fix existing files even if they are already downloaded
