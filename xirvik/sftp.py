@@ -66,7 +66,8 @@ class SFTPClient:
                path='.',
                destroot='.',
                keep_modes=True,
-               keep_times=True):
+               keep_times=True,
+               resume=True):
         n = 0
         resume_seek = None
 
@@ -99,13 +100,15 @@ class SFTPClient:
             except IOError:
                 while True:
                     try:
+                        # This is like getfo() but uses resume_seek for
+                        # both local and remote to resume the transfer
+                        # Only size is used to determine complete-ness
+                        # TODO Add hashing using torrent file as source of
+                        #      hashes
                         if resume_seek:
-                            # This is like getfo() but uses resume_seek for
-                            # both local and remote to resume the transfer
-
                             with self.client.open(_path) as rf:
                                 rf.seek(resume_seek)
-                                rf.prefetch()
+                                rf.prefetch(info.st_size - resume_seek)
 
                                 with open(dest, 'ab') as f:
                                     f.seek(resume_seek)
@@ -120,6 +123,9 @@ class SFTPClient:
                         else:
                             self.client.get(_path, dest)
 
+                        # Do not count files that were already downloaded
+                        n += 1
+
                         break
                     except socket.timeout:
                         resume_seek = os.stat(dest).st_size
@@ -128,12 +134,11 @@ class SFTPClient:
                                                                 resume_seek))
                         self._reconnect(**self.original_arguments)
 
+            # Okay to fix existing files even if they are already downloaded
             if keep_modes:
                 chmod(dest, info.st_mode)
             if keep_times:
                 utime(dest, (info.st_atime, info.st_mtime,))
-
-            n += 1
 
         return n
 
