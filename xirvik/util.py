@@ -87,6 +87,9 @@ def verify_torrent_contents(torrent_file, path):
 
     path = path_join(path, torrent[b'info'][b'name'].decode('utf-8'))
 
+    if not isdir(path):
+        return False
+
     piece_length = torrent[b'info'][b'piece length']
     piece_hashes = torrent[b'info'][b'pieces']
     piece_hashes = struct.unpack('<{}B'.format(len(piece_hashes)),
