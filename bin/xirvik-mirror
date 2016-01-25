@@ -48,6 +48,8 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--debug', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-s', '--syslog', action='store_true')
+    parser.add_argument('--no-preserve-permissions', action='store_false')
+    parser.add_argument('--no-preserve-times', action='store_false')
     parser.add_argument('--max-retries', type=int, default=10)
     parser.add_argument('remote_dir', metavar='REMOTEDIR', nargs=1)
     parser.add_argument('local_dir', metavar='LOCALDIR', nargs=1)
@@ -153,7 +155,9 @@ if __name__ == '__main__':
 
     try:
         sftp_client.mirror(destroot=local_dir,
-                           resume=args.resume)
+                           resume=args.resume,
+                           keep_modes=not args.no_preserve_permissions,
+                           keep_times=not args.no_preserve_times)
     except Exception as e:
         log.error(str(e))
         _lock.release()
