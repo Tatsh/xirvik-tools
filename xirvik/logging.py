@@ -27,7 +27,7 @@ def get_logger(name,
         log.setLevel(level if not debug else logging.DEBUG)
 
         channel = logging.StreamHandler(sys.stdout if debug else sys.stderr)
-        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+        channel.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         channel.setLevel(level if not debug else logging.DEBUG)
         log.addHandler(channel)
 
