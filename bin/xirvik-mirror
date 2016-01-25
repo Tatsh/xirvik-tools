@@ -11,7 +11,7 @@ import re
 import signal
 import sys
 
-from lockfile import LockFile
+from lockfile import LockFile, NotLocked
 import requests
 
 from xirvik.sftp import SFTPClient
@@ -26,7 +26,10 @@ _lock = None
 
 def lock_ctrl_c_handler(signum, frame):
     if _lock:
-        _lock.release()
+        try:
+            _lock.release()
+        except NotLocked:
+            pass
 
     ctrl_c_handler(signum, frame)
     raise SystemExit('Signal raised')
@@ -39,6 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-P', '--port', type=int, default=22)
     parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
+    parser.add_argument('-r', '--resume', action='store_true')
     parser.add_argument('-T', '--move-to', required=True)
     parser.add_argument('-L', '--label', default='Seeding')
     parser.add_argument('-d', '--debug', action='store_true')
@@ -57,7 +61,7 @@ if __name__ == '__main__':
     if args.debug:
         logs_to_follow = (
             'requests.packages.urllib3',
-            'paramiko.transport',
+            'paramiko',
             xirvik.client.LOG_NAME,
         )
         for name in logs_to_follow:
@@ -114,12 +118,10 @@ if __name__ == '__main__':
         log.info('Completed torrent "{}" found with hash {}'.format(bn, hash,))
 
     try:
-        client = SFTPClient(hostname=args.host,
+        sftp_client = SFTPClient(hostname=args.host,
                             username=user,
                             password=password,
                             port=args.port)
-    except KeyboardInterrupt:
-        pass
     except Exception as e:
         log.error(str(e))
         _lock.release()
@@ -129,8 +131,8 @@ if __name__ == '__main__':
              'response'.format(look_for))
 
     try:
-        client.client.chdir(args.remote_dir[0])
-        for item in client.client.listdir_iter(read_aheads=10):
+        sftp_client.client.chdir(args.remote_dir[0])
+        for item in sftp_client.client.listdir_iter(read_aheads=10):
             if item.filename not in names:
                 log.error('File or directory "{}" not found in previous '
                         'response body'.format(name))
@@ -149,15 +151,13 @@ if __name__ == '__main__':
         _lock.release()
         cleanup_and_exit()
 
-    # TODO Re-enable these when ready
-    #try:
-    client.mirror(destroot=local_dir)
-    #except KeyboardInterrupt:
-        #pass
-    #except Exception as e:
-        #log.error(str(e))
-        #_lock.release()
-        #cleanup_and_exit()
+    try:
+        sftp_client.mirror(destroot=local_dir,
+                           resume=args.resume)
+    except Exception as e:
+        log.error(str(e))
+        _lock.release()
+        cleanup_and_exit()
 
     # Move to _seeding directory and set label
     # Unfortunately, there is no method, via the API, to do this one HTTP
