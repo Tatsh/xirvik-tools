@@ -33,12 +33,10 @@ def _get_torrent_pieces(filenames, basepath, piece_length):
     Yes this is a generator and should not be used any other way (i.e. do not
     wrap in list()).
     """
-    last_index = len(filenames) - 1
     buf = b''
-    last_handle = None
     p_delta = piece_length
 
-    for i, name in enumerate(filenames):
+    for name in filenames:
         name = path_join(basepath, name)
         try:
             size = stat(name).st_size
@@ -98,9 +96,6 @@ def verify_torrent_contents(torrent_file, path):
                  for x in torrent[b'info'][b'files']]
 
     pieces = _get_torrent_pieces(filenames, path, piece_length)
-
-    if not pieces:
-        return False
 
     for known_hash, piece in zip(piece_hashes, pieces):
         try:
