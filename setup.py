@@ -17,6 +17,5 @@ setup(
         'lockfile>=0.10.2',
         'paramiko>=1.15.1',
         'requests>=2.6.0',
-        'sh>=1.09',
     ],
 )
