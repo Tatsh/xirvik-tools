@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='xirvik-tools',
-    version='0.0.3',
+    version='0.0.4',
     author='Fa An',
     author_email='2998784916@qq.com',
     packages=['xirvik', 'xirvik.client'],
