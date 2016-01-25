@@ -119,9 +119,9 @@ if __name__ == '__main__':
 
     try:
         sftp_client = SFTPClient(hostname=args.host,
-                            username=user,
-                            password=password,
-                            port=args.port)
+                                 username=user,
+                                 password=password,
+                                 port=args.port)
     except Exception as e:
         log.error(str(e))
         _lock.release()
