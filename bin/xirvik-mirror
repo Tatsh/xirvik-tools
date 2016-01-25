@@ -14,14 +14,16 @@ import sys
 from lockfile import LockFile, NotLocked
 import requests
 
+from xirvik.client import (
+    ruTorrentClient,
+    UnexpectedruTorrentError,
+    TORRENT_PATH_INDEX,
+)
+from xirvik.logging import cleanup, get_logger
 from xirvik.sftp import SFTPClient
-from xirvik.logging import get_logger
 from xirvik.util import ctrl_c_handler, cleanup_and_exit
-from xirvik.client import ruTorrentClient, UnexpectedruTorrentError
-import xirvik.client
 
 
-TORRENT_PATH_INDEX = xirvik.client.TORRENT_PATH_INDEX
 _lock = None
 
 def lock_ctrl_c_handler(signum, frame):
@@ -56,15 +58,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     verbose = args.debug or args.verbose
-    log = get_logger('xirvik-mirror',
+    log = get_logger('xirvik',
                      verbose=args.verbose,
                      debug=args.debug,
                      syslog=args.syslog)
     if args.debug:
         logs_to_follow = (
-            'requests.packages.urllib3',
+            'requests',
             'paramiko',
-            xirvik.client.LOG_NAME,
         )
         for name in logs_to_follow:
             _log = logging.getLogger(name)
@@ -119,47 +120,43 @@ if __name__ == '__main__':
 
         log.info('Completed torrent "{}" found with hash {}'.format(bn, hash,))
 
-    try:
-        sftp_client = SFTPClient(hostname=args.host,
-                                 username=user,
-                                 password=password,
-                                 port=args.port)
-    except Exception as e:
-        log.error(str(e))
-        _lock.release()
-        cleanup_and_exit()
-
-    log.info('Verifying contents of {} with previous '
-             'response'.format(look_for))
+    sftp_client_args = dict(
+        hostname=args.host,
+        username=user,
+        password=password,
+        port=args.port,
+    )
 
     try:
-        sftp_client.client.chdir(args.remote_dir[0])
-        for item in sftp_client.client.listdir_iter(read_aheads=10):
-            if item.filename not in names:
-                log.error('File or directory "{}" not found in previous '
-                        'response body'.format(name))
-                continue
+        with SFTPClient(**sftp_client_args) as sftp_client:
+            log.info('Verifying contents of {} with previous '
+                     'response'.format(look_for))
 
-            log.debug('Found matching torrent "{}" from ls output'.format(item.filename))
-    except KeyboardInterrupt:
-        pass
+            sftp_client.chdir(args.remote_dir[0])
+            for item in sftp_client.listdir_iter(read_aheads=10):
+                if item.filename not in names:
+                    log.error('File or directory "{}" not found in previous '
+                            'response body'.format(name))
+                    continue
+
+                log.debug('Found matching torrent "{}" from ls output'.format(item.filename))
+
+            if not len(names.items()):
+                log.info('Nothing found to mirror')
+                _lock.release()
+                cleanup_and_exit()
+
+            sftp_client.mirror(destroot=local_dir,
+                               resume=args.resume,
+                               keep_modes=not args.no_preserve_permissions,
+                               keep_times=not args.no_preserve_times)
     except Exception as e:
-        log.error(str(e))
-        _lock.release()
-        cleanup_and_exit()
-
-    if not len(names.items()):
-        log.info('Nothing found to mirror')
-        _lock.release()
-        cleanup_and_exit()
-
-    try:
-        sftp_client.mirror(destroot=local_dir,
-                           resume=args.resume,
-                           keep_modes=not args.no_preserve_permissions,
-                           keep_times=not args.no_preserve_times)
-    except Exception as e:
-        log.error(str(e))
+        if args.debug:
+            _lock.release()
+            cleanup()
+            raise e
+        else:
+            log.error(str(e))
         _lock.release()
         cleanup_and_exit()
 
