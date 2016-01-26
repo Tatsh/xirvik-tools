@@ -68,7 +68,7 @@ class SFTPClient:
                 self._log.debug('Ignorning {}()'.format(method_name))
                 continue
 
-            if getattr(self, method_name):
+            if hasattr(self, method_name):
                 raise AttributeError('Not overwriting property "{}". This '
                                      'version of Paramiko is not '
                                      'supported.'.format(method_name))
