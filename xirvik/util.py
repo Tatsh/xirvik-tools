@@ -82,7 +82,7 @@ def verify_torrent_contents(torrent_file, path):
         try:
             with open(torrent_file, 'rb') as f:
                 torrent = bdecode(f.read())
-        except IOError:
+        except (IOError, TypeError):
             torrent = bdecode(torrent_file)
 
     path = path_join(path, torrent[b'info'][b'name'].decode('utf-8'))
