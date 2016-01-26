@@ -97,7 +97,7 @@ class ruTorrentClient:
         source_torrent_uri = ('{}/rtorrent/plugins/source/action.php'
                               '?hash={}'.format(self.http_prefix, hash))
 
-        r = self._session.get(self.source_torrent_uri,
+        r = self._session.get(source_torrent_uri,
                               auth=self.auth,
                               stream=True)
 
