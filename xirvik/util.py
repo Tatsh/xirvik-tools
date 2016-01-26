@@ -43,9 +43,6 @@ def _get_torrent_pieces(filenames, basepath, piece_length):
         except IOError:
             yield None
 
-        if isdir(name):
-            continue
-
         if size <= piece_length:
             with open(name, 'rb') as f:
                 tmp = f.read()
@@ -95,8 +92,10 @@ def verify_torrent_contents(torrent_file, path):
     piece_hashes = struct.unpack('<{}B'.format(len(piece_hashes)),
                                  piece_hashes)
     piece_hashes = _chunks(piece_hashes, 20)
-    filenames = [x[b'path'][0].decode('utf-8')
-                 for x in torrent[b'info'][b'files']]
+    filenames = []
+    for record in torrent[b'info'][b'files']:
+        _path = '/'.join([x.decode('utf-8') for x in record[b'path']])
+        filenames.append(_path)
 
     pieces = _get_torrent_pieces(filenames, path, piece_length)
 
