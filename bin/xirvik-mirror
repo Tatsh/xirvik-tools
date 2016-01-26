@@ -21,7 +21,11 @@ from xirvik.client import (
 )
 from xirvik.logging import cleanup, get_logger
 from xirvik.sftp import SFTPClient
-from xirvik.util import ctrl_c_handler, cleanup_and_exit
+from xirvik.util import (
+    cleanup_and_exit,
+    ctrl_c_handler,
+    verify_torrent_contents,
+)
 
 
 _lock = None
@@ -160,10 +164,24 @@ if __name__ == '__main__':
         _lock.release()
         cleanup_and_exit()
 
+    _all = names.items()
+    should_exit_with_failure = False
+    for bn, (hash, fullpath) in _all:
+        r, _ = client.get_torrent(hash)
+        if not verify_torrent_contents(r.content, local_dir):
+            log.error('Could not verify "{}" contents against piece hashes in torrent file'.format(bn))
+            should_exit_with_failure = True
+            break
+
+    if should_exit_with_failure:
+        log.error('Could not verify torrent checksums')
+        _lock.release()
+        cleanup_and_exit(1)
+
     # Move to _seeding directory and set label
     # Unfortunately, there is no method, via the API, to do this one HTTP
     #   request
-    for bn, (hash, fullpath) in names.items():
+    for bn, (hash, fullpath) in _all:
         log.info('Moving "{}" to "{}" directory'.format(bn, move_to))
         try:
             client.move_torrent(hash, move_to)
