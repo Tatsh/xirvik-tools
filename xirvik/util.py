@@ -72,6 +72,8 @@ def _get_torrent_pieces(filenames, basepath, piece_length):
 
 
 def verify_torrent_contents(torrent_file, path):
+    orig_path = path
+
     if hasattr(torrent_file, 'seek') and hasattr(torrent_file, 'read'):
         torrent_file.seek(0)
         torrent = bdecode(torrent_file.read())
@@ -83,8 +85,14 @@ def verify_torrent_contents(torrent_file, path):
             torrent = bdecode(torrent_file)
 
     path = path_join(path, torrent[b'info'][b'name'].decode('utf-8'))
+    is_a_file = False
+    try:
+        with open(path, 'rb'):
+            is_a_file = True
+    except IOError:
+        pass
 
-    if not isdir(path):
+    if not isdir(path) and not is_a_file:
         return False
 
     piece_length = torrent[b'info'][b'piece length']
@@ -92,10 +100,17 @@ def verify_torrent_contents(torrent_file, path):
     piece_hashes = struct.unpack('<{}B'.format(len(piece_hashes)),
                                  piece_hashes)
     piece_hashes = _chunks(piece_hashes, 20)
-    filenames = []
-    for record in torrent[b'info'][b'files']:
-        _path = '/'.join([x.decode('utf-8') for x in record[b'path']])
-        filenames.append(_path)
+
+    try:
+        filenames = ['/'.join([y.decode('utf-8') for y in x[b'path']])
+                    for x in torrent[b'info'][b'files']]
+    except KeyError as e:
+        if e.args[0] != b'files':
+            raise e
+
+        # Single file torrent, never has a directory
+        filenames = [path]
+        path = orig_path
 
     pieces = _get_torrent_pieces(filenames, path, piece_length)
 
