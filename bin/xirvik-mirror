@@ -167,6 +167,10 @@ if __name__ == '__main__':
     _all = names.items()
     should_exit_with_failure = False
     for bn, (hash, fullpath) in _all:
+        # There is a warning that can get raised here by urllib3 if
+        # Content-Disposition header's filename field has any
+        # non-ASCII characters. It is ignorable as the content still gets
+        # downloaded correctly
         r, _ = client.get_torrent(hash)
         if not verify_torrent_contents(r.content, local_dir):
             log.error('Could not verify "{}" contents against piece hashes in torrent file'.format(bn))
