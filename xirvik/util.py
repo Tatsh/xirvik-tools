@@ -103,7 +103,7 @@ def verify_torrent_contents(torrent_file, path):
 
     try:
         filenames = ['/'.join([y.decode('utf-8') for y in x[b'path']])
-                    for x in torrent[b'info'][b'files']]
+                     for x in torrent[b'info'][b'files']]
     except KeyError as e:
         if e.args[0] != b'files':
             raise e
