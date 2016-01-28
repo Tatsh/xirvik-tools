@@ -136,9 +136,8 @@ class SFTPClient:
                     try:
                         # This is like getfo() but uses resume_seek for
                         # both local and remote to resume the transfer
-                        # Only size is used to determine complete-ness
-                        # TODO Add hashing using torrent file as source of
-                        #      hashes
+                        # Only size is used to determine complete-ness here
+                        # Hash verification is in the util module
                         if resume_seek and resume:
                             with self.client.open(_path) as rf:
                                 rf.seek(resume_seek)
