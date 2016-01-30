@@ -8,6 +8,7 @@ import re
 import socket
 
 from paramiko.client import SSHClient
+from paramiko.sftp import SFTPError
 
 __all__ = [
     'SFTPClient',
@@ -162,13 +163,22 @@ class SFTPClient:
                         n += 1
 
                         break
-                    except socket.timeout:
-                        resume_seek = os.stat(dest).st_size
-                        self._log.error('Connection timed out')
+                    except (socket.timeout, SFTPError) as e:
+                        # Resume at position - 10 bytes
+                        resume_seek = os.stat(dest).st_size - 10
+                        if isinstance(e, socket.timeout):
+                            self._log.error('Connection timed out')
+                        else:
+                            self._log.error('{!s}'.format(e))
+
                         if resume:
                             self._log.info('Resuming GET {} at {} '
                                            'bytes'.format(_path,
                                                           resume_seek))
+                        else:
+                            raise e
+
+                        self._log.debug('Re-establishing connection')
                         self._connect(**self.original_arguments)
 
             # Okay to fix existing files even if they are already downloaded
@@ -182,3 +192,5 @@ class SFTPClient:
     def __str__(self):
         return '{} (wrapped by {}.SFTPClient)'.format(
             str(self.client), __name__)
+    __unicode__ = __str__
+
