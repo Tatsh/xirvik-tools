@@ -127,7 +127,7 @@ if __name__ == '__main__':
             pass
         cleanup_and_exit(1)
 
-    for hash, v in client.list_torrents().items():
+    for hash, v in torrents.items():
         if not v[TORRENT_PATH_INDEX].startswith(look_for):
             continue
         bn = basename(v[TORRENT_PATH_INDEX])
