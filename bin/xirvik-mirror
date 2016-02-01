@@ -116,6 +116,17 @@ if __name__ == '__main__':
     log.debug('Moving finished torrents to: {}'.format(move_to))
 
     log.info('Getting current torrent information (ruTorrent)')
+    try:
+        torrents = client.list_torrents()
+    except requests.exceptions.ConnectionError as e:
+        # Assume no Internet connection at this point
+        log.error('Failed to connect: {}'.format(e))
+        try:
+            _lock.release()
+        except NotLocked:
+            pass
+        cleanup_and_exit(1)
+
     for hash, v in client.list_torrents().items():
         if not v[TORRENT_PATH_INDEX].startswith(look_for):
             continue
