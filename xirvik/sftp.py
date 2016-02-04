@@ -61,6 +61,7 @@ class SFTPClient:
         self.client.get_channel().settimeout(kwargs_to_paramiko['timeout'])
 
         # 'Extend' the SFTPClient class
+        is_reconnect = kwargs.pop('is_reconnect', False)
         members = inspect.getmembers(self.client,
                                      predicate=inspect.ismethod)
         self._log.debug('Dynamically adding methods from original SFTPClient')
@@ -69,7 +70,7 @@ class SFTPClient:
                 self._log.debug('Ignorning {}()'.format(method_name))
                 continue
 
-            if hasattr(self, method_name):
+            if not is_reconnect and hasattr(self, method_name):
                 raise AttributeError('Not overwriting property "{}". This '
                                      'version of Paramiko is not '
                                      'supported.'.format(method_name))
@@ -105,6 +106,7 @@ class SFTPClient:
                resume=True):
         n = 0
         resume_seek = None
+        cwd = self.getcwd()
 
         for _path, info in self.listdir_attr_recurse(path=path):
             if info.st_mode & 0o700 == 0o700:
@@ -129,10 +131,11 @@ class SFTPClient:
 
                     if current_size != info.st_size:
                         resume_seek = current_size
-                        self._log.info('Resuming file {} at {} '
-                                       'bytes'.format(dest, current_size))
+                        if resume:
+                            self._log.info('Resuming file {} at {} '
+                                           'bytes'.format(dest, current_size))
                         raise IOError()  # ugly goto
-            except IOError:
+            except IOError as ioe:
                 while True:
                     try:
                         # This is like getfo() but uses resume_seek for
@@ -141,8 +144,8 @@ class SFTPClient:
                         # Hash verification is in the util module
                         if resume_seek and resume:
                             with self.client.open(_path) as rf:
-                                rf.seek(resume_seek)
                                 rf.prefetch(info.st_size - resume_seek)
+                                rf.seek(resume_seek)
 
                                 with open(dest, 'ab') as f:
                                     f.seek(resume_seek)
@@ -176,16 +179,23 @@ class SFTPClient:
                                            'bytes'.format(_path,
                                                           resume_seek))
                         else:
+                            self._log.debug('Not resuming (resume = {}, exception: {})'.format(resume, e))
                             raise e
 
                         self._log.debug('Re-establishing connection')
+                        self.original_arguments['is_reconnect'] = True
                         self._connect(**self.original_arguments)
+                        if cwd:
+                            self.chdir(cwd)
 
             # Okay to fix existing files even if they are already downloaded
-            if keep_modes:
-                chmod(dest, info.st_mode)
-            if keep_times:
-                utime(dest, (info.st_atime, info.st_mtime,))
+            try:
+                if keep_modes:
+                    chmod(dest, info.st_mode)
+                if keep_times:
+                    utime(dest, (info.st_atime, info.st_mtime,))
+            except IOError:
+                pass
 
         return n
 
@@ -193,4 +203,3 @@ class SFTPClient:
         return '{} (wrapped by {}.SFTPClient)'.format(
             str(self.client), __name__)
     __unicode__ = __str__
-
