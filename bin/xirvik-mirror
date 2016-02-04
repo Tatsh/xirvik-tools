@@ -176,7 +176,8 @@ if __name__ == '__main__':
         cleanup_and_exit()
 
     _all = names.items()
-    should_exit_with_failure = False
+    exit_status = 0
+    bad = []
     for bn, (hash, fullpath) in _all:
         # There is a warning that can get raised here by urllib3 if
         # Content-Disposition header's filename field has any
@@ -185,13 +186,12 @@ if __name__ == '__main__':
         r, _ = client.get_torrent(hash)
         if not verify_torrent_contents(r.content, local_dir):
             log.error('Could not verify "{}" contents against piece hashes in torrent file'.format(bn))
-            should_exit_with_failure = True
-            break
+            exit_status = 1
+            bad.append(hash)
 
-    if should_exit_with_failure:
-        log.error('Could not verify torrent checksums')
-        _lock.release()
-        cleanup_and_exit(1)
+    for i, (bn, (hash, fullpath)) in enumerate(_all):
+        if hash in bad:
+            _all.pop(i)
 
     # Move to _seeding directory and set label
     # Unfortunately, there is no method, via the API, to do this one HTTP
@@ -209,5 +209,8 @@ if __name__ == '__main__':
                                        in names.items()],
                                label=args.label)
 
+    if exit_status != 0:
+        log.error('Could not verify torrent checksums')
+
     _lock.release()
-    cleanup_and_exit()
+    cleanup_and_exit(exit_status)
