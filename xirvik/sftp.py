@@ -1,4 +1,5 @@
 from __future__ import print_function
+from math import ceil
 from os import chmod, makedirs, utime
 from os.path import basename, dirname, isdir, join as path_join
 import inspect
@@ -9,6 +10,7 @@ import socket
 
 from paramiko.client import SSHClient
 from paramiko.sftp import SFTPError
+from paramiko import SFTPFile
 
 __all__ = [
     'SFTPClient',
@@ -20,6 +22,8 @@ LOG_NAME = 'xirvik.sftp'
 
 
 class SFTPClient:
+    MAX_PACKET_SIZE = SFTPFile.__dict__['MAX_REQUEST_SIZE']
+
     ssh_client = None
     client = None
     raise_exceptions = False
@@ -138,25 +142,27 @@ class SFTPClient:
             except IOError as ioe:
                 while True:
                     try:
-                        # This is like getfo() but uses resume_seek for
-                        # both local and remote to resume the transfer
                         # Only size is used to determine complete-ness here
                         # Hash verification is in the util module
                         if resume_seek and resume:
-                            with self.client.open(_path) as rf:
-                                rf.prefetch(info.st_size - resume_seek)
-                                rf.seek(resume_seek)
+                            read_tuples = []
 
+                            n_reads = ceil((info.st_size - resume_seek) / self.MAX_PACKET_SIZE) - 1
+                            n_left = (info.st_size - resume_seek) % self.MAX_PACKET_SIZE
+                            offset = 0
+
+                            for n in range(n_reads):
+                                read_tuples.append((resume_seek + offset, self.MAX_PACKET_SIZE,))
+                                offset += self.MAX_PACKET_SIZE
+                            read_tuples.append((resume_seek + offset, n_left,))
+
+                            with self.client.open(_path) as rf:
                                 with open(dest, 'ab') as f:
                                     f.seek(resume_seek)
                                     resume_seek = None
 
-                                    while True:
-                                        data = rf.read(32768)
-                                        if not len(data):
-                                            break
-
-                                        f.write(data)
+                                    for chunk in rf.readv(read_tuples):
+                                        f.write(chunk)
                         else:
                             self._log.info('Downloading {} -> '
                                            '{}'.format(_path, dest))
