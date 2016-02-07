@@ -189,14 +189,12 @@ if __name__ == '__main__':
             exit_status = 1
             bad.append(hash)
 
-    for i, (bn, (hash, fullpath)) in enumerate(_all):
-        if hash in bad:
-            _all.pop(i)
-
     # Move to _seeding directory and set label
     # Unfortunately, there is no method, via the API, to do this one HTTP
     #   request
     for bn, (hash, fullpath) in _all:
+        if hash in bad:
+            continue
         log.info('Moving "{}" to "{}" directory'.format(bn, move_to))
         try:
             client.move_torrent(hash, move_to)
@@ -206,7 +204,7 @@ if __name__ == '__main__':
     log.info('Setting label to "{}" for downloaded items'.format(args.label))
 
     client.set_label_to_hashes(hashes=[hash for bn, (hash, fullpath)
-                                       in names.items()],
+                                       in names.items() if hash not in bad],
                                label=args.label)
 
     if exit_status != 0:
