@@ -49,10 +49,11 @@ class SFTPClient:
             username=kwargs.pop('username'),
             port=kwargs.pop('port', 22),
             allow_agent=False,
-            timeout=kwargs.pop('timeout', 10),
+            timeout=kwargs.pop('timeout', None),
         )
         host = kwargs.pop('hostname', 'localhost')
         password = kwargs.pop('password')
+        keepalive = kwargs.pop('keepalive', 5)
         if password:
             kwargs_to_paramiko['password'] = password
         self.raise_exceptions = kwargs.pop('raise_exceptions', False)
@@ -62,7 +63,9 @@ class SFTPClient:
         self.ssh_client.connect(host, **kwargs_to_paramiko)
 
         self.client = self.ssh_client.open_sftp()
-        self.client.get_channel().settimeout(kwargs_to_paramiko['timeout'])
+        channel = self.client.get_channel()
+        channel.settimeout(kwargs_to_paramiko['timeout'])
+        channel.get_transport().set_keepalive(keepalive)
 
         # 'Extend' the SFTPClient class
         is_reconnect = kwargs.pop('is_reconnect', False)
