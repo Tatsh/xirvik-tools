@@ -1,0 +1,117 @@
+From 224f8e206fb5810c9302d626c5db523f470ab6bf Mon Sep 17 00:00:00 2001
+From: "Stephen C. Pope" <stephen.pope@predict.com>
+Date: Sun, 23 Aug 2015 09:30:21 -0600
+Subject: [PATCH 1/2] fix sftp stalls
+
+---
+ paramiko/sftp_client.py | 24 ++++++++++++++----------
+ paramiko/sftp_file.py   | 20 ++++++++++++--------
+ 2 files changed, 26 insertions(+), 18 deletions(-)
+
+diff --git a/paramiko/sftp_client.py b/paramiko/sftp_client.py
+index 89840ea..5bfe16d 100644
+--- a/paramiko/sftp_client.py
++++ b/paramiko/sftp_client.py
+@@ -747,10 +747,10 @@ def _async_request(self, fileobj, t, *arg):
+                     raise Exception('unknown type for %r type %r' % (item, type(item)))
+             num = self.request_number
+             self._expecting[num] = fileobj
+-            self._send_packet(t, msg)
+             self.request_number += 1
+         finally:
+             self._lock.release()
++        self._send_packet(t, msg)
+         return num
+ 
+     def _read_response(self, waitfor=None):
+@@ -761,15 +761,19 @@ def _read_response(self, waitfor=None):
+                 raise SSHException('Server connection dropped: %s' % str(e))
+             msg = Message(data)
+             num = msg.get_int()
+-            if num not in self._expecting:
+-                # might be response for a file that was closed before responses came back
+-                self._log(DEBUG, 'Unexpected response #%d' % (num,))
+-                if waitfor is None:
+-                    # just doing a single check
+-                    break
+-                continue
+-            fileobj = self._expecting[num]
+-            del self._expecting[num]
++            self._lock.acquire()
++            try:
++                if num not in self._expecting:
++                    # might be response for a file that was closed before responses came back
++                    self._log(DEBUG, 'Unexpected response #%d' % (num,))
++                    if waitfor is None:
++                        # just doing a single check
++                        break
++                    continue
++                fileobj = self._expecting[num]
++                del self._expecting[num]
++            finally:
++                self._lock.release()
+             if num == waitfor:
+                 # synchronous
+                 if t == CMD_STATUS:
+diff --git a/paramiko/sftp_file.py b/paramiko/sftp_file.py
+index d0a37da..a77bc92 100644
+--- a/paramiko/sftp_file.py
++++ b/paramiko/sftp_file.py
+@@ -460,8 +460,8 @@ def _prefetch_thread(self, chunks):
+         # do these read requests in a temporary thread because there may be
+         # a lot of them, so it may block.
+         for offset, length in chunks:
++            num = self.sftp._async_request(self, CMD_READ, self.handle, long(offset), int(length))
+             with self._prefetch_lock:
+-                num = self.sftp._async_request(self, CMD_READ, self.handle, long(offset), int(length))
+                 self._prefetch_extents[num] = (offset, length)
+ 
+     def _async_response(self, t, msg, num):
+@@ -475,13 +475,17 @@ def _async_response(self, t, msg, num):
+         if t != CMD_DATA:
+             raise SFTPError('Expected data')
+         data = msg.get_string()
+-        with self._prefetch_lock:
+-            offset, length = self._prefetch_extents[num]
+-            self._prefetch_data[offset] = data
+-            del self._prefetch_extents[num]
+-            if len(self._prefetch_extents) == 0:
+-                self._prefetch_done = True
+-    
++        while True:
++            with self._prefetch_lock:
++                # spin if in race with _prefetch_thread
++                if self._prefetch_extents.has_key(num):
++                    offset, length = self._prefetch_extents[num]
++                    self._prefetch_data[offset] = data
++                    del self._prefetch_extents[num]
++                    if len(self._prefetch_extents) == 0:
++                        self._prefetch_done = True
++                    break
++
+     def _check_exception(self):
+         """if there's a saved exception, raise & clear it"""
+         if self._saved_exception is not None:
+
+From 3a27a1b12c13d6479ff02bb22628987def2b3510 Mon Sep 17 00:00:00 2001
+From: "Stephen C. Pope" <stephen.pope@predict.com>
+Date: Mon, 24 Aug 2015 09:54:55 -0600
+Subject: [PATCH 2/2] don't use has_key()
+
+---
+ paramiko/sftp_file.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/paramiko/sftp_file.py b/paramiko/sftp_file.py
+index a77bc92..b3c1d64 100644
+--- a/paramiko/sftp_file.py
++++ b/paramiko/sftp_file.py
+@@ -478,7 +478,7 @@ def _async_response(self, t, msg, num):
+         while True:
+             with self._prefetch_lock:
+                 # spin if in race with _prefetch_thread
+-                if self._prefetch_extents.has_key(num):
++                if num in self._prefetch_extents:
+                     offset, length = self._prefetch_extents[num]
+                     self._prefetch_data[offset] = data
+                     del self._prefetch_extents[num]
