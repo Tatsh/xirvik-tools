@@ -33,6 +33,7 @@ def get_logger(name,
         log.addHandler(channel)
 
     if syslog:
+        log.setLevel(level)
         syslogh = SysLogHandler(address='/dev/log')
 
         syslogh.setFormatter(logging.Formatter('%(message)s'))
