@@ -48,7 +48,8 @@ if __name__ == '__main__':
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-P', '--port', type=int, default=22)
     parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
-    parser.add_argument('-r', '--resume', action='store_true')
+    parser.add_argument('-r', '--resume', action='store_true',
+                        help='Resume incomplete files (experimental)')
     parser.add_argument('-T', '--move-to', required=True)
     parser.add_argument('-L', '--label', default='Seeding')
     parser.add_argument('-d', '--debug', action='store_true')
