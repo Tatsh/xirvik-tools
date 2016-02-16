@@ -25,6 +25,7 @@ from xirvik.util import (
     cleanup_and_exit,
     ctrl_c_handler,
     verify_torrent_contents,
+    VerificationError,
 )
 
 
@@ -184,8 +185,11 @@ if __name__ == '__main__':
         # Content-Disposition header's filename field has any
         # non-ASCII characters. It is ignorable as the content still gets
         # downloaded correctly
+        log.info('Verifying "{}"'.format(bn))
         r, _ = client.get_torrent(hash)
-        if not verify_torrent_contents(r.content, local_dir):
+        try:
+            verify_torrent_contents(r.content, local_dir)
+        except VerificationError as e:
             log.error('Could not verify "{}" contents against piece hashes in torrent file'.format(bn))
             exit_status = 1
             bad.append(hash)
