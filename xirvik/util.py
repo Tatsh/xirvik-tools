@@ -43,10 +43,14 @@ def _get_torrent_pieces(filenames, basepath, piece_length):
         except IOError:
             yield None
 
-        if size <= piece_length:
+        if size <= piece_length and p_delta > size:
             with open(name, 'rb') as f:
                 tmp = f.read()
                 p_delta -= len(tmp)
+
+                if p_delta <= 0:
+                    p_delta = piece_length
+
                 buf += tmp
 
             continue
@@ -59,16 +63,19 @@ def _get_torrent_pieces(filenames, basepath, piece_length):
                 if not tmp:
                     break
 
-                if len(tmp) < p_delta:
-                    buf += tmp
-                    break
-
                 buf += tmp
+
+                if len(tmp) < p_delta:
+                    break
 
                 if p_delta <= 0:
                     yield buf
                     buf = b''
                     p_delta = piece_length
+
+
+class VerificationError(Exception):
+    pass
 
 
 def verify_torrent_contents(torrent_file, path):
@@ -93,7 +100,7 @@ def verify_torrent_contents(torrent_file, path):
         pass
 
     if not isdir(path) and not is_a_file:
-        return False
+        raise IOError('Path specified for torrent data is invalid')
 
     piece_length = torrent[b'info'][b'piece length']
     piece_hashes = torrent[b'info'][b'pieces']
@@ -118,9 +125,7 @@ def verify_torrent_contents(torrent_file, path):
         try:
             file_hash = sha1(piece).digest()
         except TypeError:
-            return False
+            raise VerificationError('Unable to get hash for piece')
 
         if not compare_digest(bytes(known_hash), file_hash):
-            return False
-
-    return True
+            raise VerificationError('Computed hash does not match torrent file\'s hash')
