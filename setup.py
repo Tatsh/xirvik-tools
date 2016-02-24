@@ -10,7 +10,7 @@ setup(
     license='LICENSE.txt',
     description='Xirvik (ruTorrent mostly) tools.',
     long_description=open('README.rst').read(),
-    scripts=['bin/xirvik-mirror', 'bin/xirvik-start-torrents'],
+    scripts=['bin/xirvik-start-torrents'],
     install_requires=[
         'bencodepy>=0.9.5',
         'cached-property>=1.0.0',
@@ -19,4 +19,9 @@ setup(
         'paramiko>=1.16',
         'requests>=2.6.0',
     ],
+    entry_points = {
+        'console_scripts': [
+            'xirvik-mirror = xirvik.mirror:main'
+        ]
+    }
 )

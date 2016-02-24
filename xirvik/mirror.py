@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from logging.handlers import SysLogHandler
 from os.path import basename, expanduser, join as path_join, realpath
 from netrc import netrc
@@ -28,7 +27,6 @@ from xirvik.util import (
     VerificationError,
 )
 
-
 _lock = None
 
 def lock_ctrl_c_handler(signum, frame):
@@ -41,7 +39,8 @@ def lock_ctrl_c_handler(signum, frame):
     ctrl_c_handler(signum, frame)
     raise SystemExit('Signal raised')
 
-if __name__ == '__main__':
+
+def main():
     signal.signal(signal.SIGINT, lock_ctrl_c_handler)
 
     parser = argparse.ArgumentParser()
