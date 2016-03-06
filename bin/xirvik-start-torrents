@@ -34,6 +34,18 @@ def ctrl_c(signum, frame):
     raise SystemExit('Signal raised')
 
 
+class ReadableDirectoryListAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        dirs = []
+
+        for prospective_dir in values:
+            ns = argparse.Namespace()
+            ReadableDirectoryAction.__call__(self, parser, ns, prospective_dir, option_string)
+            dirs.append(ns.directory)
+
+        setattr(namespace, self.dest, dirs)
+
+
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, ctrl_c)
 
@@ -52,10 +64,11 @@ if __name__ == '__main__':
     parser.add_argument('-H', '--host', nargs=1, required=True)
     parser.add_argument('-p', '--port', nargs=1, default=[443])
     parser.add_argument('--start-stopped', action='store_true')
+    parser.add_argument('-s', '--syslog', action='store_true')
     parser.add_argument('directory',
                         metavar='DIRECTORY',
-                        action=ReadableDirectoryAction)
-    parser.add_argument('-s', '--syslog', action='store_true')
+                        action=ReadableDirectoryListAction,
+                        nargs='*')
 
     args = parser.parse_args()
     user, _, password = netrc(args.netrc_path).authenticators(args.host[0])
@@ -96,33 +109,34 @@ if __name__ == '__main__':
     if args.start_stopped:
         form_data['torrents_start_stopped'] = 'on'
 
-    for item in listdir(args.directory):
-        if not item.lower().endswith('.torrent'):
-            continue
+    for d in args.directory:
+        for item in listdir(d):
+            if not item.lower().endswith('.torrent'):
+                continue
 
-        item = path_join(args.directory, item)
+            item = path_join(d, item)
 
-        # Workaround for surrogates not allowed error, rename the file
-        prefix = '{n:s}-'.format(n=splitext(basename(item))[0])
-        fd, name = mkstemp(dir=cache_dir, prefix=prefix, suffix='.torrent')
-        with open(name, 'wb') as w:
-            with open(item, 'rb') as r:
-                w.write(r.read())
-        old = item
-        item = name
+            # Workaround for surrogates not allowed error, rename the file
+            prefix = '{n:s}-'.format(n=splitext(basename(item))[0])
+            fd, name = mkstemp(dir=cache_dir, prefix=prefix, suffix='.torrent')
+            with open(name, 'wb') as w:
+                with open(item, 'rb') as r:
+                    w.write(r.read())
+            old = item
+            item = name
 
-        rm(old)
-        close_fd(fd)
+            rm(old)
+            close_fd(fd)
 
-        with open(item, 'rb') as f:
-            files = dict(torrent_file=f)
-            log.info('Uploading torrent {}'.format(item))
-            r = requests.post(post_url, data=form_data, files=files)
+            with open(item, 'rb') as f:
+                files = dict(torrent_file=f)
+                log.info('Uploading torrent {}'.format(item))
+                r = requests.post(post_url, data=form_data, files=files)
 
-            try:
-                r.raise_for_status()
-            except Exception as e:
-                log.error('Caught exception: {e!s}'.format(e))
+                try:
+                    r.raise_for_status()
+                except Exception as e:
+                    log.error('Caught exception: {e!s}'.format(e))
 
     if exceptions_caught:
         log.error('Exceptions caught, exiting with failure status')
