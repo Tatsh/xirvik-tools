@@ -152,7 +152,7 @@ def main():
             for item in sftp_client.listdir_iter(read_aheads=10):
                 if item.filename not in names:
                     log.error('File or directory "{}" not found in previous '
-                            'response body'.format(name))
+                            'response body'.format(item.filename))
                     continue
 
                 log.debug('Found matching torrent "{}" from ls output'.format(item.filename))
