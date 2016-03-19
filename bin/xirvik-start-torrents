@@ -130,7 +130,7 @@ if __name__ == '__main__':
 
             with open(item, 'rb') as f:
                 files = dict(torrent_file=f)
-                log.info('Uploading torrent {}'.format(item))
+                log.info('Uploading torrent {}'.format(basename(item)))
                 r = requests.post(post_url, data=form_data, files=files)
 
                 try:
