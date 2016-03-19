@@ -40,7 +40,8 @@ class ReadableDirectoryListAction(argparse.Action):
 
         for prospective_dir in values:
             ns = argparse.Namespace()
-            ReadableDirectoryAction.__call__(self, parser, ns, prospective_dir, option_string)
+            ns.directory = prospective_dir
+            ReadableDirectoryAction(parser, ns, prospective_dir, option_string)
             dirs.append(ns.directory)
 
         setattr(namespace, self.dest, dirs)
