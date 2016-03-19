@@ -38,11 +38,13 @@ def ctrl_c(signum, frame):
 class ReadableDirectoryListAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         dirs = []
+        kwa = dict(self._get_kwargs())
+        parent = ReadableDirectoryAction(**kwa)
 
         for prospective_dir in values:
             ns = argparse.Namespace()
             ns.directory = prospective_dir
-            ReadableDirectoryAction(parser, ns, prospective_dir, option_string)
+            parent(parser, ns, prospective_dir, option_string)
             dirs.append(ns.directory)
 
         setattr(namespace, self.dest, dirs)
