@@ -137,7 +137,10 @@ if __name__ == '__main__':
                 # https://github.com/kennethreitz/requests/issues/2117
                 # This is not a huge concern, as the API's "Get .torrent" does not
                 # return the file with its original name either
-                filename = unidecode(f.name.decode('utf8'))
+                try:
+                    filename = unidecode(f.name.decode('utf8'))
+                except AttributeError:  # decode
+                    filename = unidecode(f.name)
 
                 files = dict(torrent_file=(filename, f,))
                 log.info('Uploading torrent {} (actual name: "{}")'.format(basename(item), basename(filename)))
