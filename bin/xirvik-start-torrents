@@ -10,6 +10,7 @@ import signal
 import sys
 
 from osext.argparse_actions import ReadableDirectoryAction
+from unidecode import unidecode
 import requests
 
 syslogh = None
@@ -118,19 +119,25 @@ if __name__ == '__main__':
             item = path_join(d, item)
 
             # Workaround for surrogates not allowed error, rename the file
-            prefix = '{n:s}-'.format(n=splitext(basename(item))[0])
-            fd, name = mkstemp(dir=cache_dir, prefix=prefix, suffix='.torrent')
-            with open(name, 'wb') as w:
-                with open(item, 'rb') as r:
-                    w.write(r.read())
-            old = item
-            item = name
+            #prefix = '{n:s}-'.format(n=splitext(basename(item))[0])
+            #fd, name = mkstemp(dir=cache_dir, prefix=prefix, suffix='.torrent')
+            #with open(name, 'wb') as w:
+            #    with open(item, 'rb') as r:
+            #        w.write(r.read())
+            #old = item
+            #item = name
 
-            rm(old)
-            close_fd(fd)
+            #rm(old)
+            #close_fd(fd)
 
             with open(item, 'rb') as f:
-                files = dict(torrent_file=f)
+                # Because the server does not understand filename*=UTF8'' syntax
+                # https://github.com/kennethreitz/requests/issues/2117
+                # This is not a huge concern, as the API's "Get .torrent" does not
+                # return the file with its original name either
+                filename = unidecode(f.name.decode('utf8'))
+
+                files = dict(torrent_file=(filename, f,))
                 log.info('Uploading torrent {}'.format(basename(item)))
                 r = requests.post(post_url, data=form_data, files=files)
 

@@ -18,6 +18,7 @@ setup(
         'lockfile>=0.10.2',
         'paramiko>=1.16',
         'requests>=2.6.0',
+        'Unidecode>=0.4.19',
     ],
     entry_points = {
         'console_scripts': [
