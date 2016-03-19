@@ -9,6 +9,13 @@ from bencodepy import decode as bdecode
 
 from xirvik.logging import cleanup
 
+__all__ = [
+    'cleanup_and_exit',
+    'ctrl_c_handler',
+    'VerificationError',
+    'verify_torrent_contents',
+]
+
 
 def cleanup_and_exit(status=0):
     cleanup()
