@@ -15,6 +15,9 @@ __all__ = [
 ]
 
 LOG_NAME = 'xirvik.rutorrent'
+
+TORRENT_PIECE_SIZE_INDEX = 13
+TORRENT_LABEL_INDEX = 14
 TORRENT_PATH_INDEX = 25
 
 
@@ -147,6 +150,9 @@ class ruTorrentClient:
         # string as POST data (and you cannot set a key twice in a dictionary).
         hashes = kwargs.pop('hashes', [])
         label = kwargs.pop('label', None)
+        allow_recursive_fix = kwargs.pop('allow_recursive_fix', True)
+        recursion_limit = kwargs.pop('recursion_limit', 5)
+        recursion_attempt = kwargs.pop('recursion_attempt', 0)
 
         if not hashes or not label:
             raise TypeError('"hashes" (list) and "label" (str) keyword '
@@ -173,6 +179,34 @@ class ruTorrentClient:
             self._log.warning('JSON returned should have been an '
                               'array with same length as hashes '
                               'list passed in: {}'.format(json))
+
+            if allow_recursive_fix and recursion_attempt < recursion_limit:
+                recursion_attempt += 1
+
+                self._log.debug('Attempting label again '
+                                '({:d} out of {:d})'.format(recursion_attempt,
+                                                            recursion_limit))
+
+                data = b'mode=setlabel'
+                new_hashes = []
+
+                for hash, v in self.list_torrents().items():
+                    if hash not in hashes or v[TORRENT_LABEL_INDEX].strip():
+                        continue
+
+                    data += '&hash={}'.format(hash).encode('utf-8')
+                    new_hashes.append(hash)
+
+                if not new_hashes:
+                    self._log.debug('Found no torrents to correct')
+                    return
+
+                self.set_label_to_hashes(hashes=new_hashes,
+                                         label=label,
+                                         recursion_limit=recursion_limit,
+                                         recursion_attempt=recursion_attempt)
+            else:
+                self._log.warning('Passed recursion limit for label fix')
 
     def set_label(self, label, hash):
         data = {
