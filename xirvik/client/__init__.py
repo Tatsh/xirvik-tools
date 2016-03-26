@@ -1,4 +1,6 @@
 from cgi import parse_header
+from netrc import netrc
+from os.path import expanduser
 import logging
 
 from cached_property import cached_property
@@ -33,10 +35,20 @@ class ruTorrentClient:
     _http_adapter = None
     _session = None
 
-    def __init__(self, host, name, password, max_retries=10):
-        self.host = host
+    def __init__(self,
+                 host,
+                 name=None,
+                 password=None,
+                 max_retries=10,
+                 **kwargs):
+        if not name and not password:
+            nrc_path = kwargs.pop('netrc_path', expanduser('~/.netrc'))
+            name, _, password = netrc(nrc_path).authenticators(host)
+
         self.name = name
         self.password = password
+
+        self.host = host
         retry = Retry(connect=max_retries,
                       read=max_retries,
                       redirect=False,
