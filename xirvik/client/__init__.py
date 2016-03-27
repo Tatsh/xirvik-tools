@@ -195,8 +195,8 @@ class ruTorrentClient:
             if allow_recursive_fix and recursion_attempt < recursion_limit:
                 recursion_attempt += 1
 
-                self._log.debug('Attempting label again '
-                                '({:d} out of {:d})'.format(recursion_attempt,
+                self._log.info('Attempting label again '
+                               '({:d} out of {:d})'.format(recursion_attempt,
                                                             recursion_limit))
 
                 data = b'mode=setlabel'
