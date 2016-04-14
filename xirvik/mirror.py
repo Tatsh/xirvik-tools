@@ -8,6 +8,7 @@ import json
 import logging
 import re
 import signal
+import subprocess as sp
 import sys
 
 from lockfile import LockFile, NotLocked
@@ -28,6 +29,7 @@ from xirvik.util import (
 )
 
 _lock = None
+
 
 def lock_ctrl_c_handler(signum, frame):
     if _lock:
@@ -90,18 +92,29 @@ def main():
         host=args.host,
     )
 
-    lf_hash = hashlib.sha256(json.dumps(args._get_kwargs()).encode('utf-8')).hexdigest()
+    lf_hash = hashlib.sha256(json.dumps(
+        args._get_kwargs()).encode('utf-8')).hexdigest()
     lf_path = path_join(gettempdir(), 'xirvik-mirror-{}'.format(lf_hash))
     log.debug('Acquiring lock at {}.lock'.format(lf_path))
     _lock = LockFile(lf_path)
+    if _lock.is_locked():
+        psax = [x for x in
+                sp.check_output(['ps', 'ax']).decode('utf-8').split('\n')
+                if sys.argv[0] in x]
+        if len(psax) == 1:
+            log.info('Breaking lock')
+            _lock.break_lock()
     _lock.acquire()
-    log.debug('Lock acquired')
+    log.info('Lock acquired')
 
     log.debug('Local directory to sync to: {}'.format(local_dir))
     log.debug('Read user and password from netrc file')
     log.debug('SFTP URI: {}'.format(sftp_host))
 
-    client = ruTorrentClient(args.host, user, password, max_retries=args.max_retries)
+    client = ruTorrentClient(args.host,
+                             user,
+                             password,
+                             max_retries=args.max_retries)
 
     http_prefix = 'https://{host:s}'.format(host=args.host)
     multirpc_action_uri = ('{}/rtorrent/plugins/multirpc/'
@@ -152,10 +165,11 @@ def main():
             for item in sftp_client.listdir_iter(read_aheads=10):
                 if item.filename not in names:
                     log.error('File or directory "{}" not found in previous '
-                            'response body'.format(item.filename))
+                              'response body'.format(item.filename))
                     continue
 
-                log.debug('Found matching torrent "{}" from ls output'.format(item.filename))
+                log.debug('Found matching torrent "{}" from ls output'.format(
+                    item.filename))
 
             if not len(names.items()):
                 log.info('Nothing found to mirror')
@@ -189,7 +203,8 @@ def main():
         try:
             verify_torrent_contents(r.content, local_dir)
         except VerificationError as e:
-            log.error('Could not verify "{}" contents against piece hashes in torrent file'.format(bn))
+            log.error('Could not verify "{}" contents against piece hashes '
+                      'in torrent file'.format(bn))
             exit_status = 1
             bad.append(hash)
 
