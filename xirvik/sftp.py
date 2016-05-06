@@ -178,9 +178,16 @@ class SFTPClient:
                             nsize = naturalsize(info.st_size,
                                                 binary=True,
                                                 format='%.2f')
+                            total_time = datetime.now() - start_time
+                            speed_in_s = info.st_size / total_time.total_seconds()
+                            speed_in_s = naturalsize(speed_in_s,
+                                                     binary=True,
+                                                     format='%.2f')
 
-                            self._log.info('Downloaded {} in {}'.format(nsize,
-                                naturaldelta(datetime.now() - start_time)))
+                            self._log.info('Downloaded {} in {} ({}/s)'.format(
+                                nsize,
+                                naturaldelta(datetime.now() - start_time),
+                                speed_in_s))
 
                         # Do not count files that were already downloaded
                         n += 1
