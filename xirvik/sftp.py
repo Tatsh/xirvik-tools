@@ -1,13 +1,14 @@
 from __future__ import print_function
 from math import ceil
 from os import chmod, makedirs, utime
-from os.path import basename, dirname, isdir, join as path_join
+from os.path import basename, dirname, isdir, join as path_join, realpath
 import inspect
 import os
 import logging
 import re
 import socket
 
+from humanize import naturaldelta, naturalsize
 from paramiko.client import SSHClient
 from paramiko.sftp import SFTPError
 from paramiko import SFTPFile
@@ -167,9 +168,18 @@ class SFTPClient:
                                     for chunk in rf.readv(read_tuples):
                                         f.write(chunk)
                         else:
+                            dest = realpath(dest)
                             self._log.info('Downloading {} -> '
                                            '{}'.format(_path, dest))
+
+                            start_time = datetime.now()
                             self.client.get(_path, dest)
+                            nsize = naturalsize(info.st_size,
+                                                binary=True,
+                                                format='%.2f')
+
+                            self._log.info('Downloaded {} in {}'.format(nsize,
+                                naturaldelta(datetime.now() - start_time)))
 
                         # Do not count files that were already downloaded
                         n += 1
