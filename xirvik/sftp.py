@@ -1,6 +1,6 @@
 from __future__ import print_function
 from datetime import datetime
-from math import ceil
+from math import ceil, floor
 from os import chmod, makedirs, utime
 from os.path import basename, dirname, isdir, join as path_join, realpath
 import inspect
@@ -21,6 +21,7 @@ __all__ = [
 
 
 LOG_NAME = 'xirvik.sftp'
+LOG_INTERVAL = 60
 
 
 class SFTPClient:
@@ -107,6 +108,36 @@ class SFTPClient:
             else:
                 yield (path_join(path, da.filename), da,)
 
+    def _get_callback(self, start_time, _log):
+        def cb(tx_bytes, total_bytes):
+            total_time = datetime.now() - start_time
+            total_time = total_time.total_seconds()
+            total_time_s = floor(total_time)
+
+            if (total_time_s % LOG_INTERVAL) != 0:
+                return
+
+            nsize_tx = naturalsize(tx_bytes,
+                                   binary=True,
+                                   format='%.2f')
+            nsize_total = naturalsize(total_bytes,
+                                      binary=True,
+                                      format='%.2f')
+
+            speed_in_s = tx_bytes / total_time
+            speed_in_s = naturalsize(speed_in_s,
+                                     binary=True,
+                                     format='%.2f')
+
+            _log.info('Downloaded {} / {} in {} ({}/s)'.format(
+                nsize_tx,
+                nsize_total,
+                naturaldelta(datetime.now() - start_time),
+                speed_in_s,
+                total_time_s))
+
+        return cb
+
     def mirror(self,
                path='.',
                destroot='.',
@@ -174,20 +205,10 @@ class SFTPClient:
                                            '{}'.format(_path, dest))
 
                             start_time = datetime.now()
-                            self.client.get(_path, dest)
-                            nsize = naturalsize(info.st_size,
-                                                binary=True,
-                                                format='%.2f')
-                            total_time = datetime.now() - start_time
-                            speed_in_s = info.st_size / total_time.total_seconds()
-                            speed_in_s = naturalsize(speed_in_s,
-                                                     binary=True,
-                                                     format='%.2f')
+                            self.client.get(_path, dest, self._get_callback(start_time, self._log))
 
-                            self._log.info('Downloaded {} in {} ({}/s)'.format(
-                                nsize,
-                                naturaldelta(datetime.now() - start_time),
-                                speed_in_s))
+
+                            self._get_callback(start_time, self._log)(info.st_size, info.st_size)
 
                         # Do not count files that were already downloaded
                         n += 1
