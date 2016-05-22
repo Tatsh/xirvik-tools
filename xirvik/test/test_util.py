@@ -29,8 +29,8 @@ class TestTorrentVerfication(unittest.TestCase):
             }
         })
 
-    def test_verify_torrent_contents(self):
-        verify_torrent_contents()
+    #def test_verify_torrent_contents(self):
+        #verify_torrent_contents()
 
 
 if __name__ == '__main__':
