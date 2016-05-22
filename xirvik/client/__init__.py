@@ -27,7 +27,7 @@ class UnexpectedruTorrentError(Exception):
     pass
 
 
-class ruTorrentClient:
+class ruTorrentClient(object):
     host = None
     name = None
     password = None
@@ -74,7 +74,7 @@ class ruTorrentClient:
 
     @cached_property
     def _add_torrent_uri(self):
-        return '{}/rtorrent/php/addtorrent.php?'.format(host=self.host)
+        return '{}/rtorrent/php/addtorrent.php?'.format(self.http_prefix)
 
     @cached_property
     def auth(self):
