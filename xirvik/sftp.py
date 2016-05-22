@@ -205,10 +205,11 @@ class SFTPClient:
                                            '{}'.format(_path, dest))
 
                             start_time = datetime.now()
-                            self.client.get(_path, dest, self._get_callback(start_time, self._log))
+                            self.client.get(_path, dest)
 
 
-                            self._get_callback(start_time, self._log)(info.st_size, info.st_size)
+                            self._get_callback(start_time, self._log)(
+                                info.st_size, info.st_size)
 
                         # Do not count files that were already downloaded
                         n += 1
