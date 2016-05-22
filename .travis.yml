@@ -7,4 +7,4 @@ install:
     - pip install -e .
     - pip install requests-mock
 script:
-    - python -m unittest -v xirvik.test.test_client
+    - python -m unittest -v xirvik.test.test_client xirvik.test.test_util
