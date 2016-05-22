@@ -9,7 +9,7 @@ setup(
     url='https://github.com/Tatsh/xirvik-tools',
     license='LICENSE.txt',
     description='Xirvik (ruTorrent mostly) tools.',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     scripts=['bin/xirvik-start-torrents'],
     install_requires=[
         'bencodepy>=0.9.5',
