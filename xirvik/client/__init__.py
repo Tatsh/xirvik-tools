@@ -1,6 +1,7 @@
 from cgi import parse_header
 from netrc import netrc
 from os.path import expanduser
+from urllib.parse import quote
 import logging
 
 from cached_property import cached_property
@@ -21,6 +22,14 @@ LOG_NAME = 'xirvik.rutorrent'
 TORRENT_PIECE_SIZE_INDEX = 13
 TORRENT_LABEL_INDEX = 14
 TORRENT_PATH_INDEX = 25
+
+TORRENT_FILE_PRIORITY_HIGH = 2
+TORRENT_FILE_PRIORITY_NORMAL = 1
+TORRENT_FILE_PRIORITY_DONT_DOWNLOAD = 0
+
+TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL = 0
+TORRENT_FILE_DOWNLOAD_STRATEGY_LEADING_CHUNK_FIRST = 1
+TORRENT_FILE_DOWNLOAD_STRATEGY_TRAILING_CHUNK_FIRST = 2
 
 
 class UnexpectedruTorrentError(Exception):
@@ -237,3 +246,41 @@ class ruTorrentClient(object):
         if label not in last_json:
             raise UnexpectedruTorrentError('Did not find label in JSON: '
                                            '{}'.format(last_json))
+
+    def list_files(self, hash):
+        """
+        List files for a given torrent hash.
+
+        Returns a generator of lists with fields in this order:
+        - name
+        - total number of pieces
+        - number of pieces downloaded
+        - size in bytes
+        - priority
+        - download strategy
+        - ??? (some integer)
+
+        for info in list_files():
+            for name, pieces, pieces_dl, size, dlstrat, _ in info:
+        """
+        cmds = (quote('f.prioritize_first='), quote('f.prioritize_last='),)
+        query = 'mode=fls&hash={}'.format(hash).encode('utf-8')
+        cmds = '&'.join(['cmd={}'.format(x) for x in cmds])
+        query += b'&'
+        query += cmds.encode('utf-8')
+
+        r = self._session.post(self.multirpc_action_uri,
+                               data=query,
+                               auth=self.auth)
+        r.raise_for_status()
+
+        for x in r.json():
+            # Fix the numeric values which come as strings
+            x[1] = int(x[1])  # total number of pieces
+            x[2] = int(x[2])  # downloaded pieces
+            x[3] = int(x[3])  # size in bytes
+            x[4] = int(x[4])  # priority ID
+            x[5] = int(x[5])  # download strategy ID
+            x[6] = int(x[6])  # ??
+
+            yield x

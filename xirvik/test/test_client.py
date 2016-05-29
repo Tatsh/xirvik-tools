@@ -1,11 +1,16 @@
 from os import close as close_fd, remove as rm, write as write_fd
 from tempfile import mkstemp
+from urllib.parse import quote
 import unittest
 
 from requests.exceptions import HTTPError
 import requests_mock
 
-from xirvik.client import ruTorrentClient
+from xirvik.client import (
+    ruTorrentClient,
+    TORRENT_FILE_PRIORITY_NORMAL,
+    TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL,
+)
 
 
 def isfile(filepath):
@@ -91,6 +96,29 @@ class TestRuTorrentClient(unittest.TestCase):
         _, fn = client.get_torrent('hash_of_torrent')
 
         self.assertEqual('test.torrent', fn)
+
+    @requests_mock.Mocker()
+    def test_list_files(self, m):
+        client = ruTorrentClient('hostname-test.com', 'a', 'b')
+        hash = 'testhash'
+
+        cmds = (quote('f.prioritize_first='), quote('f.prioritize_last='),)
+        query = 'mode=fls&hash={}'.format(hash).encode('utf-8')
+        cmds = '&'.join(['cmd={}'.format(x) for x in cmds])
+        query += b'&'
+        query += cmds.encode('utf-8')
+        m.post('https://hostname-test.com/rtorrent/plugins/multirpc/action.php', json=[
+            ['name of file', '14', '13', '8192', '1', '0', '0'],
+        ])
+
+        files = list(client.list_files('testhash'))
+        self.assertEqual('name of file', files[0][0])
+        self.assertEqual(14, files[0][1])
+        self.assertEqual(13, files[0][2])
+        self.assertNotEqual('8192', files[0][3])
+        self.assertEqual(8192, files[0][3])
+        self.assertEqual(TORRENT_FILE_PRIORITY_NORMAL, files[0][4])
+        self.assertEqual(TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL, files[0][5])
 
 
 if __name__ == '__main__':
