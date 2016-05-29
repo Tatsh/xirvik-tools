@@ -21,7 +21,7 @@ setup(
         'requests>=2.6.0',
         'Unidecode>=0.4.19',
     ],
-    entry_points = {
+    entry_points={
         'console_scripts': [
             'xirvik-mirror = xirvik.mirror:main'
         ]

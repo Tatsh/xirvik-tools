@@ -43,7 +43,8 @@ class TestRuTorrentClient(unittest.TestCase):
         return name
 
     def test_netrc(self):
-        netrc_line = 'machine hostname-test.com login a password bbbb\n'.encode('utf-8')
+        netrc_line = ('machine hostname-test.com login a password '
+                      'bbbb\n').encode('utf-8')
         name = self._mktemp(contents=netrc_line)
 
         client = ruTorrentClient('hostname-test.com', netrc_path=name)
@@ -63,14 +64,14 @@ class TestRuTorrentClient(unittest.TestCase):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
         torrent = self._mktemp('torrent file fake'.encode('utf-8'))
 
-        m.post('https://hostname-test.com/rtorrent/php/addtorrent.php', status_code=400)
+        m.post(client._add_torrent_uri, status_code=400)
         with self.assertRaises(HTTPError):
             client.add_torrent(torrent)
 
     @requests_mock.Mocker()
     def test_list_torrents_bad_status(self, m):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
-        m.post('https://hostname-test.com/rtorrent/plugins/multirpc/action.php', status_code=400)
+        m.post(client.multirpc_action_uri, status_code=400)
 
         with self.assertRaises(HTTPError):
             client.list_torrents()
@@ -78,21 +79,23 @@ class TestRuTorrentClient(unittest.TestCase):
     @requests_mock.Mocker()
     def test_list_torrents(self, m):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
-        m.post('https://hostname-test.com/rtorrent/plugins/multirpc/action.php', json=dict(
+        m.post(client.multirpc_action_uri, json=dict(
             t={
                 'hash here': ['1', '0', '1', '1', 'name of torrent?'],
             },
             cid=92385,
         ))
 
-        self.assertEqual(client.list_torrents()['hash here'][4], 'name of torrent?')
+        self.assertEqual(client.list_torrents()['hash here'][4],
+                         'name of torrent?')
 
     @requests_mock.Mocker()
     def test_get_torrent(self, m):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
-        m.get('https://hostname-test.com/rtorrent/plugins/source/action.php?hash=hash_of_torrent', headers={
-            'content-disposition': 'attachment; filename=test.torrent',
-        })
+        uri = ('{}/rtorrent/plugins/source/action.php'
+              '?hash=hash_of_torrent').format(client.http_prefix)
+        m.get(uri, headers={'content-disposition': 'attachment; '
+                            'filename=test.torrent'})
         _, fn = client.get_torrent('hash_of_torrent')
 
         self.assertEqual('test.torrent', fn)
@@ -107,7 +110,7 @@ class TestRuTorrentClient(unittest.TestCase):
         cmds = '&'.join(['cmd={}'.format(x) for x in cmds])
         query += b'&'
         query += cmds.encode('utf-8')
-        m.post('https://hostname-test.com/rtorrent/plugins/multirpc/action.php', json=[
+        m.post(client.multirpc_action_uri, json=[
             ['name of file', '14', '13', '8192', '1', '0', '0'],
         ])
 

@@ -135,4 +135,5 @@ def verify_torrent_contents(torrent_file, path):
             raise VerificationError('Unable to get hash for piece')
 
         if not compare_digest(bytes(known_hash), file_hash):
-            raise VerificationError('Computed hash does not match torrent file\'s hash')
+            raise VerificationError('Computed hash does not match torrent '
+                                    'file\'s hash')

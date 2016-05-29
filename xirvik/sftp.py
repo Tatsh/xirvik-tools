@@ -182,12 +182,15 @@ class SFTPClient:
                         if resume_seek and resume:
                             read_tuples = []
 
-                            n_reads = ceil((info.st_size - resume_seek) / self.MAX_PACKET_SIZE) - 1
-                            n_left = (info.st_size - resume_seek) % self.MAX_PACKET_SIZE
+                            n_reads = ceil((info.st_size - resume_seek) /
+                                           self.MAX_PACKET_SIZE) - 1
+                            n_left = ((info.st_size - resume_seek) %
+                                      self.MAX_PACKET_SIZE)
                             offset = 0
 
                             for n in range(n_reads):
-                                read_tuples.append((resume_seek + offset, self.MAX_PACKET_SIZE,))
+                                read_tuples.append((resume_seek + offset,
+                                                    self.MAX_PACKET_SIZE,))
                                 offset += self.MAX_PACKET_SIZE
                             read_tuples.append((resume_seek + offset, n_left,))
 
@@ -205,7 +208,6 @@ class SFTPClient:
 
                             start_time = datetime.now()
                             self.client.get(_path, dest)
-
 
                             self._get_callback(start_time, self._log)(
                                 info.st_size, info.st_size)
@@ -227,7 +229,9 @@ class SFTPClient:
                                            'bytes'.format(_path,
                                                           resume_seek))
                         else:
-                            self._log.debug('Not resuming (resume = {}, exception: {})'.format(resume, e))
+                            self._log.debug('Not resuming (resume = {}, '
+                                            'exception: {})'.format(resume,
+                                                                    e))
                             raise e
 
                         self._log.debug('Re-establishing connection')

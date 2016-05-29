@@ -206,7 +206,7 @@ class ruTorrentClient(object):
 
                 self._log.info('Attempting label again '
                                '({:d} out of {:d})'.format(recursion_attempt,
-                                                            recursion_limit))
+                                                           recursion_limit))
 
                 data = b'mode=setlabel'
                 new_hashes = []
