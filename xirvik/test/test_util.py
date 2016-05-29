@@ -2,7 +2,6 @@ import unittest
 
 from bencodepy import encode as bencode
 
-from xirvik.util import verify_torrent_contents, VerificationError
 
 
 def create_torrent(path, save_to=None, piece_length=256):
@@ -11,7 +10,6 @@ def create_torrent(path, save_to=None, piece_length=256):
 
 def create_random_data_file(path, size=2306867):
     """size is intentionally a non-power of 2"""
-    pass
 
 
 class TestTorrentVerfication(unittest.TestCase):

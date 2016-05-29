@@ -6,7 +6,6 @@ from os.path import basename, dirname, isdir, join as path_join, realpath
 import inspect
 import os
 import logging
-import re
 import socket
 
 from humanize import naturaldelta, naturalsize

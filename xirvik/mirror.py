@@ -1,4 +1,3 @@
-from logging.handlers import SysLogHandler
 from os.path import basename, expanduser, join as path_join, realpath
 from netrc import netrc
 from tempfile import gettempdir
@@ -6,7 +5,6 @@ import argparse
 import hashlib
 import json
 import logging
-import re
 import signal
 import subprocess as sp
 import sys
