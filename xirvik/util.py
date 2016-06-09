@@ -101,7 +101,8 @@ def verify_torrent_contents(torrent_file, path):
         try:
             with open(torrent_file, 'rb') as f:
                 torrent = bdecode(f.read())
-        except (IOError, TypeError):
+        except (IOError, TypeError, ValueError):
+            # ValueError for 'embedded null byte' in Python 3.5
             torrent = bdecode(torrent_file)
 
     path = path_join(path, torrent[b'info'][b'name'].decode('utf-8'))
