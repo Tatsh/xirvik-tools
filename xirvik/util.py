@@ -80,6 +80,12 @@ def _get_torrent_pieces(filenames, basepath, piece_length):
                     buf = b''
                     p_delta = piece_length
 
+    # Very last set of bytes of the last file, and this will be <= piece size
+    # If this is not returned, a false positive can be given if the last
+    # file's last piece is not valid
+    if buf:
+        yield buf
+
 
 class VerificationError(Exception):
     pass
@@ -113,7 +119,7 @@ def verify_torrent_contents(torrent_file, path):
     piece_hashes = torrent[b'info'][b'pieces']
     piece_hashes = struct.unpack('<{}B'.format(len(piece_hashes)),
                                  piece_hashes)
-    piece_hashes = _chunks(piece_hashes, 20)
+    piece_hashes = _chunks(piece_hashes, sha1().digest_size)
 
     try:
         filenames = ['/'.join([y.decode('utf-8') for y in x[b'path']])
