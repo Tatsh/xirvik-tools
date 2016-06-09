@@ -123,8 +123,8 @@ def verify_torrent_contents(torrent_file, path):
     piece_hashes = _chunks(piece_hashes, sha1().digest_size)
 
     try:
-        filenames = ['/'.join([y.decode('utf-8') for y in x[b'path']])
-                     for x in torrent[b'info'][b'files']]
+        filenames = ('/'.join([y.decode('utf-8') for y in x[b'path']])
+                     for x in torrent[b'info'][b'files'])
     except KeyError as e:
         if e.args[0] != b'files':
             raise e
