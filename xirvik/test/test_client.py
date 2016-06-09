@@ -93,7 +93,7 @@ class TestRuTorrentClient(unittest.TestCase):
     def test_get_torrent(self, m):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
         uri = ('{}/rtorrent/plugins/source/action.php'
-              '?hash=hash_of_torrent').format(client.http_prefix)
+               '?hash=hash_of_torrent').format(client.http_prefix)
         m.get(uri, headers={'content-disposition': 'attachment; '
                             'filename=test.torrent'})
         _, fn = client.get_torrent('hash_of_torrent')
