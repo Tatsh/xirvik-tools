@@ -196,6 +196,7 @@ class ruTorrentClient(object):
         json = r.json()
 
         # This may not be an error, but sometimes just `[]` is returned
+        # Even with the retries, sometimes all but one torrent gets a label
         if len(json) != len(hashes):
             self._log.warning('JSON returned should have been an '
                               'array with same length as hashes '
