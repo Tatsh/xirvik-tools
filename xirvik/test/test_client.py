@@ -103,13 +103,7 @@ class TestRuTorrentClient(unittest.TestCase):
     @requests_mock.Mocker()
     def test_list_files(self, m):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
-        hash = 'testhash'
 
-        cmds = (quote('f.prioritize_first='), quote('f.prioritize_last='),)
-        query = 'mode=fls&hash={}'.format(hash).encode('utf-8')
-        cmds = '&'.join(['cmd={}'.format(x) for x in cmds])
-        query += b'&'
-        query += cmds.encode('utf-8')
         m.post(client.multirpc_action_uri, json=[
             ['name of file', '14', '13', '8192', '1', '0', '0'],
         ])
@@ -122,6 +116,38 @@ class TestRuTorrentClient(unittest.TestCase):
         self.assertEqual(8192, files[0][3])
         self.assertEqual(TORRENT_FILE_PRIORITY_NORMAL, files[0][4])
         self.assertEqual(TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL, files[0][5])
+
+    @requests_mock.Mocker()
+    def test_set_label_to_hashes_recursion_limit_5(self, m):
+        client = ruTorrentClient('hostname-test.com', 'a', 'b')
+        hashes = ['hash1', 'hash2']
+        label = 'my new label'
+        list_torrents_json = dict(
+            t={
+                'hash1': ['1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849', '357999402', '1426', '0', '0', '262144', ''],
+                'hash2': ['1', '0', '1', '1', 'torrent name2', '250952849', '958', '958', '250952849', '357999402', '1426', '0', '0', '262144', ''],
+            },
+            cid=92983,
+        )
+        responses = [
+            dict(json=[]),
+            dict(json=list_torrents_json),
+            dict(json=[]),
+            dict(json=list_torrents_json),
+            dict(json=[]),
+            dict(json=list_torrents_json),
+            dict(json=[]),
+            dict(json=list_torrents_json),
+            dict(json=[]),
+            dict(json=list_torrents_json),
+            dict(json=[]),
+        ]
+
+        m.register_uri('POST', client.multirpc_action_uri, responses)
+        client.set_label_to_hashes(hashes=hashes,
+                                   label=label,
+                                   recursion_limit=5)
+
 
 
 if __name__ == '__main__':
