@@ -144,7 +144,7 @@ class TestRuTorrentClient(unittest.TestCase):
             dict(json=[]),
         ]
 
-        m.register_uri('POST', client.multirpc_action_uri, responses)
+        m.post(client.multirpc_action_uri, responses)
         client.set_label_to_hashes(hashes=hashes,
                                    label=label,
                                    recursion_limit=5)
