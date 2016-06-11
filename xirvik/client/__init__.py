@@ -231,22 +231,7 @@ class ruTorrentClient(object):
                 self._log.warning('Passed recursion limit for label fix')
 
     def set_label(self, label, hash):
-        data = {
-            'mode': 'setlabel',
-            'hash': hash,
-            'v': label,
-            's': 'label',
-        }
-
-        r = self._session.post(self.multirpc_action_uri,
-                               data=data,
-                               auth=self.auth)
-        r.raise_for_status()
-        last_json = r.json()
-
-        if label not in last_json:
-            raise UnexpectedruTorrentError('Did not find label in JSON: '
-                                           '{}'.format(last_json))
+        self.set_label_to_hashes(hashes=[hash], label=label)
 
     def list_files(self, hash):
         """
