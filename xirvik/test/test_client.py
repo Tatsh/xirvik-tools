@@ -153,6 +153,23 @@ class TestRuTorrentClient(unittest.TestCase):
             client.set_label_to_hashes()
 
     @requests_mock.Mocker()
+    def test_set_label(self, m):
+        client = ruTorrentClient('hostname-test.com', 'a', 'b')
+        list_torrents_json = dict(
+            t=dict(
+                hash1=['1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849', '357999402', '1426', '0', '0', '262144', 'a label'],
+            ),
+            cid=92983,
+        )
+        responses = [
+            dict(json=[]),
+            dict(json=list_torrents_json),
+        ]
+
+        m.post(client.multirpc_action_uri, responses)
+        client.set_label('hash1', 'a label')
+
+    @requests_mock.Mocker()
     def test_move_torrent(self, m):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
 
