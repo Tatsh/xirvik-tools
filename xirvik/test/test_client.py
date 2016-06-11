@@ -8,6 +8,7 @@ import requests_mock
 
 from xirvik.client import (
     ruTorrentClient,
+    UnexpectedruTorrentError,
     TORRENT_FILE_PRIORITY_NORMAL,
     TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL,
 )
@@ -148,6 +149,17 @@ class TestRuTorrentClient(unittest.TestCase):
                                    label=label,
                                    recursion_limit=5)
 
+    @requests_mock.Mocker()
+    def test_move_torrent(self, m):
+        client = ruTorrentClient('hostname-test.com', 'a', 'b')
+
+        m.post(client.datadir_action_uri, json=[], status_code=400)
+        with self.assertRaises(HTTPError):
+            client.move_torrent('hash1', 'newplace')
+
+        m.post(client.datadir_action_uri, json={'errors': ['some error']})
+        with self.assertRaises(UnexpectedruTorrentError):
+            client.move_torrent('hash1', 'newplace')
 
 
 if __name__ == '__main__':
