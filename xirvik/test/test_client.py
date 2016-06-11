@@ -149,6 +149,9 @@ class TestRuTorrentClient(unittest.TestCase):
                                    label=label,
                                    recursion_limit=5)
 
+        with self.assertRaises(TypeError):
+            client.set_label_to_hashes()
+
     @requests_mock.Mocker()
     def test_move_torrent(self, m):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
