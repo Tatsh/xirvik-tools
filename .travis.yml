@@ -7,6 +7,6 @@ install:
     - pip install -e .
     - pip install coveralls requests-mock
 script:
-    - coverage run --source=xirvik '--omit=xirvik/test/*' -m unittest -v xirvik.test
+    - coverage run --source=xirvik '--omit=xirvik/test/*' -m unittest -v
 after_success:
     coveralls
