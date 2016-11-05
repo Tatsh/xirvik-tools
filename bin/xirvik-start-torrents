@@ -149,7 +149,7 @@ if __name__ == '__main__':
                 try:
                     r.raise_for_status()
                 except Exception as e:
-                    log.error('Caught exception: {e!s}'.format(e))
+                    log.error('Caught exception: {}'.format(e))
 
     if exceptions_caught:
         log.error('Exceptions caught, exiting with failure status')
