@@ -7,6 +7,11 @@ import logging
 from cached_property import cached_property
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util import Retry
+try:
+    from requests_futures.sessions import FuturesSession
+    has_futures = True
+except ImportError:
+    has_futures = False
 import requests
 
 
@@ -130,6 +135,23 @@ class ruTorrentClient(object):
         fn = parse_header(r.headers['content-disposition'])[1]['filename']
 
         return r, fn
+
+    def get_torrents_futures(self,
+                             hashes,
+                             session=None,
+                             background_callback=None):
+        if not session and has_futures:
+            session = FuturesSession(max_workers=4)
+        else:
+            raise ValueError('Must install requests_futures or pass an '
+                             'equivalent FuturesSession object')
+
+        for hash in hashes:
+            source_torrent_uri = ('{}/rtorrent/plugins/source/action.php'
+                                  '?hash={}'.format(self.http_prefix, hash))
+            yield session.get(source_torrent_uri,
+                              background_callback=background_callback)
+
 
     def move_torrent(self, hash, target_dir, fast_resume=True):
         data = {
