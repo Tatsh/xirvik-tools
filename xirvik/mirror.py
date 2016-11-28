@@ -1,10 +1,13 @@
-from os.path import basename, expanduser, join as path_join, realpath
+from os import chmod, makedirs, utime
+from os.path import (basename, dirname, isdir, expanduser,
+                     join as path_join, realpath)
 from netrc import netrc
 from tempfile import gettempdir
 import argparse
 import hashlib
 import json
 import logging
+import os
 import signal
 import subprocess as sp
 import sys
@@ -40,6 +43,78 @@ def lock_ctrl_c_handler(signum, frame):
     raise SystemExit('Signal raised')
 
 
+def mirror(sftp_client,
+           rclient,
+           path='.',
+           destroot='.',
+           keep_modes=True,
+           keep_times=True):
+    cwd = sftp_client.getcwd()
+    log = logging.getLogger('xirvik')
+
+    for _path, info in sftp_client.listdir_attr_recurse(path=path):
+        if info.st_mode & 0o700 == 0o700:
+            continue
+
+        dest_path = path_join(destroot, dirname(_path))
+        dest = path_join(dest_path, basename(_path))
+
+        if dest_path not in sftp_client._dircache:
+            try:
+                makedirs(dest_path)
+            except OSError:
+                pass
+            sftp_client._dircache.append(dest_path)
+
+        if isdir(dest):
+            continue
+
+        try:
+            current_size = os.stat(dest).st_size
+        except OSError:
+            current_size = None
+
+        if current_size is None or current_size != info.st_size:
+            sess = rclient._session
+            uri = '{}/downloads{}{}'.format(rclient.http_prefix,
+                                            cwd, _path[1:])
+            uri = uri.replace('#', '%23')
+            log.info('Downloading {} -> {}'.format(uri, dest))
+
+            r = sess.get(uri, stream=True)
+            r.raise_for_status()
+            try:
+                total = int(r.headers.get('content-length'))
+                log.info('Content-Length: {}'.format(total))
+            except (KeyError, ValueError):
+                total = None
+
+            with open(dest, 'wb+') as f:
+                dl = 0
+                for chunk in r.iter_content(chunk_size=4096):
+                    f.write(chunk)
+
+                    dl += len(chunk)
+                    done = int(50 * dl / total)
+                    percent = (float(dl) / float(total)) * 100
+                    args = ('=' * done, ' ' * (50 - done), percent,)
+                    sys.stdout.write('\r[{}{}] {:.2f}%'.format(*args))
+                    sys.stdout.flush()
+
+            sys.stdout.write('\n')
+        else:
+            log.info('Skipping already downloaded file {}'.format(dest))
+
+        # Okay to fix existing files even if they are already downloaded
+        try:
+            if keep_modes:
+                chmod(dest, info.st_mode)
+            if keep_times:
+                utime(dest, (info.st_atime, info.st_mtime,))
+        except IOError:
+            pass
+
+
 def main():
     signal.signal(signal.SIGINT, lock_ctrl_c_handler)
 
@@ -62,7 +137,6 @@ def main():
     parser.add_argument('local_dir', metavar='LOCALDIR', nargs=1)
 
     args = parser.parse_args()
-    verbose = args.debug or args.verbose
     log = get_logger('xirvik',
                      verbose=args.verbose,
                      debug=args.debug,
@@ -70,7 +144,6 @@ def main():
     if args.debug:
         logs_to_follow = (
             'requests',
-            'paramiko',
         )
         for name in logs_to_follow:
             _log = logging.getLogger(name)
@@ -114,11 +187,6 @@ def main():
                              password,
                              max_retries=args.max_retries)
 
-    http_prefix = 'https://{host:s}'.format(host=args.host)
-    multirpc_action_uri = ('{}/rtorrent/plugins/multirpc/'
-                           'action.php'.format(http_prefix))
-    datadir_action_uri = ('{}/rtorrent/plugins/datadir/'
-                          'action.php'.format(http_prefix))
     assumed_path_prefix = '/torrents/{}'.format(user)
     look_for = '{}/{}/'.format(assumed_path_prefix, args.remote_dir[0])
     move_to = '{}/{}'.format(assumed_path_prefix, args.move_to)
@@ -174,10 +242,11 @@ def main():
                 _lock.release()
                 cleanup_and_exit()
 
-            sftp_client.mirror(destroot=local_dir,
-                               resume=args.resume,
-                               keep_modes=not args.no_preserve_permissions,
-                               keep_times=not args.no_preserve_times)
+            mirror(sftp_client,
+                   client,
+                   destroot=local_dir,
+                   keep_modes=not args.no_preserve_permissions,
+                   keep_times=not args.no_preserve_times)
     except Exception as e:
         if args.debug:
             _lock.release()
