@@ -20,7 +20,7 @@ from xirvik.client import (
     UnexpectedruTorrentError,
     TORRENT_PATH_INDEX,
 )
-from xirvik.logging import cleanup, get_logger
+from xirvik.log import cleanup, get_logger
 from xirvik.sftp import SFTPClient
 from xirvik.util import (
     cleanup_and_exit,

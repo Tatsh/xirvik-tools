@@ -7,7 +7,7 @@ import sys
 
 from bencodepy import decode as bdecode
 
-from xirvik.logging import cleanup
+from xirvik.log import cleanup
 
 __all__ = [
     'cleanup_and_exit',
