@@ -2,11 +2,13 @@
 from logging.handlers import SysLogHandler
 from netrc import netrc
 from os import close as close_fd, listdir, makedirs, remove as rm
-from os.path import basename, dirname, expanduser, isdir, join as path_join, realpath, splitext
+from os.path import (basename, expanduser, isdir,
+                     join as path_join, realpath, splitext)
 from tempfile import mkstemp
 import argparse
 import logging
 import signal
+import socket
 import sys
 
 from osext.argparse_actions import ReadableDirectoryAction
@@ -81,7 +83,8 @@ if __name__ == '__main__':
     log.setLevel(logging.INFO)
 
     if verbose:
-        channel = logging.StreamHandler(sys.stdout if args.verbose else sys.stderr)
+        channel = logging.StreamHandler(sys.stdout if args.verbose
+                                        else sys.stderr)
 
         channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
         channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
@@ -93,7 +96,7 @@ if __name__ == '__main__':
     if args.syslog:
         try:
             syslogh = SysLogHandler(address='/dev/log')
-        except FileNotFoundError:
+        except (OSError, socket.error):
             syslogh = SysLogHandler(address='/var/run/syslog')
 
         syslogh.setFormatter(logging.Formatter('%(message)s'))
@@ -133,17 +136,18 @@ if __name__ == '__main__':
             close_fd(fd)
 
             with open(item, 'rb') as f:
-                # Because the server does not understand filename*=UTF8'' syntax
+                # Because the server does not understand filename*=UTF8 syntax
                 # https://github.com/kennethreitz/requests/issues/2117
-                # This is not a huge concern, as the API's "Get .torrent" does not
-                # return the file with its original name either
+                # This is not a huge concern, as the API's "Get .torrent" does
+                # not return the file with its original name either
                 try:
                     filename = unidecode(f.name.decode('utf8'))
                 except AttributeError:  # decode
                     filename = unidecode(f.name)
 
                 files = dict(torrent_file=(filename, f,))
-                log.info('Uploading torrent {} (actual name: "{}")'.format(basename(item), basename(filename)))
+                log.info('Uploading torrent {} (actual name: "{}")'.format(
+                    basename(item), basename(filename)))
                 r = requests.post(post_url, data=form_data, files=files)
 
                 try:
