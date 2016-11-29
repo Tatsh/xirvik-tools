@@ -25,5 +25,7 @@ setup(
         'console_scripts': [
             'xirvik-mirror = xirvik.mirror:main'
         ]
-    }
+    },
+    test_suite='xirvik.test',
+    tests_require=['coveralls', 'nose', 'requests-mock']
 )
