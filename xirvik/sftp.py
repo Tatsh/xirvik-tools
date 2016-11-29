@@ -99,8 +99,9 @@ class SFTPClient:
             is_dir = da.st_mode & 0o700 == 0o700
             if is_dir:
                 try:
-                    yield from self.listdir_attr_recurse(
-                        path_join(path, da.filename))
+                    for x in self.listdir_attr_recurse(
+                            path_join(path, da.filename)):
+                        yield x
                 except IOError as e:
                     if self.raise_exceptions:
                         raise e
@@ -157,7 +158,7 @@ class SFTPClient:
             if dest_path not in self._dircache:
                 try:
                     makedirs(dest_path)
-                except FileExistsError:
+                except OSError:
                     pass
                 self._dircache.append(dest_path)
 
@@ -174,7 +175,7 @@ class SFTPClient:
                             self._log.info('Resuming file {} at {} '
                                            'bytes'.format(dest, current_size))
                         raise IOError()  # ugly goto
-            except IOError as ioe:
+            except IOError:
                 while True:
                     try:
                         # Only size is used to determine complete-ness here

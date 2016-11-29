@@ -1,6 +1,5 @@
 from os import close as close_fd, remove as rm, write as write_fd
 from tempfile import mkstemp
-from urllib.parse import quote
 import unittest
 
 from requests.exceptions import HTTPError
@@ -31,7 +30,7 @@ class TestRuTorrentClient(unittest.TestCase):
         for x in self._temp_files:
             try:
                 rm(x)
-            except IOError:
+            except OSError:
                 pass
 
     def _mktemp(self, contents=None, prefix='test-rutorrent-client-'):
@@ -125,8 +124,12 @@ class TestRuTorrentClient(unittest.TestCase):
         label = 'my new label'
         list_torrents_json = dict(
             t={
-                'hash1': ['1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849', '357999402', '1426', '0', '0', '262144', ''],
-                'hash2': ['1', '0', '1', '1', 'torrent name2', '250952849', '958', '958', '250952849', '357999402', '1426', '0', '0', '262144', ''],
+                'hash1': ['1', '0', '1', '1', 'torrent name', '250952849',
+                          '958', '958', '250952849', '357999402', '1426',
+                          '0', '0', '262144', ''],
+                'hash2': ['1', '0', '1', '1', 'torrent name2', '250952849',
+                          '958', '958', '250952849', '357999402', '1426',
+                          '0', '0', '262144', ''],
             },
             cid=92983,
         )
@@ -157,7 +160,9 @@ class TestRuTorrentClient(unittest.TestCase):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
         list_torrents_json = dict(
             t=dict(
-                hash1=['1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849', '357999402', '1426', '0', '0', '262144', 'a label'],
+                hash1=['1', '0', '1', '1', 'torrent name', '250952849', '958',
+                       '958', '250952849', '357999402', '1426', '0', '0',
+                       '262144', 'a label'],
             ),
             cid=92983,
         )

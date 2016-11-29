@@ -1,8 +1,4 @@
-from .test_client import TestRuTorrentClient
-from .test_util import (
-    TestSingleFileTorrentVerification,
-    TestTorrentVerfication,
-)
+import unittest
 
 
 if __name__ == '__main__':

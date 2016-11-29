@@ -1,7 +1,6 @@
 from cgi import parse_header
 from netrc import netrc
 from os.path import expanduser
-from urllib.parse import quote
 import logging
 
 from cached_property import cached_property
@@ -12,6 +11,8 @@ try:
     has_futures = True
 except ImportError:
     has_futures = False
+from six.moves.urllib import parse
+from six.moves.urllib.parse import quote
 import requests
 
 
@@ -151,7 +152,6 @@ class ruTorrentClient(object):
                                   '?hash={}'.format(self.http_prefix, hash))
             yield session.get(source_torrent_uri,
                               background_callback=background_callback)
-
 
     def move_torrent(self, hash, target_dir, fast_resume=True):
         data = {
