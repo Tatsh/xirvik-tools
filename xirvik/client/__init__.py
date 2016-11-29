@@ -11,7 +11,6 @@ try:
     has_futures = True
 except ImportError:
     has_futures = False
-from six.moves.urllib import parse
 from six.moves.urllib.parse import quote
 import requests
 

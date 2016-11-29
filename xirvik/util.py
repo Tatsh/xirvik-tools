@@ -6,6 +6,7 @@ import struct
 import sys
 
 from bencodepy import decode as bdecode
+import six
 
 from xirvik.log import cleanup
 
@@ -47,7 +48,7 @@ def _get_torrent_pieces(filenames, basepath, piece_length):
         name = path_join(basepath, name)
         try:
             size = stat(name).st_size
-        except IOError:
+        except OSError:
             yield None
 
         if size <= piece_length and p_delta > size:
@@ -62,23 +63,26 @@ def _get_torrent_pieces(filenames, basepath, piece_length):
 
             continue
 
-        with open(name, 'rb') as f:
-            while True:
-                tmp = f.read(p_delta)
-                p_delta -= len(tmp)
+        try:
+            with open(name, 'rb') as f:
+                while True:
+                    tmp = f.read(p_delta)
+                    p_delta -= len(tmp)
 
-                if not tmp:
-                    break
+                    if not tmp:
+                        break
 
-                buf += tmp
+                    buf += tmp
 
-                if len(tmp) < p_delta:
-                    break
+                    if len(tmp) < p_delta:
+                        break
 
-                if p_delta <= 0:
-                    yield buf
-                    buf = b''
-                    p_delta = piece_length
+                    if p_delta <= 0:
+                        yield buf
+                        buf = b''
+                        p_delta = piece_length
+        except IOError:
+            yield None
 
     # Very last set of bytes of the last file, and this will be <= piece size
     # If this is not returned, a false positive can be given if the last
@@ -136,11 +140,16 @@ def verify_torrent_contents(torrent_file, path):
     pieces = _get_torrent_pieces(filenames, path, piece_length)
 
     for known_hash, piece in zip(piece_hashes, pieces):
+        if six.PY2:
+            known_hash = ''.join([six.int2byte(x) for x in known_hash])
+        else:
+            known_hash = bytes(known_hash)
+
         try:
             file_hash = sha1(piece).digest()
         except TypeError:
             raise VerificationError('Unable to get hash for piece')
 
-        if not compare_digest(bytes(known_hash), file_hash):
+        if not compare_digest(known_hash, file_hash):
             raise VerificationError('Computed hash does not match torrent '
                                     'file\'s hash')

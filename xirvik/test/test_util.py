@@ -5,7 +5,6 @@ from os import close as close_fd, remove as rm, rmdir, write as write_fd
 from os.path import basename, dirname
 from random import SystemRandom
 from tempfile import mkdtemp, mkstemp
-import struct
 import sys
 import unittest
 
@@ -28,7 +27,7 @@ class TempFilesMixin(object):
         for x in self._temp_files:
             try:
                 rm(x)
-            except IOError as e:
+            except OSError as e:
                 if e.errno == 2:
                     continue
                 else:
