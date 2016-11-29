@@ -19,6 +19,7 @@ setup(
         'OSExtension>=0.1.5',
         'paramiko>=1.17.0',
         'requests>=2.6.0',
+        'six>=1.10.0',
         'Unidecode>=0.4.19',
     ],
     entry_points={
