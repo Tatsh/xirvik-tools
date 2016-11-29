@@ -8,6 +8,8 @@ python:
 install:
     - pip install -e .
     - pip install coveralls nose requests-mock
+    # Temporary until https://github.com/eweast/BencodePy/pull/5 is merged
+    - pip install https://github.com/Tatsh/BencodePy/zipball/py2
 script:
     - coverage run --source=xirvik '--omit=xirvik/test/*' -m nose -x
 after_success:
