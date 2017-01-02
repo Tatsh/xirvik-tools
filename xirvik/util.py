@@ -96,6 +96,8 @@ class VerificationError(Exception):
 
 
 def verify_torrent_contents(torrent_file, path):
+    """Verify torrent contents using a torrent file and the path to the
+    directory or file."""
     orig_path = path
 
     if hasattr(torrent_file, 'seek') and hasattr(torrent_file, 'read'):
