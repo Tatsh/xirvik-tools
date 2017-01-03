@@ -77,8 +77,6 @@ if __name__ == '__main__':
                         nargs='*')
 
     args = parser.parse_args()
-    user, _, password = netrc(args.netrc_path).authenticators(args.host[0])
-
     verbose = args.debug or args.verbose
     log.setLevel(logging.INFO)
 
@@ -102,6 +100,12 @@ if __name__ == '__main__':
         syslogh.setFormatter(logging.Formatter('%(message)s'))
         syslogh.setLevel(logging.DEBUG if args.debug else logging.INFO)
         log.addHandler(syslogh)
+
+    try:
+        user, _, password = netrc(args.netrc_path).authenticators(args.host[0])
+    except TypeError:
+        log.error('Cannot find host {} in netrc'.format(args.host[0]))
+        sys.exit(1)
 
     post_url = ('https://{host:s}:{port:d}/rtorrent/php/'
                 'addtorrent.php?'.format(host=args.host[0], port=args.port[0]))
@@ -154,6 +158,7 @@ if __name__ == '__main__':
                     log.error('Caught exception: {}'.format(e))
 
                 # Delete original only after successful upload
+                log.debug('Deleting {}'.format(old))
                 rm(old)
 
     if exceptions_caught:
