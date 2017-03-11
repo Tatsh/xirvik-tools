@@ -96,15 +96,16 @@ if __name__ == '__main__':
             syslogh = SysLogHandler(address='/dev/log')
         except (OSError, socket.error):
             syslogh = SysLogHandler(address='/var/run/syslog')
+            logging.INFO = logging.WARNING
 
-        syslogh.setFormatter(logging.Formatter('%(message)s'))
+        syslogh.setFormatter(logging.Formatter('%(name)s[%(process)d]: %(message)s'))
         syslogh.setLevel(logging.DEBUG if args.debug else logging.INFO)
         log.addHandler(syslogh)
 
     try:
         user, _, password = netrc(args.netrc_path).authenticators(args.host[0])
     except TypeError:
-        log.error('Cannot find host {} in netrc'.format(args.host[0]))
+        log.exception('Cannot find host {} in netrc'.format(args.host[0]))
         sys.exit(1)
 
     post_url = ('https://{host:s}:{port:d}/rtorrent/php/'
