@@ -1,3 +1,4 @@
+"""PEP257 should not care."""
 import unittest
 
 

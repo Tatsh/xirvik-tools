@@ -1,3 +1,4 @@
+"""Logging utility module."""
 from logging.handlers import SysLogHandler
 import logging
 import sys
@@ -6,6 +7,7 @@ syslogh = None
 
 
 def cleanup():
+    """Close syslog handle and calls logging.shutdown()."""
     global syslogh
 
     if syslogh:
@@ -19,6 +21,11 @@ def get_logger(name,
                verbose=False,
                debug=False,
                syslog=False):
+    """
+    Set up a logger for sys.stderr/stdout and/or syslog.
+
+    Return a logger object.
+    """
     global syslogh
 
     log = logging.getLogger(name)

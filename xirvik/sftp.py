@@ -1,3 +1,4 @@
+"""SFTP client like paramiko's with extra features."""
 from __future__ import print_function
 from datetime import datetime
 from math import ceil, floor
@@ -13,17 +14,19 @@ from paramiko.client import SSHClient
 from paramiko.sftp import SFTPError
 from paramiko import SFTPFile
 
-__all__ = [
+__all__ = (
     'SFTPClient',
     'LOG_NAME',
-]
+)
 
 
 LOG_NAME = 'xirvik.sftp'
 LOG_INTERVAL = 60
 
 
-class SFTPClient:
+class SFTPClient(object):
+    """Dynamic extension on paramiko's SFTPClient."""
+
     MAX_PACKET_SIZE = SFTPFile.__dict__['MAX_REQUEST_SIZE']
 
     ssh_client = None
@@ -36,13 +39,16 @@ class SFTPClient:
     _dircache = []
 
     def __init__(self, **kwargs):
+        """Constructor."""
         self.original_arguments = kwargs.copy()
         self._connect(**kwargs)
 
     def __enter__(self):
+        """For use with a with statement."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """For use with a with statement."""
         self.close_all()
 
     def _connect(self, **kwargs):
@@ -88,13 +94,16 @@ class SFTPClient:
             setattr(self, method_name, method)
 
     def close_all(self):
+        """Close client and SSH client handles."""
         self.client.close()
         self.ssh_client.close()
 
     def clear_directory_cache(self):
+        """Reset directory cache."""
         self._dircache = []
 
     def listdir_attr_recurse(self, path='.'):
+        """List directory attributes recursively."""
         for da in self.client.listdir_attr(path=path):
             is_dir = da.st_mode & 0o700 == 0o700
             if is_dir:
@@ -144,6 +153,17 @@ class SFTPClient:
                keep_modes=True,
                keep_times=True,
                resume=True):
+        """
+        Mirror a remote directory to a local location.
+
+        path is the remote directory. destroot must be the location where
+        destroot/path will be created (the path must not already exist).
+
+        keep_modes and keep_times are boolean to ensure permissions and time
+        are retained respectively.
+
+        Pass resume=False to disable file resumption.
+        """
         n = 0
         resume_seek = None
         cwd = self.getcwd()
@@ -253,6 +273,7 @@ class SFTPClient:
         return n
 
     def __str__(self):
+        """Return string representation."""
         return '{} (wrapped by {}.SFTPClient)'.format(
             str(self.client), __name__)
     __unicode__ = __str__

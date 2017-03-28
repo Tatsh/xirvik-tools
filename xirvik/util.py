@@ -1,3 +1,4 @@
+"""General utility module."""
 from hashlib import sha1
 from hmac import compare_digest
 from os import stat
@@ -10,37 +11,35 @@ import six
 
 from xirvik.log import cleanup
 
-__all__ = [
+__all__ = (
     'cleanup_and_exit',
     'ctrl_c_handler',
     'VerificationError',
     'verify_torrent_contents',
-]
+)
 
 
 def cleanup_and_exit(status=0):
+    """Called instead of sys.exit(). status is the integer to exit with."""
     cleanup()
     sys.exit(status)
 
 
 def ctrl_c_handler(signum, frame):
+    """Used as a TERM signal handler. Arguments are ignored."""
     cleanup()
     raise SystemExit('Signal raised')
 
 
 def _chunks(l, n):
-    """
-    http://stackoverflow.com/a/312464/374110
-    """
+    # Source: http://stackoverflow.com/a/312464/374110
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
 
 def _get_torrent_pieces(filenames, basepath, piece_length):
-    """
-    Yes this is a generator and should not be used any other way (i.e. do not
-    wrap in list()).
-    """
+    # Yes this is a generator and should not be used any other way (i.e. do not
+    # wrap in list()).
     buf = b''
     p_delta = piece_length
 
@@ -92,12 +91,17 @@ def _get_torrent_pieces(filenames, basepath, piece_length):
 
 
 class VerificationError(Exception):
+    """Raised when an error occurs in verify_torrent_contents()."""
+
     pass
 
 
 def verify_torrent_contents(torrent_file, path):
-    """Verify torrent contents using a torrent file and the path to the
-    directory or file."""
+    """
+    Verify torrent contents.
+
+    Pass a torrent file path and the path to check.
+    """
     orig_path = path
 
     if hasattr(torrent_file, 'seek') and hasattr(torrent_file, 'read'):

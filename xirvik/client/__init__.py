@@ -1,3 +1,4 @@
+"""Client for ruTorrent."""
 from cgi import parse_header
 from datetime import datetime
 from netrc import netrc
@@ -16,12 +17,12 @@ from six.moves.urllib.parse import quote
 import requests
 
 
-__all__ = [
+__all__ = (
     'LOG_NAME',
     'TORRENT_PATH_INDEX',
     'UnexpectedruTorrentError',
     'ruTorrentClient',
-]
+)
 
 LOG_NAME = 'xirvik.rutorrent'
 
@@ -39,10 +40,14 @@ TORRENT_FILE_DOWNLOAD_STRATEGY_TRAILING_CHUNK_FIRST = 2
 
 
 class UnexpectedruTorrentError(Exception):
+    """Raised when an unexpected error occurs."""
+
     pass
 
 
 class ruTorrentClient(object):
+    """ruTorrent client class."""
+
     host = None
     name = None
     password = None
@@ -55,10 +60,22 @@ class ruTorrentClient(object):
                  name=None,
                  password=None,
                  max_retries=10,
-                 **kwargs):
+                 netrc_path=None):
+        """
+        Construct a ruTorrent client.
+
+        Host should be the hostname with no protocol.
+
+        If no name and no password are passed, ~/.netrc will be searched with
+        the host provided. The path can be overriden with the netrc_path
+        argument.
+
+        max_retries is used as an argument for urllib3's Retry() class.
+        """
         if not name and not password:
-            nrc_path = kwargs.pop('netrc_path', expanduser('~/.netrc'))
-            name, _, password = netrc(nrc_path).authenticators(host)
+            if not netrc_path:
+                netrc_path = expanduser('~/.netrc')
+            name, _, password = netrc(netrc_path).authenticators(host)
 
         self.name = name
         self.password = password
@@ -75,15 +92,18 @@ class ruTorrentClient(object):
 
     @cached_property
     def http_prefix(self):
+        """Return HTTP URI for the host."""
         return 'https://{host:s}'.format(host=self.host)
 
     @cached_property
     def multirpc_action_uri(self):
+        """Return HTTP multirpc/action.php URI for the host."""
         return ('{}/rtorrent/plugins/multirpc/'
                 'action.php'.format(self.http_prefix))
 
     @cached_property
     def datadir_action_uri(self):
+        """Return HTTP datadir/action.php URI for the host."""
         return ('{}/rtorrent/plugins/datadir/'
                 'action.php'.format(self.http_prefix))
 
@@ -93,9 +113,11 @@ class ruTorrentClient(object):
 
     @cached_property
     def auth(self):
+        """Return basic authentication credentials."""
         return (self.name, self.password,)
 
     def add_torrent(self, filepath, start_now=True):
+        """Add a torrent. Use start_now=False to start paused."""
         data = {}
 
         if not start_now:
@@ -111,6 +133,14 @@ class ruTorrentClient(object):
             r.raise_for_status()
 
     def list_torrents(self):
+        """
+        List torrents as they come from ruTorrent.
+
+        Return a dictionary with torrent hashes as the key. The values
+        are lists similar to the columns in ruTorrent's main view.
+
+        For a more detailed dictionary, use list_torrents_dict().
+        """
         data = {
             'mode': 'list',
             'cmd': 'd.custom=addtime',
@@ -124,6 +154,48 @@ class ruTorrentClient(object):
         return r.json()['t']
 
     def list_torrents_dict(self):
+        """
+        Get all torrent information.
+
+        Return a dictionary of dictionaries with the hash of the torrent as
+        the key. The fields will be:
+
+        - is_open - boolean, ???
+        - is_hash_checking - boolean, if the torrent is hash checking
+        - is_hash_checked - boolean, if the torrent is already hash checked
+        - state - integer, state of the torrent (out of some enumeration)
+        - name - string, Name of the torrent
+        - size_bytes - integer, size of the torrent in bytes
+        - completed_chunks - integer, completed number of chunks
+        - size_chunks - integer, number of chunks in the torrent
+        - bytes_done - integer, bytes completed downloading
+        - up_total - integer, amount of bytes uploaded
+        - ratio - float, Ratio
+        - up_rate - integer, upload rate in bytes per second
+        - down_rate - integer, download rate in bytes per second
+        - chunk_size - integer, size of the chunks
+        - custom1 - string, usually label, blank string if nothing is set
+        - peers_accounted - integer, total number of peers
+        - peers_not_connected - integer, number of inactive peers
+        - peers_connected - integer, numbers of active peers
+        - peers_complete - integer, number of peers who have the completed
+                                    torrent
+        - left_bytes - integer, number of bytes left to download
+        - priority - integer, out of some enumeration
+        - state_changed - datetime, last time the torrent was modified
+        - skip_total - integer, ???
+        - hashing - boolean, if the torrent is hashing
+        - chunks_hashed - integer, number of chunks hashed
+        - base_path - string, path to the torrent files
+        - creation_date - None or datetime
+        - tracker_focus - integer, ???
+        - is_active - if the torrent is active
+        - message - string, ???
+        - custom2 - string, ???
+        - free_diskspace - integer, disk space available on the server
+        - is_private - boolean, if the torrent is private
+        - is_multi_file - boolean, if the torrent contains multiple files
+        """
         fields = (
             'is_open',
             'is_hash_checking',
@@ -170,6 +242,15 @@ class ruTorrentClient(object):
                         value = True if value == '1' else False
                     elif fields[i] == 'state_changed':
                         value = datetime.fromtimestamp(float(value))
+                    elif fields[i] == 'creation_date':
+                        try:
+                            fvalue = float(value)
+                        except ValueError:
+                            fvalue = None
+                        if fvalue:
+                            value = datetime.fromtimestamp(float(fvalue))
+                        else:
+                            value = None
                     elif fields[i] == 'ratio':
                         value = int(value) / 1000.0
                     else:
@@ -185,6 +266,11 @@ class ruTorrentClient(object):
         return ret
 
     def get_torrent(self, hash):
+        """
+        Prepare to get a torrent file given a hash.
+
+        Return tuple Request object and the file name string.
+        """
         source_torrent_uri = ('{}/rtorrent/plugins/source/action.php'
                               '?hash={}'.format(self.http_prefix, hash))
 
@@ -202,6 +288,13 @@ class ruTorrentClient(object):
                              hashes,
                              session=None,
                              background_callback=None):
+        """
+        Similar to get_torrent() but uses requests_futures.
+
+        Pass a list of hashes, optionally a session and a callback.
+
+        Yields the GET future request for each hash.
+        """
         if not session and has_futures:
             session = FuturesSession(max_workers=4)
         else:
@@ -215,6 +308,11 @@ class ruTorrentClient(object):
                               background_callback=background_callback)
 
     def move_torrent(self, hash, target_dir, fast_resume=True):
+        """
+        Move a torrent's files to somewhere else on the server.
+
+        target_dir must be a valid and usable directory.
+        """
         data = {
             'hash': hash,
             'datadir': target_dir,
@@ -314,6 +412,7 @@ class ruTorrentClient(object):
                 self._log.warning('Passed recursion limit for label fix')
 
     def set_label(self, label, hash):
+        """Set a label to a torrent hash."""
         self.set_label_to_hashes(hashes=[hash], label=label)
 
     def list_files(self, hash):

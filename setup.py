@@ -1,3 +1,4 @@
+"""Module for Xirvik-specific tasks."""
 from distutils.core import setup
 
 setup(

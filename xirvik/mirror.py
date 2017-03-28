@@ -1,3 +1,4 @@
+"""Mirror (copy data from remote to local) helper."""
 from os import chmod, makedirs, utime
 from os.path import (basename, dirname, isdir, expanduser,
                      join as path_join, realpath)
@@ -33,6 +34,7 @@ _lock = None
 
 
 def lock_ctrl_c_handler(signum, frame):
+    """TERM signal/^C handler."""
     if _lock:
         try:
             _lock.release()
@@ -49,6 +51,19 @@ def mirror(sftp_client,
            destroot='.',
            keep_modes=True,
            keep_times=True):
+    """
+    Mirror a remote directory to local.
+
+    sftp_client must be a valid xirvik.sftp.SFTPClient instance.
+
+    rclient must be a valid ruTorrentClient instance.
+
+    path is the remote directory. destroot must be the location where
+    destroot/path will be created (the path must not already exist).
+
+    keep_modes and keep_times are boolean to ensure permissions and time
+    are retained respectively.
+    """
     cwd = sftp_client.getcwd()
     log = logging.getLogger('xirvik')
 
@@ -116,6 +131,7 @@ def mirror(sftp_client,
 
 
 def main():
+    """Entry point."""
     signal.signal(signal.SIGINT, lock_ctrl_c_handler)
 
     parser = argparse.ArgumentParser()
