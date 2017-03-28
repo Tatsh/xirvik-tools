@@ -166,7 +166,7 @@ class ruTorrentClient(object):
             ret[hash] = {}
             for i, value in enumerate(torrent):
                 try:
-                    if fields[i].startswith('is_'):
+                    if fields[i].startswith('is_') or fields[i] == 'hashing':
                         value = True if value == '1' else False
                     elif fields[i] == 'state_changed':
                         value = datetime.fromtimestamp(float(value))
