@@ -1,4 +1,5 @@
 from cgi import parse_header
+from datetime import datetime
 from netrc import netrc
 from os.path import expanduser
 import logging
@@ -121,6 +122,67 @@ class ruTorrentClient(object):
         r.raise_for_status()
 
         return r.json()['t']
+
+    def list_torrents_dict(self):
+        fields = (
+            'is_open',
+            'is_hash_checking',
+            'is_hash_checked',
+            'state',
+            'name',
+            'size_bytes',
+            'completed_chunks',
+            'size_chunks',
+            'bytes_done',
+            'up_total',
+            'ratio',
+            'up_rate',
+            'down_rate',
+            'chunk_size',
+            'custom1',
+            'peers_accounted',
+            'peers_not_connected',
+            'peers_connected',
+            'peers_complete',
+            'left_bytes',
+            'priority',
+            'state_changed',
+            'skip_total',
+            'hashing',
+            'chunks_hashed',
+            'base_path',
+            'creation_date',
+            'tracker_focus',
+            'is_active',
+            'message',
+            'custom2',
+            'free_diskspace',
+            'is_private',
+            'is_multi_file',
+        )
+        ret = dict()
+
+        for hash, torrent in self.list_torrents().items():
+            ret[hash] = {}
+            for i, value in enumerate(torrent):
+                try:
+                    if fields[i].startswith('is_'):
+                        value = True if value == '1' else False
+                    elif fields[i] == 'state_changed':
+                        value = datetime.fromtimestamp(float(value))
+                    elif fields[i] == 'ratio':
+                        value = int(value) / 1000.0
+                    else:
+                        cons = int if '.' not in value else float
+                        try:
+                            value = cons(value)
+                        except ValueError:
+                            pass
+                    ret[hash][fields[i]] = value
+                except IndexError:
+                    continue
+
+        return ret
 
     def get_torrent(self, hash):
         source_torrent_uri = ('{}/rtorrent/plugins/source/action.php'
