@@ -46,7 +46,11 @@ class UnexpectedruTorrentError(Exception):
 
 
 class ruTorrentClient(object):
-    """ruTorrent client class."""
+    """
+    ruTorrent client class.
+
+    Reference on RPC returned fields: https://goo.gl/DvmW4c
+    """
 
     host = None
     name = None
