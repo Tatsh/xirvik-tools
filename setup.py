@@ -6,7 +6,7 @@ setup(
     version='0.1.0',
     author='Fa An',
     author_email='2998784916@qq.com',
-    packages=['xirvik', 'xirvik.client'],
+    packages=['xirvik'],
     url='https://github.com/Tatsh/xirvik-tools',
     license='LICENSE.txt',
     description='Xirvik (ruTorrent mostly) tools.',
