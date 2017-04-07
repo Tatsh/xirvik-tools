@@ -13,6 +13,7 @@ try:
     has_futures = True
 except ImportError:
     has_futures = False
+from six.moves import xmlrpc_client as xmlrpc
 from six.moves.urllib.parse import quote
 import requests
 
@@ -93,6 +94,10 @@ class ruTorrentClient(object):
         self._session = requests.Session()
         self._session.mount('http://', self._http_adapter)
         self._session.mount('https://', self._http_adapter)
+
+        uri = 'https://{}:{}@{}/rtorrent/plugins/multirpc/action.php'.format(
+            self.name, self.password, self.host)
+        self._xmlrpc_proxy = xmlrpc.ServerProxy(uri)
 
     @cached_property
     def http_prefix(self):
@@ -456,3 +461,21 @@ class ruTorrentClient(object):
             x[6] = int(x[6])  # ??
 
             yield x
+
+    def delete(self, hash):
+        """
+        Delete a torrent and its files by hash. Do not call this if you
+        intend to keep the data.
+
+        Returns if successful. Faults are converted to xmlrpc.Fault exceptions.
+        """
+        mc = xmlrpc.MultiCall(self._xmlrpc_proxy)
+        getattr(mc, 'd.custom5.set')(hash, '1')
+        getattr(mc, 'd.delete_tied')(hash)
+        getattr(mc, 'd.erase')(hash)
+
+        for x in mc().results:
+            try:
+                raise xmlrpc.Fault(x['faultCode'], x['faultString'])
+            except (TypeError, KeyError):
+                pass
