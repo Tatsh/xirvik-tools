@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from logging.handlers import SysLogHandler
 from netrc import netrc
 from os import close as close_fd, listdir, makedirs, remove as rm
@@ -105,7 +106,8 @@ if __name__ == '__main__':
     try:
         user, _, password = netrc(args.netrc_path).authenticators(args.host[0])
     except TypeError:
-        log.exception('Cannot find host {} in netrc'.format(args.host[0]))
+        print('Cannot find host {} in netrc. Specify user name and '
+              'password'.format(args.host[0]), file=sys.stderr)
         sys.exit(1)
 
     post_url = ('https://{host:s}:{port:d}/rtorrent/php/'
