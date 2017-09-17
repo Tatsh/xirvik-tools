@@ -464,8 +464,8 @@ class ruTorrentClient(object):
 
     def delete(self, hash):
         """
-        Delete a torrent and its files by hash. Do not call this if you
-        intend to keep the data.
+        Delete a torrent and its files by hash. Use the remove() method to
+        remove the torrent but keep the data.
 
         Returns if successful. Faults are converted to xmlrpc.Fault exceptions.
         """
@@ -479,3 +479,16 @@ class ruTorrentClient(object):
                 raise xmlrpc.Fault(x['faultCode'], x['faultString'])
             except (TypeError, KeyError):
                 pass
+
+    def remove(self, hash):
+        """
+        Remove a torrent from the client but keep the data. Use the delete()
+        method to remove and delete the torrent data.
+
+        Returns if successful. Can raise a Requests exception.
+        """
+        query = dict(mode='remove', hash=hash)
+        r = self._session.post(self.multirpc_action_uri,
+                               data=query,
+                               auth=self.auth)
+        r.raise_for_status()
