@@ -492,3 +492,15 @@ class ruTorrentClient(object):
                                data=query,
                                auth=self.auth)
         r.raise_for_status()
+
+    def stop(self, hash):
+        """
+        Stop a torrent by hash.
+
+        Returns if successful. Can raise a Requests exception.
+        """
+        query = dict(mode='stop', hash=hash)
+        r = self._session.post(self.multirpc_action_uri,
+                               data=query,
+                               auth=self.auth)
+        r.raise_for_status()
