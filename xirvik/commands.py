@@ -1,33 +1,37 @@
 """Mirror (copy data from remote to local) helper."""
-from os import chmod, makedirs, utime
+from logging.handlers import SysLogHandler
+from os import chmod, close as close_fd, listdir, makedirs, remove as rm, utime
 from os.path import (basename, dirname, isdir, expanduser,
-                     join as path_join, realpath)
+                     join as path_join, realpath, splitext)
 from netrc import netrc
-from tempfile import gettempdir
+from tempfile import gettempdir, mkstemp
 import argparse
 import hashlib
 import json
 import logging
 import os
 import signal
+import socket
 import subprocess as sp
 import sys
 
 from lockfile import LockFile, NotLocked
+from unidecode import unidecode
 import requests
 
 from xirvik.client import (
-    ruTorrentClient,
-    UnexpectedruTorrentError,
     TORRENT_PATH_INDEX,
+    UnexpectedruTorrentError,
+    ruTorrentClient,
 )
 from xirvik.log import cleanup, get_logger
 from xirvik.sftp import SFTPClient
 from xirvik.util import (
+    ReadableDirectoryListAction,
+    VerificationError,
     cleanup_and_exit,
     ctrl_c_handler,
     verify_torrent_contents,
-    VerificationError,
 )
 
 _lock = None
@@ -130,7 +134,7 @@ def mirror(sftp_client,
             pass
 
 
-def main():
+def mirror_main():
     """Entry point."""
     signal.signal(signal.SIGINT, lock_ctrl_c_handler)
 
@@ -314,3 +318,121 @@ def main():
 
     _lock.release()
     cleanup_and_exit(exit_status)
+
+
+def start_torrents():
+    """Uploads torrent files to the server."""
+    signal.signal(signal.SIGINT, ctrl_c_handler)
+
+    cache_dir = realpath(expanduser('~/.cache/xirvik'))
+
+    if not isdir(cache_dir):
+        makedirs(cache_dir)
+
+    log = logging.getLogger('xirvik-start-torrents')
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-d', '--debug', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
+    # parser.add_argument('-C', '--client', default='rutorrent3')
+    parser.add_argument('-H', '--host', nargs=1, required=True)
+    parser.add_argument('-p', '--port', nargs=1, default=[443])
+    parser.add_argument('--start-stopped', action='store_true')
+    parser.add_argument('-s', '--syslog', action='store_true')
+    parser.add_argument('directory',
+                        metavar='DIRECTORY',
+                        action=ReadableDirectoryListAction,
+                        nargs='*')
+
+    args = parser.parse_args()
+    verbose = args.debug or args.verbose
+    log.setLevel(logging.INFO)
+
+    if verbose:
+        channel = logging.StreamHandler(sys.stdout if args.verbose
+                                        else sys.stderr)
+
+        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+        channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
+        log.addHandler(channel)
+
+        if args.debug:
+            log.setLevel(logging.DEBUG)
+
+    if args.syslog:
+        try:
+            syslogh = SysLogHandler(address='/dev/log')
+        except (OSError, socket.error):
+            syslogh = SysLogHandler(address='/var/run/syslog')
+            logging.INFO = logging.WARNING
+
+        syslogh.setFormatter(
+            logging.Formatter('%(name)s[%(process)d]: %(message)s'))
+        syslogh.setLevel(logging.DEBUG if args.debug else logging.INFO)
+        log.addHandler(syslogh)
+
+    try:
+        user, _, password = netrc(args.netrc_path).authenticators(args.host[0])
+    except TypeError:
+        print('Cannot find host {} in netrc. Specify user name and '
+              'password'.format(args.host[0]), file=sys.stderr)
+        sys.exit(1)
+
+    post_url = ('https://{host:s}:{port:d}/rtorrent/php/'
+                'addtorrent.php?'.format(host=args.host[0], port=args.port[0]))
+    form_data = {}
+    exceptions_caught = []
+
+    # rtorrent2/3 params
+    # dir_edit - ?
+    # tadd_label - Label for the torrents, more param: label=
+    # torrent_file - Torrent file blob data
+
+    if args.start_stopped:
+        form_data['torrents_start_stopped'] = 'on'
+
+    for d in args.directory:
+        for item in listdir(d):
+            if not item.lower().endswith('.torrent'):
+                continue
+
+            item = path_join(d, item)
+
+            # Workaround for surrogates not allowed error, rename the file
+            prefix = '{n:s}-'.format(n=splitext(basename(item))[0])
+            fd, name = mkstemp(dir=cache_dir, prefix=prefix, suffix='.torrent')
+            close_fd(fd)
+            with open(name, 'wb') as w:
+                with open(item, 'rb') as r:
+                    w.write(r.read())
+            old = item
+            item = name
+
+            with open(item, 'rb') as f:
+                # Because the server does not understand filename*=UTF8 syntax
+                # https://github.com/kennethreitz/requests/issues/2117
+                # This is not a huge concern, as the API's "Get .torrent" does
+                # not return the file with its original name either
+                try:
+                    filename = unidecode(f.name.decode('utf8'))
+                except AttributeError:  # decode
+                    filename = unidecode(f.name)
+
+                files = dict(torrent_file=(filename, f,))
+                log.info('Uploading torrent {} (actual name: "{}")'.format(
+                    basename(item), basename(filename)))
+                r = requests.post(post_url, data=form_data, files=files)
+
+                try:
+                    r.raise_for_status()
+                except Exception as e:
+                    log.error('Caught exception: {}'.format(e))
+
+                # Delete original only after successful upload
+                log.debug('Deleting {}'.format(old))
+                rm(old)
+
+    if exceptions_caught:
+        log.error('Exceptions caught, exiting with failure status')
+        cleanup_and_exit(1)

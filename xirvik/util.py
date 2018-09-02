@@ -1,8 +1,9 @@
 """General utility module."""
 from hashlib import sha1
 from hmac import compare_digest
-from os import stat
-from os.path import isdir, join as path_join
+from os import R_OK, access, stat
+from os.path import isdir, join as path_join, realpath
+import argparse
 import struct
 import sys
 
@@ -16,7 +17,41 @@ __all__ = (
     'ctrl_c_handler',
     'VerificationError',
     'verify_torrent_contents',
+    'ReadableDirectoryListAction',
 )
+
+
+class ReadableDirectoryAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        prospective_dir = values
+
+        if not isdir(prospective_dir):
+            raise argparse.ArgumentTypeError('%s is not a valid directory' % (
+                prospective_dir,
+            ))
+
+        if access(prospective_dir, R_OK):
+            setattr(namespace, self.dest, realpath(prospective_dir))
+            return
+
+        raise argparse.ArgumentTypeError('%s is not a readable directory' % (
+            prospective_dir,
+        ))
+
+
+class ReadableDirectoryListAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        dirs = []
+        kwa = dict(self._get_kwargs())
+        parent = ReadableDirectoryAction(**kwa)
+
+        for prospective_dir in values:
+            ns = argparse.Namespace()
+            ns.directory = prospective_dir
+            parent(parser, ns, prospective_dir, option_string)
+            dirs.append(ns.directory)
+
+        setattr(namespace, self.dest, dirs)
 
 
 def cleanup_and_exit(status=0):
