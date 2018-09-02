@@ -364,7 +364,9 @@ def start_torrents():
         try:
             syslogh = SysLogHandler(address='/dev/log')
         except (OSError, socket.error):
-            syslogh = SysLogHandler(address='/var/run/syslog')
+            syslogh = SysLogHandler(address='/var/run/syslog',
+                                    facility='local1')
+            syslogh.ident = 'xirvik-start-torrents'
             logging.INFO = logging.WARNING
 
         syslogh.setFormatter(
@@ -420,8 +422,11 @@ def start_torrents():
                     filename = unidecode(f.name)
 
                 files = dict(torrent_file=(filename, f,))
-                log.info('Uploading torrent {} (actual name: "{}")'.format(
-                    basename(item), basename(filename)))
+                try:
+                    log.info('Uploading torrent {} (actual name: "{}")'.format(
+                        basename(item), basename(filename)))
+                except OSError:
+                    pass
                 r = requests.post(post_url, data=form_data, files=files)
 
                 try:
