@@ -504,3 +504,9 @@ class ruTorrentClient(object):
                                data=query,
                                auth=self.auth)
         r.raise_for_status()
+
+    def add_torrent_url(self, url):
+        r = self._session.post(self._add_torrent_uri,
+                               data=dict(url=url),
+                               auth=self.auth)
+        r.raise_for_status()
