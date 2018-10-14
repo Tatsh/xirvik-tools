@@ -266,7 +266,7 @@ class ruTorrentClient(object):
                     elif fields[i] == 'ratio':
                         value = int(value) / 1000.0
                     else:
-                        re1 = r'^[0-9]+\.[0-9]+'
+                        re1 = r'^[0-9]+(\.[0-9]+)?'
                         re2 = r'^\.[0-9]+'
                         if re.match(re1, value) or re.match(re2, value):
                             cons = int if "." not in value else float
