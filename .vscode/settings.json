@@ -1,0 +1,10 @@
+{
+    "python.pythonPath": "/Users/tatsh/.virtualenvs/xirvik-tools/bin/python",
+    "python.formatting.provider": "yapf",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "python.formatting.yapfArgs": [
+        "--style",
+        "pep8"
+    ],
+}
