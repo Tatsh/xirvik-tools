@@ -4,19 +4,21 @@ from datetime import datetime
 from netrc import netrc
 from os.path import expanduser
 import logging
+import re
 
 from cached_property import cached_property
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util import Retry
+
 try:
     from requests_futures.sessions import FuturesSession
+
     has_futures = True
 except ImportError:
     has_futures = False
 from six.moves import xmlrpc_client as xmlrpc
 from six.moves.urllib.parse import quote
 import requests
-
 
 __all__ = (
     'LOG_NAME',
@@ -86,10 +88,11 @@ class ruTorrentClient(object):
         self.password = password
 
         self.host = host
-        retry = Retry(connect=max_retries,
-                      read=max_retries,
-                      redirect=False,
-                      backoff_factor=1)
+        retry = Retry(
+            connect=max_retries,
+            read=max_retries,
+            redirect=False,
+            backoff_factor=1)
         self._http_adapter = HTTPAdapter(max_retries=retry)
         self._session = requests.Session()
         self._session.mount('http://', self._http_adapter)
@@ -123,7 +126,10 @@ class ruTorrentClient(object):
     @cached_property
     def auth(self):
         """Return basic authentication credentials."""
-        return (self.name, self.password,)
+        return (
+            self.name,
+            self.password,
+        )
 
     def add_torrent(self, filepath, start_now=True):
         """Add a torrent. Use start_now=False to start paused."""
@@ -134,10 +140,8 @@ class ruTorrentClient(object):
 
         with open(filepath, 'rb') as f:
             files = dict(torrent_file=f)
-            r = self._session.post(self._add_torrent_uri,
-                                   data=data,
-                                   auth=self.auth,
-                                   files=files)
+            r = self._session.post(
+                self._add_torrent_uri, data=data, auth=self.auth, files=files)
 
             r.raise_for_status()
 
@@ -154,13 +158,12 @@ class ruTorrentClient(object):
             'mode': 'list',
             'cmd': 'd.custom=addtime',
         }
-        r = self._session.post(self.multirpc_action_uri,
-                               data=data,
-                               auth=self.auth)
+        r = self._session.post(
+            self.multirpc_action_uri, data=data, auth=self.auth)
 
         r.raise_for_status()
 
-        return r.json()['t']
+        return r.json()["t"]
 
     def list_torrents_dict(self):
         """
@@ -263,7 +266,12 @@ class ruTorrentClient(object):
                     elif fields[i] == 'ratio':
                         value = int(value) / 1000.0
                     else:
-                        cons = int if '.' not in value else float
+                        re1 = r'^[0-9]+\.[0-9]+'
+                        re2 = r'^\.[0-9]+'
+                        if re.match(re1, value) or re.match(re2, value):
+                            cons = int if "." not in value else float
+                            if cons == float:
+                                print(value)
                         try:
                             value = cons(value)
                         except ValueError:
@@ -283,9 +291,7 @@ class ruTorrentClient(object):
         source_torrent_uri = ('{}/rtorrent/plugins/source/action.php'
                               '?hash={}'.format(self.http_prefix, hash))
 
-        r = self._session.get(source_torrent_uri,
-                              auth=self.auth,
-                              stream=True)
+        r = self._session.get(source_torrent_uri, auth=self.auth, stream=True)
 
         r.raise_for_status()
 
@@ -313,8 +319,8 @@ class ruTorrentClient(object):
         for hash in hashes:
             source_torrent_uri = ('{}/rtorrent/plugins/source/action.php'
                                   '?hash={}'.format(self.http_prefix, hash))
-            yield session.get(source_torrent_uri,
-                              background_callback=background_callback)
+            yield session.get(
+                source_torrent_uri, background_callback=background_callback)
 
     def move_torrent(self, hash, target_dir, fast_resume=True):
         """
@@ -329,9 +335,8 @@ class ruTorrentClient(object):
             'move_datafiles': '1',
             'move_fastresume': '1' if fast_resume else '0',
         }
-        r = self._session.post(self.datadir_action_uri,
-                               data=data,
-                               auth=self.auth)
+        r = self._session.post(
+            self.datadir_action_uri, data=data, auth=self.auth)
 
         r.raise_for_status()
 
@@ -379,9 +384,8 @@ class ruTorrentClient(object):
         self._log.debug('set_labels() with data: {}'.format(
             data.decode('utf-8')))
 
-        r = self._session.post(self.multirpc_action_uri,
-                               data=data,
-                               auth=self.auth)
+        r = self._session.post(
+            self.multirpc_action_uri, data=data, auth=self.auth)
         r.raise_for_status()
         json = r.json()
 
@@ -396,8 +400,8 @@ class ruTorrentClient(object):
                 recursion_attempt += 1
 
                 self._log.info('Attempting label again '
-                               '({:d} out of {:d})'.format(recursion_attempt,
-                                                           recursion_limit))
+                               '({:d} out of {:d})'.format(
+                                   recursion_attempt, recursion_limit))
 
                 data = b'mode=setlabel'
                 new_hashes = []
@@ -413,10 +417,11 @@ class ruTorrentClient(object):
                     self._log.debug('Found no torrents to correct')
                     return
 
-                self.set_label_to_hashes(hashes=new_hashes,
-                                         label=label,
-                                         recursion_limit=recursion_limit,
-                                         recursion_attempt=recursion_attempt)
+                self.set_label_to_hashes(
+                    hashes=new_hashes,
+                    label=label,
+                    recursion_limit=recursion_limit,
+                    recursion_attempt=recursion_attempt)
             else:
                 self._log.warning('Passed recursion limit for label fix')
 
@@ -440,15 +445,17 @@ class ruTorrentClient(object):
         for info in list_files():
             for name, pieces, pieces_dl, size, dlstrat, _ in info:
         """
-        cmds = (quote('f.prioritize_first='), quote('f.prioritize_last='),)
+        cmds = (
+            quote('f.prioritize_first='),
+            quote('f.prioritize_last='),
+        )
         query = 'mode=fls&hash={}'.format(hash).encode('utf-8')
         cmds = '&'.join(['cmd={}'.format(x) for x in cmds])
         query += b'&'
         query += cmds.encode('utf-8')
 
-        r = self._session.post(self.multirpc_action_uri,
-                               data=query,
-                               auth=self.auth)
+        r = self._session.post(
+            self.multirpc_action_uri, data=query, auth=self.auth)
         r.raise_for_status()
 
         for x in r.json():
@@ -488,9 +495,8 @@ class ruTorrentClient(object):
         Returns if successful. Can raise a Requests exception.
         """
         query = dict(mode='remove', hash=hash)
-        r = self._session.post(self.multirpc_action_uri,
-                               data=query,
-                               auth=self.auth)
+        r = self._session.post(
+            self.multirpc_action_uri, data=query, auth=self.auth)
         r.raise_for_status()
 
     def stop(self, hash):
@@ -500,13 +506,11 @@ class ruTorrentClient(object):
         Returns if successful. Can raise a Requests exception.
         """
         query = dict(mode='stop', hash=hash)
-        r = self._session.post(self.multirpc_action_uri,
-                               data=query,
-                               auth=self.auth)
+        r = self._session.post(
+            self.multirpc_action_uri, data=query, auth=self.auth)
         r.raise_for_status()
 
     def add_torrent_url(self, url):
-        r = self._session.post(self._add_torrent_uri,
-                               data=dict(url=url),
-                               auth=self.auth)
+        r = self._session.post(
+            self._add_torrent_uri, data=dict(url=url), auth=self.auth)
         r.raise_for_status()
