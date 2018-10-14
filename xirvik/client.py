@@ -270,12 +270,10 @@ class ruTorrentClient(object):
                         re2 = r'^\.[0-9]+'
                         if re.match(re1, value) or re.match(re2, value):
                             cons = int if "." not in value else float
-                            if cons == float:
-                                print(value)
-                        try:
-                            value = cons(value)
-                        except ValueError:
-                            pass
+                            try:
+                                value = cons(value)
+                            except ValueError:
+                                pass
                     ret[hash][fields[i]] = value
                 except IndexError:
                     continue
