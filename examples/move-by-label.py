@@ -11,7 +11,7 @@ import sys
 from xirvik.client import ruTorrentClient
 
 USERNAME = sys.argv[1]
-HOST = sys.arg[2]
+HOST = sys.argv[2]
 try:
     PATH = sys.argv[3]
 except IndexError:
