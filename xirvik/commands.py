@@ -1,8 +1,8 @@
 """Mirror (copy data from remote to local) helper."""
 from logging.handlers import SysLogHandler
 from os import chmod, close as close_fd, listdir, makedirs, remove as rm, utime
-from os.path import (basename, dirname, isdir, expanduser,
-                     join as path_join, realpath, splitext)
+from os.path import (basename, dirname, isdir, expanduser, join as path_join,
+                     realpath, splitext)
 from netrc import netrc
 from tempfile import gettempdir, mkstemp
 import argparse
@@ -95,8 +95,8 @@ def mirror(sftp_client,
 
         if current_size is None or current_size != info.st_size:
             sess = rclient._session
-            uri = '{}/downloads{}{}'.format(rclient.http_prefix,
-                                            cwd, _path[1:])
+            uri = '{}/downloads{}{}'.format(rclient.http_prefix, cwd,
+                                            _path[1:])
             uri = uri.replace('#', '%23')
             log.info('Downloading {} -> {}'.format(uri, dest))
 
@@ -116,7 +116,11 @@ def mirror(sftp_client,
                     dl += len(chunk)
                     done = int(50 * dl / total)
                     percent = (float(dl) / float(total)) * 100
-                    args = ('=' * done, ' ' * (50 - done), percent,)
+                    args = (
+                        '=' * done,
+                        ' ' * (50 - done),
+                        percent,
+                    )
                     sys.stdout.write('\r[{}{}] {:.2f}%'.format(*args))
                     sys.stdout.flush()
 
@@ -129,7 +133,10 @@ def mirror(sftp_client,
             if keep_modes:
                 chmod(dest, info.st_mode)
             if keep_times:
-                utime(dest, (info.st_atime, info.st_mtime,))
+                utime(dest, (
+                    info.st_atime,
+                    info.st_mtime,
+                ))
         except IOError:
             pass
 
@@ -143,8 +150,11 @@ def mirror_main():
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-P', '--port', type=int, default=22)
     parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
-    parser.add_argument('-r', '--resume', action='store_true',
-                        help='Resume incomplete files (experimental)')
+    parser.add_argument(
+        '-r',
+        '--resume',
+        action='store_true',
+        help='Resume incomplete files (experimental)')
     parser.add_argument('-T', '--move-to', required=True)
     parser.add_argument('-L', '--label', default='Seeding')
     parser.add_argument('-d', '--debug', action='store_true')
@@ -157,14 +167,10 @@ def mirror_main():
     parser.add_argument('local_dir', metavar='LOCALDIR', nargs=1)
 
     args = parser.parse_args()
-    log = get_logger('xirvik',
-                     verbose=args.verbose,
-                     debug=args.debug,
-                     syslog=args.syslog)
+    log = get_logger(
+        'xirvik', verbose=args.verbose, debug=args.debug, syslog=args.syslog)
     if args.debug:
-        logs_to_follow = (
-            'requests',
-        )
+        logs_to_follow = ('requests',)
         for name in logs_to_follow:
             _log = logging.getLogger(name)
             formatter = logging.Formatter('%(asctime)s - %(name)s - '
@@ -189,9 +195,11 @@ def mirror_main():
     log.debug('Acquiring lock at {}.lock'.format(lf_path))
     _lock = LockFile(lf_path)
     if _lock.is_locked():
-        psax = [x for x in
-                sp.check_output(['ps', 'ax']).decode('utf-8').split('\n')
-                if sys.argv[0] in x]
+        psax = [
+            x
+            for x in sp.check_output(['ps', 'ax']).decode('utf-8').split('\n')
+            if sys.argv[0] in x
+        ]
         if len(psax) == 1:
             log.info('Breaking lock')
             _lock.break_lock()
@@ -202,10 +210,8 @@ def mirror_main():
     log.debug('Read user and password from netrc file')
     log.debug('SFTP URI: {}'.format(sftp_host))
 
-    client = ruTorrentClient(args.host,
-                             user,
-                             password,
-                             max_retries=args.max_retries)
+    client = ruTorrentClient(
+        args.host, user, password, max_retries=args.max_retries)
 
     assumed_path_prefix = '/torrents/{}'.format(user)
     look_for = '{}/{}/'.format(assumed_path_prefix, args.remote_dir[0])
@@ -231,9 +237,15 @@ def mirror_main():
         if not v[TORRENT_PATH_INDEX].startswith(look_for):
             continue
         bn = basename(v[TORRENT_PATH_INDEX])
-        names[bn] = (hash, v[TORRENT_PATH_INDEX],)
+        names[bn] = (
+            hash,
+            v[TORRENT_PATH_INDEX],
+        )
 
-        log.info('Completed torrent "{}" found with hash {}'.format(bn, hash,))
+        log.info('Completed torrent "{}" found with hash {}'.format(
+            bn,
+            hash,
+        ))
 
     sftp_client_args = dict(
         hostname=args.host,
@@ -262,11 +274,12 @@ def mirror_main():
                 _lock.release()
                 cleanup_and_exit()
 
-            mirror(sftp_client,
-                   client,
-                   destroot=local_dir,
-                   keep_modes=not args.no_preserve_permissions,
-                   keep_times=not args.no_preserve_times)
+            mirror(
+                sftp_client,
+                client,
+                destroot=local_dir,
+                keep_modes=not args.no_preserve_permissions,
+                keep_times=not args.no_preserve_times)
     except Exception as e:
         if args.debug:
             _lock.release()
@@ -309,9 +322,11 @@ def mirror_main():
 
     log.info('Setting label to "{}" for downloaded items'.format(args.label))
 
-    client.set_label_to_hashes(hashes=[hash for bn, (hash, fullpath)
-                                       in names.items() if hash not in bad],
-                               label=args.label)
+    client.set_label_to_hashes(
+        hashes=[
+            hash for bn, (hash, fullpath) in names.items() if hash not in bad
+        ],
+        label=args.label)
 
     if exit_status != 0:
         log.error('Could not verify torrent checksums')
@@ -340,18 +355,19 @@ def start_torrents():
     parser.add_argument('-p', '--port', nargs=1, default=[443])
     parser.add_argument('--start-stopped', action='store_true')
     parser.add_argument('-s', '--syslog', action='store_true')
-    parser.add_argument('directory',
-                        metavar='DIRECTORY',
-                        action=ReadableDirectoryListAction,
-                        nargs='*')
+    parser.add_argument(
+        'directory',
+        metavar='DIRECTORY',
+        action=ReadableDirectoryListAction,
+        nargs='*')
 
     args = parser.parse_args()
     verbose = args.debug or args.verbose
     log.setLevel(logging.INFO)
 
     if verbose:
-        channel = logging.StreamHandler(sys.stdout if args.verbose
-                                        else sys.stderr)
+        channel = logging.StreamHandler(sys.stdout if args.verbose else sys.
+                                        stderr)
 
         channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
         channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
@@ -364,8 +380,8 @@ def start_torrents():
         try:
             syslogh = SysLogHandler(address='/dev/log')
         except (OSError, socket.error):
-            syslogh = SysLogHandler(address='/var/run/syslog',
-                                    facility='local1')
+            syslogh = SysLogHandler(
+                address='/var/run/syslog', facility='local1')
             syslogh.ident = 'xirvik-start-torrents'
             logging.INFO = logging.WARNING
 
@@ -377,8 +393,10 @@ def start_torrents():
     try:
         user, _, password = netrc(args.netrc_path).authenticators(args.host[0])
     except TypeError:
-        print('Cannot find host {} in netrc. Specify user name and '
-              'password'.format(args.host[0]), file=sys.stderr)
+        print(
+            'Cannot find host {} in netrc. Specify user name and '
+            'password'.format(args.host[0]),
+            file=sys.stderr)
         sys.exit(1)
 
     post_url = ('https://{host:s}:{port:d}/rtorrent/php/'
@@ -421,7 +439,10 @@ def start_torrents():
                 except AttributeError:  # decode
                     filename = unidecode(f.name)
 
-                files = dict(torrent_file=(filename, f,))
+                files = dict(torrent_file=(
+                    filename,
+                    f,
+                ))
                 try:
                     log.info('Uploading torrent {} (actual name: "{}")'.format(
                         basename(item), basename(filename)))

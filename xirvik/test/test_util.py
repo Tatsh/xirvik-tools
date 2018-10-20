@@ -12,7 +12,6 @@ from bencodepy import encode as bencode
 
 from xirvik.util import VerificationError, verify_torrent_contents
 
-
 random = SystemRandom()
 
 
@@ -62,10 +61,10 @@ class TestTorrentVerfication(TempFilesMixin, unittest.TestCase):
         all_data = create_random_data(self.FILE_SIZE * 2)
         pieces = b''
 
-        self.file1 = self._mktemp(contents=all_data[0:self.FILE_SIZE],
-                                  dir=self.torrent_data_path)
-        self.file2 = self._mktemp(contents=all_data[self.FILE_SIZE:],
-                                  dir=self.torrent_data_path)
+        self.file1 = self._mktemp(
+            contents=all_data[0:self.FILE_SIZE], dir=self.torrent_data_path)
+        self.file2 = self._mktemp(
+            contents=all_data[self.FILE_SIZE:], dir=self.torrent_data_path)
 
         for i in range(0, self.FILE_SIZE * 2, self.PIECE_LENGTH):
             s = sha1()
@@ -75,9 +74,12 @@ class TestTorrentVerfication(TempFilesMixin, unittest.TestCase):
         self.torrent_data_dict = {
             b'announce': 'https://fake.com',
             b'info': {
-                b'name': self.torrent_name,
-                b'piece length': self.PIECE_LENGTH,
-                b'pieces': pieces,
+                b'name':
+                self.torrent_name,
+                b'piece length':
+                self.PIECE_LENGTH,
+                b'pieces':
+                pieces,
                 b'files': [
                     {
                         b'length': self.FILE_SIZE,
@@ -107,8 +109,8 @@ class TestTorrentVerfication(TempFilesMixin, unittest.TestCase):
                                 dirname(self.torrent_data_path))
 
     def test_verify_torrent_contents_stringio(self):
-        verify_torrent_contents(StringIO(self.torrent_data),
-                                dirname(self.torrent_data_path))
+        verify_torrent_contents(
+            StringIO(self.torrent_data), dirname(self.torrent_data_path))
 
     def test_verify_torrent_contents_invalid_path(self):
         with self.assertRaises(IOError):
@@ -183,12 +185,11 @@ class TestSingleFileTorrentVerification(TempFilesMixin, unittest.TestCase):
         verify_torrent_contents(self.torrent_data, self.torrent_data_path)
 
     def test_verify_torrent_contents_filepath(self):
-        verify_torrent_contents(self.torrent_file_path,
-                                self.torrent_data_path)
+        verify_torrent_contents(self.torrent_file_path, self.torrent_data_path)
 
     def test_verify_torrent_contents_stringio(self):
-        verify_torrent_contents(StringIO(self.torrent_data),
-                                self.torrent_data_path)
+        verify_torrent_contents(
+            StringIO(self.torrent_data), self.torrent_data_path)
 
     def test_verify_torrent_contents_file_missing(self):
         rm(self.file1)

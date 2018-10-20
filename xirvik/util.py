@@ -26,17 +26,15 @@ class ReadableDirectoryAction(argparse.Action):
         prospective_dir = values
 
         if not isdir(prospective_dir):
-            raise argparse.ArgumentTypeError('%s is not a valid directory' % (
-                prospective_dir,
-            ))
+            raise argparse.ArgumentTypeError(
+                '%s is not a valid directory' % (prospective_dir,))
 
         if access(prospective_dir, R_OK):
             setattr(namespace, self.dest, realpath(prospective_dir))
             return
 
-        raise argparse.ArgumentTypeError('%s is not a readable directory' % (
-            prospective_dir,
-        ))
+        raise argparse.ArgumentTypeError(
+            '%s is not a readable directory' % (prospective_dir,))
 
 
 class ReadableDirectoryListAction(argparse.Action):

@@ -18,7 +18,6 @@ except IndexError:
     PATH = ''
 PREFIX = '/torrents/{}/{}'.format(USERNAME, PATH)
 
-
 if __name__ == '__main__':
     client = ruTorrentClient(HOST)
     count = 0
@@ -30,10 +29,9 @@ if __name__ == '__main__':
 
         # Ignore torrents that are hash checking, not finished hash checking,
         # not complete or that are already moved
-        if (info['is_hash_checking'] or
-                not info['is_hash_checked'] or
-                info['left_bytes'] > 0 or
-                info['base_path'].startswith(move_to)):
+        if (info['is_hash_checking'] or not info['is_hash_checked']
+                or info['left_bytes'] > 0
+                or info['base_path'].startswith(move_to)):
             continue
 
         print('Moving {} to {}/'.format(name, move_to.encode('utf-8'), name))

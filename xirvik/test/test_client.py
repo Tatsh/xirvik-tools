@@ -79,12 +79,14 @@ class TestRuTorrentClient(unittest.TestCase):
     @requests_mock.Mocker()
     def test_list_torrents(self, m):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
-        m.post(client.multirpc_action_uri, json=dict(
-            t={
-                'hash here': ['1', '0', '1', '1', 'name of torrent?'],
-            },
-            cid=92385,
-        ))
+        m.post(
+            client.multirpc_action_uri,
+            json=dict(
+                t={
+                    'hash here': ['1', '0', '1', '1', 'name of torrent?'],
+                },
+                cid=92385,
+            ))
 
         self.assertEqual(client.list_torrents()['hash here'][4],
                          'name of torrent?')
@@ -94,8 +96,12 @@ class TestRuTorrentClient(unittest.TestCase):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
         uri = ('{}/rtorrent/plugins/source/action.php'
                '?hash=hash_of_torrent').format(client.http_prefix)
-        m.get(uri, headers={'content-disposition': 'attachment; '
-                            'filename=test.torrent'})
+        m.get(
+            uri,
+            headers={
+                'content-disposition': 'attachment; '
+                'filename=test.torrent'
+            })
         _, fn = client.get_torrent('hash_of_torrent')
 
         self.assertEqual('test.torrent', fn)
@@ -104,9 +110,11 @@ class TestRuTorrentClient(unittest.TestCase):
     def test_list_files(self, m):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
 
-        m.post(client.multirpc_action_uri, json=[
-            ['name of file', '14', '13', '8192', '1', '0', '0'],
-        ])
+        m.post(
+            client.multirpc_action_uri,
+            json=[
+                ['name of file', '14', '13', '8192', '1', '0', '0'],
+            ])
 
         files = list(client.list_files('testhash'))
         self.assertEqual('name of file', files[0][0])
@@ -124,12 +132,16 @@ class TestRuTorrentClient(unittest.TestCase):
         label = 'my new label'
         list_torrents_json = dict(
             t={
-                'hash1': ['1', '0', '1', '1', 'torrent name', '250952849',
-                          '958', '958', '250952849', '357999402', '1426',
-                          '0', '0', '262144', ''],
-                'hash2': ['1', '0', '1', '1', 'torrent name2', '250952849',
-                          '958', '958', '250952849', '357999402', '1426',
-                          '0', '0', '262144', ''],
+                'hash1': [
+                    '1', '0', '1', '1', 'torrent name', '250952849', '958',
+                    '958', '250952849', '357999402', '1426', '0', '0',
+                    '262144', ''
+                ],
+                'hash2': [
+                    '1', '0', '1', '1', 'torrent name2', '250952849', '958',
+                    '958', '250952849', '357999402', '1426', '0', '0',
+                    '262144', ''
+                ],
             },
             cid=92983,
         )
@@ -148,9 +160,8 @@ class TestRuTorrentClient(unittest.TestCase):
         ]
 
         m.post(client.multirpc_action_uri, responses)
-        client.set_label_to_hashes(hashes=hashes,
-                                   label=label,
-                                   recursion_limit=5)
+        client.set_label_to_hashes(
+            hashes=hashes, label=label, recursion_limit=5)
 
         with self.assertRaises(TypeError):
             client.set_label_to_hashes()
@@ -160,10 +171,11 @@ class TestRuTorrentClient(unittest.TestCase):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
         list_torrents_json = dict(
             t=dict(
-                hash1=['1', '0', '1', '1', 'torrent name', '250952849', '958',
-                       '958', '250952849', '357999402', '1426', '0', '0',
-                       '262144', 'a label'],
-            ),
+                hash1=[
+                    '1', '0', '1', '1', 'torrent name', '250952849', '958',
+                    '958', '250952849', '357999402', '1426', '0', '0',
+                    '262144', 'a label'
+                ],),
             cid=92983,
         )
         responses = [

@@ -28,5 +28,4 @@ setup(
         ]
     },
     test_suite='xirvik.test',
-    tests_require=['coveralls', 'nose', 'requests-mock']
-)
+    tests_require=['coveralls', 'nose', 'requests-mock'])

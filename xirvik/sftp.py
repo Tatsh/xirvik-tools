@@ -19,7 +19,6 @@ __all__ = (
     'LOG_NAME',
 )
 
-
 LOG_NAME = 'xirvik.sftp'
 LOG_INTERVAL = 60
 
@@ -77,8 +76,7 @@ class SFTPClient(object):
 
         # 'Extend' the SFTPClient class
         is_reconnect = kwargs.pop('is_reconnect', False)
-        members = inspect.getmembers(self.client,
-                                     predicate=inspect.ismethod)
+        members = inspect.getmembers(self.client, predicate=inspect.ismethod)
         self._log.debug('Dynamically adding methods from original SFTPClient')
         for (method_name, method) in members:
             if method_name[0:2] == '__' or method_name == '_log':
@@ -115,7 +113,10 @@ class SFTPClient(object):
                     if self.raise_exceptions:
                         raise e
             else:
-                yield (path_join(path, da.filename), da,)
+                yield (
+                    path_join(path, da.filename),
+                    da,
+                )
 
     def _get_callback(self, start_time, _log):
         def cb(tx_bytes, total_bytes):
@@ -126,23 +127,15 @@ class SFTPClient(object):
             if (total_time_s % LOG_INTERVAL) != 0:
                 return
 
-            nsize_tx = naturalsize(tx_bytes,
-                                   binary=True,
-                                   format='%.2f')
-            nsize_total = naturalsize(total_bytes,
-                                      binary=True,
-                                      format='%.2f')
+            nsize_tx = naturalsize(tx_bytes, binary=True, format='%.2f')
+            nsize_total = naturalsize(total_bytes, binary=True, format='%.2f')
 
             speed_in_s = tx_bytes / total_time
-            speed_in_s = naturalsize(speed_in_s,
-                                     binary=True,
-                                     format='%.2f')
+            speed_in_s = naturalsize(speed_in_s, binary=True, format='%.2f')
 
             _log.info('Downloaded {} / {} in {} ({}/s)'.format(
-                nsize_tx,
-                nsize_total,
-                naturaldelta(datetime.now() - start_time),
-                speed_in_s,
+                nsize_tx, nsize_total,
+                naturaldelta(datetime.now() - start_time), speed_in_s,
                 total_time_s))
 
         return cb
@@ -210,10 +203,15 @@ class SFTPClient(object):
                             offset = 0
 
                             for n in range(n_reads):
-                                read_tuples.append((resume_seek + offset,
-                                                    self.MAX_PACKET_SIZE,))
+                                read_tuples.append((
+                                    resume_seek + offset,
+                                    self.MAX_PACKET_SIZE,
+                                ))
                                 offset += self.MAX_PACKET_SIZE
-                            read_tuples.append((resume_seek + offset, n_left,))
+                            read_tuples.append((
+                                resume_seek + offset,
+                                n_left,
+                            ))
 
                             with self.client.open(_path) as rf:
                                 with open(dest, 'ab') as f:
@@ -247,12 +245,10 @@ class SFTPClient(object):
 
                         if resume:
                             self._log.info('Resuming GET {} at {} '
-                                           'bytes'.format(_path,
-                                                          resume_seek))
+                                           'bytes'.format(_path, resume_seek))
                         else:
                             self._log.debug('Not resuming (resume = {}, '
-                                            'exception: {})'.format(resume,
-                                                                    e))
+                                            'exception: {})'.format(resume, e))
                             raise e
 
                         self._log.debug('Re-establishing connection')
@@ -266,7 +262,10 @@ class SFTPClient(object):
                 if keep_modes:
                     chmod(dest, info.st_mode)
                 if keep_times:
-                    utime(dest, (info.st_atime, info.st_mtime,))
+                    utime(dest, (
+                        info.st_atime,
+                        info.st_mtime,
+                    ))
             except IOError:
                 pass
 
@@ -276,4 +275,5 @@ class SFTPClient(object):
         """Return string representation."""
         return '{} (wrapped by {}.SFTPClient)'.format(
             str(self.client), __name__)
+
     __unicode__ = __str__
