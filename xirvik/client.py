@@ -160,10 +160,14 @@ class ruTorrentClient(object):
         }
         r = self._session.post(
             self.multirpc_action_uri, data=data, auth=self.auth)
-
         r.raise_for_status()
 
-        return r.json()["t"]
+        ret = r.json()['t']
+
+        if isinstance(ret, list):
+            raise ValueError('Unexpected type from API')
+
+        return ret
 
     def list_torrents_dict(self):
         """
