@@ -1,4 +1,5 @@
 MANIFEST
-dist/
-htmlcov/
+/dist/
+/htmlcov/
 .coverage
+/bin/
