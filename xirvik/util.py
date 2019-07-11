@@ -42,9 +42,9 @@ class ReadableDirectoryAction(argparse.Action):
             return
 
         username = environ['USER']
-        raise argparse.ArgumentTypeError(f'{prospective_dir} is not a '
-                                         'readable directory (checking as user'
-                                         f' {username})')
+        msg = '{} is not a readable directory (checking as user {})'.format(
+            prospective_dir, username)
+        raise argparse.ArgumentTypeError(msg)
 
 
 class ReadableDirectoryListAction(argparse.Action):
