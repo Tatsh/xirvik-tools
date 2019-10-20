@@ -1,9 +1,10 @@
 """Mirror (copy data from remote to local) helper."""
+from base64 import b64encode
 from logging.handlers import SysLogHandler
-from os import chmod, close as close_fd, listdir, makedirs, remove as rm, utime
-from os.path import (basename, dirname, isdir, expanduser, join as path_join,
-                     realpath, splitext)
 from netrc import netrc
+from os import chmod, close as close_fd, listdir, makedirs, remove as rm, utime
+from os.path import (basename, dirname, expanduser, isdir, join as path_join,
+                     realpath, splitext)
 from tempfile import gettempdir, mkstemp
 import argparse
 import hashlib
@@ -19,20 +20,13 @@ from lockfile import LockFile, NotLocked
 from unidecode import unidecode
 import requests
 
-from xirvik.client import (
-    TORRENT_PATH_INDEX,
-    UnexpectedruTorrentError,
-    ruTorrentClient,
-)
+from xirvik.client import (TORRENT_PATH_INDEX, UnexpectedruTorrentError,
+                           ruTorrentClient)
 from xirvik.log import cleanup, get_logger
 from xirvik.sftp import SFTPClient
-from xirvik.util import (
-    ReadableDirectoryListAction,
-    VerificationError,
-    cleanup_and_exit,
-    ctrl_c_handler,
-    verify_torrent_contents,
-)
+from xirvik.util import (ReadableDirectoryListAction, VerificationError,
+                         cleanup_and_exit, ctrl_c_handler,
+                         verify_torrent_contents)
 
 _lock = None
 
@@ -150,11 +144,10 @@ def mirror_main():
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-P', '--port', type=int, default=22)
     parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
-    parser.add_argument(
-        '-r',
-        '--resume',
-        action='store_true',
-        help='Resume incomplete files (experimental)')
+    parser.add_argument('-r',
+                        '--resume',
+                        action='store_true',
+                        help='Resume incomplete files (experimental)')
     parser.add_argument('-T', '--move-to', required=True)
     parser.add_argument('-L', '--label', default='Seeding')
     parser.add_argument('-d', '--debug', action='store_true')
@@ -167,10 +160,12 @@ def mirror_main():
     parser.add_argument('local_dir', metavar='LOCALDIR', nargs=1)
 
     args = parser.parse_args()
-    log = get_logger(
-        'xirvik', verbose=args.verbose, debug=args.debug, syslog=args.syslog)
+    log = get_logger('xirvik',
+                     verbose=args.verbose,
+                     debug=args.debug,
+                     syslog=args.syslog)
     if args.debug:
-        logs_to_follow = ('requests',)
+        logs_to_follow = ('requests', )
         for name in logs_to_follow:
             _log = logging.getLogger(name)
             formatter = logging.Formatter('%(asctime)s - %(name)s - '
@@ -210,8 +205,10 @@ def mirror_main():
     log.debug('Read user and password from netrc file')
     log.debug('SFTP URI: {}'.format(sftp_host))
 
-    client = ruTorrentClient(
-        args.host, user, password, max_retries=args.max_retries)
+    client = ruTorrentClient(args.host,
+                             user,
+                             password,
+                             max_retries=args.max_retries)
 
     assumed_path_prefix = '/torrents/{}'.format(user)
     look_for = '{}/{}/'.format(assumed_path_prefix, args.remote_dir[0])
@@ -274,12 +271,11 @@ def mirror_main():
                 _lock.release()
                 cleanup_and_exit()
 
-            mirror(
-                sftp_client,
-                client,
-                destroot=local_dir,
-                keep_modes=not args.no_preserve_permissions,
-                keep_times=not args.no_preserve_times)
+            mirror(sftp_client,
+                   client,
+                   destroot=local_dir,
+                   keep_modes=not args.no_preserve_permissions,
+                   keep_times=not args.no_preserve_times)
     except Exception as e:
         if args.debug:
             _lock.release()
@@ -302,7 +298,7 @@ def mirror_main():
         r, _ = client.get_torrent(hash)
         try:
             verify_torrent_contents(r.content, local_dir)
-        except VerificationError as e:
+        except VerificationError:
             log.error('Could not verify "{}" contents against piece hashes '
                       'in torrent file'.format(bn))
             exit_status = 1
@@ -322,11 +318,10 @@ def mirror_main():
 
     log.info('Setting label to "{}" for downloaded items'.format(args.label))
 
-    client.set_label_to_hashes(
-        hashes=[
-            hash for bn, (hash, fullpath) in names.items() if hash not in bad
-        ],
-        label=args.label)
+    client.set_label_to_hashes(hashes=[
+        hash for bn, (hash, fullpath) in names.items() if hash not in bad
+    ],
+                               label=args.label)
 
     if exit_status != 0:
         log.error('Could not verify torrent checksums')
@@ -355,19 +350,18 @@ def start_torrents():
     parser.add_argument('-p', '--port', nargs=1, default=[443])
     parser.add_argument('--start-stopped', action='store_true')
     parser.add_argument('-s', '--syslog', action='store_true')
-    parser.add_argument(
-        'directory',
-        metavar='DIRECTORY',
-        action=ReadableDirectoryListAction,
-        nargs='*')
+    parser.add_argument('directory',
+                        metavar='DIRECTORY',
+                        action=ReadableDirectoryListAction,
+                        nargs='*')
 
     args = parser.parse_args()
     verbose = args.debug or args.verbose
     log.setLevel(logging.INFO)
 
     if verbose:
-        channel = logging.StreamHandler(sys.stdout if args.verbose else sys.
-                                        stderr)
+        channel = logging.StreamHandler(
+            sys.stdout if args.verbose else sys.stderr)
 
         channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
         channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
@@ -380,8 +374,8 @@ def start_torrents():
         try:
             syslogh = SysLogHandler(address='/dev/log')
         except (OSError, socket.error):
-            syslogh = SysLogHandler(
-                address='/var/run/syslog', facility='local1')
+            syslogh = SysLogHandler(address='/var/run/syslog',
+                                    facility='local1')
             syslogh.ident = 'xirvik-start-torrents'
             logging.INFO = logging.WARNING
 
@@ -393,10 +387,9 @@ def start_torrents():
     try:
         user, _, password = netrc(args.netrc_path).authenticators(args.host[0])
     except TypeError:
-        print(
-            'Cannot find host {} in netrc. Specify user name and '
-            'password'.format(args.host[0]),
-            file=sys.stderr)
+        print('Cannot find host {} in netrc. Specify user name and '
+              'password'.format(args.host[0]),
+              file=sys.stderr)
         sys.exit(1)
 
     post_url = ('https://{host:s}:{port:d}/rtorrent/php/'
@@ -462,3 +455,76 @@ def start_torrents():
     if exceptions_caught:
         log.error('Exceptions caught, exiting with failure status')
         cleanup_and_exit(1)
+
+
+def add_ftp_user():
+    log = logging.getLogger('xirvik')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u', '--username', required=True)
+    parser.add_argument('-P', '--password', required=True)
+    parser.add_argument('-r', '--root-directory', default='/')
+    parser.add_argument('-d', '--debug', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
+    parser.add_argument('-H', '--host', required=True)
+    parser.add_argument('-p', '--port', type=int, default=443)
+    args = parser.parse_args()
+    verbose = args.debug or args.verbose
+    log.setLevel(logging.INFO)
+    if verbose:
+        channel = logging.StreamHandler(
+            sys.stdout if args.verbose else sys.stderr)
+        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+        channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
+        log.addHandler(channel)
+        if args.debug:
+            log.setLevel(logging.DEBUG)
+    uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/'
+           'ftp_users/add_user')
+    rootdir = args.root_directory
+    if not rootdir.startswith('/'):
+        rootdir = f'/{rootdir}'
+    # Setting read_only=yes does not appear to work
+    r = requests.post(uri,
+                      data=dict(username=args.username,
+                                password_1=args.password,
+                                root_folder=rootdir,
+                                read_only='no'))
+    try:
+        r.raise_for_status()
+    except Exception as e:
+        log.error('Caught exception: {}'.format(e))
+        return 1
+    return 0
+
+
+def delete_ftp_user():
+    log = logging.getLogger('xirvik')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u', '--username', required=True)
+    parser.add_argument('-d', '--debug', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
+    parser.add_argument('-H', '--host', required=True)
+    parser.add_argument('-p', '--port', type=int, default=443)
+    args = parser.parse_args()
+    verbose = args.debug or args.verbose
+    log.setLevel(logging.INFO)
+    if verbose:
+        channel = logging.StreamHandler(
+            sys.stdout if args.verbose else sys.stderr)
+        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+        channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
+        log.addHandler(channel)
+        if args.debug:
+            log.setLevel(logging.DEBUG)
+    user = b64encode(args.username.encode('utf-8')).decode('utf-8')
+    uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/ftp_users/'
+           f'delete/{user}')
+    r = requests.get(uri)
+    try:
+        r.raise_for_status()
+    except Exception as e:
+        log.error('Caught exception: {}'.format(e))
+        return 1
+    return 0
