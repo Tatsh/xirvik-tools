@@ -1,9 +1,10 @@
 """General utility module."""
 from hashlib import sha1
 from hmac import compare_digest
-from os import R_OK, access, stat
+from os import R_OK, access, environ, stat
 from os.path import isdir, join as path_join, realpath
 import argparse
+import platform
 import struct
 import sys
 
@@ -29,12 +30,21 @@ class ReadableDirectoryAction(argparse.Action):
             raise argparse.ArgumentTypeError(
                 '%s is not a valid directory' % (prospective_dir,))
 
+        # Since macOS 10.15, the Python binary will need access to this
+        # directory and a prompt from TCC must appear for this to work
+        # Because of TCC becoming more strict, hecking with access() is not
+        # reliable on macOS
+        if platform.system() == 'Darwin':
+            return
+
         if access(prospective_dir, R_OK):
             setattr(namespace, self.dest, realpath(prospective_dir))
             return
 
-        raise argparse.ArgumentTypeError(
-            '%s is not a readable directory' % (prospective_dir,))
+        username = environ['USER']
+        msg = '{} is not a readable directory (checking as user {})'.format(
+            prospective_dir, username)
+        raise argparse.ArgumentTypeError(msg)
 
 
 class ReadableDirectoryListAction(argparse.Action):
