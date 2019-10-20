@@ -3,3 +3,4 @@ MANIFEST
 /htmlcov/
 .coverage
 /bin/
+/.vscode/settings.json
