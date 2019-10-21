@@ -16,11 +16,11 @@ def cleanup():
     logging.shutdown()
 
 
-def get_logger(name,
-               level=logging.INFO,
-               verbose=False,
-               debug=False,
-               syslog=False):
+def get_logger(name: str,
+               level: int = logging.INFO,
+               verbose: bool = False,
+               debug: bool = False,
+               syslog: bool = False) -> logging.Logger:
     """
     Set up a logger for sys.stderr/stdout and/or syslog.
 

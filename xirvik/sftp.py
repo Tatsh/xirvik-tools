@@ -1,18 +1,18 @@
 """SFTP client like paramiko's with extra features."""
-from __future__ import print_function
 from datetime import datetime
 from math import ceil, floor
 from os import chmod, makedirs, utime
 from os.path import basename, dirname, isdir, join as path_join, realpath
+from typing import Any, Dict, Iterator, List, Tuple, cast
 import inspect
-import os
 import logging
+import os
 import socket
 
 from humanize import naturaldelta, naturalsize
+from paramiko import SFTPAttributes, SFTPClient as OriginalSFTPClient, SFTPFile
 from paramiko.client import SSHClient
 from paramiko.sftp import SFTPError
-from paramiko import SFTPFile
 
 __all__ = (
     'SFTPClient',
@@ -23,19 +23,16 @@ LOG_NAME = 'xirvik.sftp'
 LOG_INTERVAL = 60
 
 
-class SFTPClient(object):
+class SFTPClient:
     """Dynamic extension on paramiko's SFTPClient."""
 
-    MAX_PACKET_SIZE = SFTPFile.__dict__['MAX_REQUEST_SIZE']
+    MAX_PACKET_SIZE: int = SFTPFile.__dict__['MAX_REQUEST_SIZE']
 
-    ssh_client = None
-    client = None
-    raise_exceptions = False
-    original_arguments = {}
-    debug = False
+    original_arguments: Dict[str, Any] = {}
+    debug: bool = False
 
     _log = logging.getLogger(LOG_NAME)
-    _dircache = []
+    _dircache: List[str] = []
 
     def __init__(self, **kwargs):
         """Constructor."""
@@ -63,22 +60,22 @@ class SFTPClient(object):
         keepalive = kwargs.pop('keepalive', 5)
         if password:
             kwargs_to_paramiko['password'] = password
-        self.raise_exceptions = kwargs.pop('raise_exceptions', False)
+        self.raise_exceptions: bool = kwargs.pop('raise_exceptions', False)
 
         self.ssh_client = SSHClient()
         self.ssh_client.load_system_host_keys()
         self.ssh_client.connect(host, **kwargs_to_paramiko)
 
-        self.client = self.ssh_client.open_sftp()
+        self.client: OriginalSFTPClient = self.ssh_client.open_sftp()
         channel = self.client.get_channel()
         channel.settimeout(kwargs_to_paramiko['timeout'])
         channel.get_transport().set_keepalive(keepalive)
 
         # 'Extend' the SFTPClient class
-        is_reconnect = kwargs.pop('is_reconnect', False)
+        is_reconnect: bool = kwargs.pop('is_reconnect', False)
         members = inspect.getmembers(self.client, predicate=inspect.ismethod)
         self._log.debug('Dynamically adding methods from original SFTPClient')
-        for (method_name, method) in members:
+        for method_name, method in members:
             if method_name[0:2] == '__' or method_name == '_log':
                 self._log.debug('Ignorning {}()'.format(method_name))
                 continue
@@ -100,7 +97,8 @@ class SFTPClient(object):
         """Reset directory cache."""
         self._dircache = []
 
-    def listdir_attr_recurse(self, path='.'):
+    def listdir_attr_recurse(self, path: str = '.'
+                             ) -> Iterator[Tuple[str, SFTPAttributes]]:
         """List directory attributes recursively."""
         for da in self.client.listdir_attr(path=path):
             is_dir = da.st_mode & 0o700 == 0o700
@@ -118,7 +116,7 @@ class SFTPClient(object):
                     da,
                 )
 
-    def _get_callback(self, start_time, _log):
+    def _get_callback(self, start_time: datetime, _log: logging.Logger):
         def cb(tx_bytes, total_bytes):
             total_time = datetime.now() - start_time
             total_time = total_time.total_seconds()
@@ -133,19 +131,17 @@ class SFTPClient(object):
             speed_in_s = tx_bytes / total_time
             speed_in_s = naturalsize(speed_in_s, binary=True, format='%.2f')
 
-            _log.info('Downloaded {} / {} in {} ({}/s)'.format(
-                nsize_tx, nsize_total,
-                naturaldelta(datetime.now() - start_time), speed_in_s,
-                total_time_s))
+            _log.info('Downloaded %s / %s in %s (%s/s)', nsize_tx, nsize_total,
+                      naturaldelta(datetime.now() - start_time), speed_in_s)
 
         return cb
 
     def mirror(self,
-               path='.',
-               destroot='.',
-               keep_modes=True,
-               keep_times=True,
-               resume=True):
+               path: str = '.',
+               destroot: str = '.',
+               keep_modes: bool = True,
+               keep_times: bool = True,
+               resume: bool = True):
         """
         Mirror a remote directory to a local location.
 
@@ -159,7 +155,7 @@ class SFTPClient(object):
         """
         n = 0
         resume_seek = None
-        cwd = self.getcwd()
+        cwd = cast(OriginalSFTPClient, self).getcwd()
 
         for _path, info in self.listdir_attr_recurse(path=path):
             if info.st_mode & 0o700 == 0o700:
@@ -185,8 +181,8 @@ class SFTPClient(object):
                     if current_size != info.st_size:
                         resume_seek = current_size
                         if resume:
-                            self._log.info('Resuming file {} at {} '
-                                           'bytes'.format(dest, current_size))
+                            self._log.info('Resuming file %s at %s bytes',
+                                           dest, current_size)
                         raise IOError()  # ugly goto
             except IOError:
                 while True:
@@ -222,14 +218,14 @@ class SFTPClient(object):
                                         f.write(chunk)
                         else:
                             dest = realpath(dest)
-                            self._log.info('Downloading {} -> '
-                                           '{}'.format(_path, dest))
+                            self._log.info('Downloading %s -> %s', _path, dest)
 
                             start_time = datetime.now()
                             self.client.get(_path, dest)
 
-                            self._get_callback(start_time, self._log)(
-                                info.st_size, info.st_size)
+                            self._get_callback(start_time,
+                                               self._log)(info.st_size,
+                                                          info.st_size)
 
                         # Do not count files that were already downloaded
                         n += 1
@@ -241,21 +237,22 @@ class SFTPClient(object):
                         if isinstance(e, socket.timeout):
                             self._log.error('Connection timed out')
                         else:
-                            self._log.error('{!s}'.format(e))
+                            self._log.error('%s', e)
 
                         if resume:
-                            self._log.info('Resuming GET {} at {} '
-                                           'bytes'.format(_path, resume_seek))
+                            self._log.info('Resuming GET %s at %s bytes',
+                                           _path, resume_seek)
                         else:
-                            self._log.debug('Not resuming (resume = {}, '
-                                            'exception: {})'.format(resume, e))
+                            self._log.debug(
+                                'Not resuming (resume = %s, exception: %s)',
+                                resume, e)
                             raise e
 
                         self._log.debug('Re-establishing connection')
                         self.original_arguments['is_reconnect'] = True
                         self._connect(**self.original_arguments)
                         if cwd:
-                            self.chdir(cwd)
+                            cast(OriginalSFTPClient, self).chdir(cwd)
 
             # Okay to fix existing files even if they are already downloaded
             try:
@@ -273,7 +270,6 @@ class SFTPClient(object):
 
     def __str__(self):
         """Return string representation."""
-        return '{} (wrapped by {}.SFTPClient)'.format(
-            str(self.client), __name__)
+        return f'{self.client} (wrapped by {__name__}.SFTPClient)'
 
     __unicode__ = __str__

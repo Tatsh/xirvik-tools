@@ -4,7 +4,6 @@ Example script to move torrents based on their label set in ruTorrent.
 
 ./move-by-label.py USERNAME HOSTNAME [PATH]
 """
-from __future__ import print_function
 from time import sleep
 import sys
 
@@ -22,8 +21,8 @@ if __name__ == '__main__':
     client = ruTorrentClient(HOST)
     count = 0
 
-    for hash, info in client.list_torrents_dict().iteritems():
-        name = info['name'].encode('utf-8')
+    for hash, info in client.list_torrents_dict().items():
+        name = info['name']
         label = info['custom1']
         move_to = '{}/{}'.format(PREFIX, label.lower())
 
@@ -34,7 +33,7 @@ if __name__ == '__main__':
                 or info['base_path'].startswith(move_to)):
             continue
 
-        print('Moving {} to {}/'.format(name, move_to.encode('utf-8'), name))
+        print('Moving {} to {}/{}'.format(name, move_to, name))
         client.move_torrent(hash, move_to)
 
         # Sometimes the web server cannot handle so many requests, so only

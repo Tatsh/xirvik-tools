@@ -6,6 +6,7 @@ from os import chmod, close as close_fd, listdir, makedirs, remove as rm, utime
 from os.path import (basename, dirname, expanduser, isdir, join as path_join,
                      realpath, splitext)
 from tempfile import gettempdir, mkstemp
+from typing import Optional, cast
 import argparse
 import hashlib
 import json
@@ -17,6 +18,7 @@ import subprocess as sp
 import sys
 
 from lockfile import LockFile, NotLocked
+from paramiko import SFTPClient as OriginalSFTPClient
 from unidecode import unidecode
 import requests
 
@@ -43,7 +45,7 @@ def lock_ctrl_c_handler(signum, frame):
     raise SystemExit('Signal raised')
 
 
-def mirror(sftp_client,
+def mirror(sftp_client: SFTPClient,
            rclient,
            path='.',
            destroot='.',
@@ -52,17 +54,17 @@ def mirror(sftp_client,
     """
     Mirror a remote directory to local.
 
-    sftp_client must be a valid xirvik.sftp.SFTPClient instance.
+    :param sftp_client: must be a valid `xirvik.sftp.SFTPClient` instance.
 
-    rclient must be a valid ruTorrentClient instance.
+    `rclient` must be a valid `ruTorrentClient` instance.
 
-    path is the remote directory. destroot must be the location where
+    `path` is the remote directory. destroot must be the location where
     destroot/path will be created (the path must not already exist).
 
-    keep_modes and keep_times are boolean to ensure permissions and time
+    `keep_modes` and `keep_times` are boolean to ensure permissions and time
     are retained respectively.
     """
-    cwd = sftp_client.getcwd()
+    cwd = cast(OriginalSFTPClient, sftp_client).getcwd()
     log = logging.getLogger('xirvik')
 
     for _path, info in sftp_client.listdir_attr_recurse(path=path):
@@ -83,7 +85,7 @@ def mirror(sftp_client,
             continue
 
         try:
-            current_size = os.stat(dest).st_size
+            current_size: Optional[int] = os.stat(dest).st_size
         except OSError:
             current_size = None
 
@@ -97,7 +99,7 @@ def mirror(sftp_client,
             r = sess.get(uri, stream=True)
             r.raise_for_status()
             try:
-                total = int(r.headers.get('content-length'))
+                total: Optional[int] = int(r.headers.get('content-length'))
                 log.info('Content-Length: {}'.format(total))
             except (KeyError, ValueError):
                 total = None
@@ -108,8 +110,8 @@ def mirror(sftp_client,
                     f.write(chunk)
 
                     dl += len(chunk)
-                    done = int(50 * dl / total)
-                    percent = (float(dl) / float(total)) * 100
+                    done = int(50 * dl / cast(int, total))
+                    percent = (float(dl) / float(cast(int, total))) * 100
                     args = (
                         '=' * done,
                         ' ' * (50 - done),
@@ -165,8 +167,7 @@ def mirror_main():
                      debug=args.debug,
                      syslog=args.syslog)
     if args.debug:
-        logs_to_follow = ('requests', )
-        for name in logs_to_follow:
+        for name in ('requests', ):
             _log = logging.getLogger(name)
             formatter = logging.Formatter('%(asctime)s - %(name)s - '
                                           '%(levelname)s - %(message)s')
@@ -177,7 +178,7 @@ def mirror_main():
             channel.setFormatter(formatter)
             _log.addHandler(channel)
 
-    local_dir = realpath(args.local_dir[0])
+    local_dir: str = realpath(args.local_dir[0])
     user, _, password = netrc(args.netrc_path).authenticators(args.host)
     sftp_host = 'sftp://{user:s}@{host:s}'.format(
         user=user,
@@ -201,9 +202,9 @@ def mirror_main():
     _lock.acquire()
     log.info('Lock acquired')
 
-    log.debug('Local directory to sync to: {}'.format(local_dir))
+    log.debug('Local directory to sync to: %s', local_dir)
     log.debug('Read user and password from netrc file')
-    log.debug('SFTP URI: {}'.format(sftp_host))
+    log.debug('SFTP URI: %s', sftp_host)
 
     client = ruTorrentClient(args.host,
                              user,
@@ -215,15 +216,15 @@ def mirror_main():
     move_to = '{}/{}'.format(assumed_path_prefix, args.move_to)
     names = {}
 
-    log.debug('Full completed directory path name: {}'.format(look_for))
-    log.debug('Moving finished torrents to: {}'.format(move_to))
+    log.debug('Full completed directory path name: %s', look_for)
+    log.debug('Moving finished torrents to: %s', move_to)
 
     log.info('Getting current torrent information (ruTorrent)')
     try:
         torrents = client.list_torrents()
     except requests.exceptions.ConnectionError as e:
         # Assume no Internet connection at this point
-        log.error('Failed to connect: {}'.format(e))
+        log.error('Failed to connect: %s', e)
         try:
             _lock.release()
         except NotLocked:
@@ -239,10 +240,11 @@ def mirror_main():
             v[TORRENT_PATH_INDEX],
         )
 
-        log.info('Completed torrent "{}" found with hash {}'.format(
+        log.info(
+            'Completed torrent "%s" found with hash %s',
             bn,
             hash,
-        ))
+        )
 
     sftp_client_args = dict(
         hostname=args.host,
@@ -253,18 +255,19 @@ def mirror_main():
 
     try:
         with SFTPClient(**sftp_client_args) as sftp_client:
-            log.info('Verifying contents of {} with previous '
-                     'response'.format(look_for))
+            log.info('Verifying contents of %s with previous '
+                     'response', look_for)
 
             sftp_client.chdir(args.remote_dir[0])
             for item in sftp_client.listdir_iter(read_aheads=10):
                 if item.filename not in names:
-                    log.error('File or directory "{}" not found in previous '
-                              'response body'.format(item.filename))
+                    log.error(
+                        'File or directory "%s" not found in previous '
+                        'response body', item.filename)
                     continue
 
-                log.debug('Found matching torrent "{}" from ls output'.format(
-                    item.filename))
+                log.debug('Found matching torrent "%s" from ls output',
+                          item.filename)
 
             if not len(names.items()):
                 log.info('Nothing found to mirror')
@@ -294,13 +297,14 @@ def mirror_main():
         # Content-Disposition header's filename field has any
         # non-ASCII characters. It is ignorable as the content still gets
         # downloaded correctly
-        log.info('Verifying "{}"'.format(bn))
+        log.info('Verifying "%s"', bn)
         r, _ = client.get_torrent(hash)
         try:
             verify_torrent_contents(r.content, local_dir)
         except VerificationError:
-            log.error('Could not verify "{}" contents against piece hashes '
-                      'in torrent file'.format(bn))
+            log.error(
+                'Could not verify "%s" contents against piece hashes '
+                'in torrent file', bn)
             exit_status = 1
             bad.append(hash)
 
@@ -310,13 +314,13 @@ def mirror_main():
     for bn, (hash, fullpath) in _all:
         if hash in bad:
             continue
-        log.info('Moving "{}" to "{}" directory'.format(bn, move_to))
+        log.info('Moving "%s" to "%s" directory', bn, move_to)
         try:
             client.move_torrent(hash, move_to)
         except UnexpectedruTorrentError as e:
             log.error(str(e))
 
-    log.info('Setting label to "{}" for downloaded items'.format(args.label))
+    log.info('Setting label to "%s" for downloaded items', args.label)
 
     client.set_label_to_hashes(hashes=[
         hash for bn, (hash, fullpath) in names.items() if hash not in bad
@@ -387,8 +391,8 @@ def start_torrents():
     try:
         user, _, password = netrc(args.netrc_path).authenticators(args.host[0])
     except TypeError:
-        print('Cannot find host {} in netrc. Specify user name and '
-              'password'.format(args.host[0]),
+        print((f'Cannot find host {args.host[0]} in netrc. Specify user name '
+               'and password'),
               file=sys.stderr)
         sys.exit(1)
 
@@ -437,8 +441,8 @@ def start_torrents():
                     f,
                 ))
                 try:
-                    log.info('Uploading torrent {} (actual name: "{}")'.format(
-                        basename(item), basename(filename)))
+                    log.info('Uploading torrent %s (actual name: "%s")',
+                             basename(item), basename(filename))
                 except OSError:
                     pass
                 r = requests.post(post_url, data=form_data, files=files)
@@ -446,10 +450,10 @@ def start_torrents():
                 try:
                     r.raise_for_status()
                 except Exception as e:
-                    log.error('Caught exception: {}'.format(e))
+                    log.error('Caught exception: %s', e)
 
                 # Delete original only after successful upload
-                log.debug('Deleting {}'.format(old))
+                log.debug('Deleting %s', old)
                 rm(old)
 
     if exceptions_caught:
@@ -481,9 +485,8 @@ def add_ftp_user():
             log.setLevel(logging.DEBUG)
     uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/'
            'ftp_users/add_user')
-    rootdir = args.root_directory
-    if not rootdir.startswith('/'):
-        rootdir = f'/{rootdir}'
+    rootdir = args.root_directory if args.root_directory.startswith(
+        '/') else f'/{args.root_directory}'
     # Setting read_only=yes does not appear to work
     r = requests.post(uri,
                       data=dict(username=args.username,
@@ -493,7 +496,7 @@ def add_ftp_user():
     try:
         r.raise_for_status()
     except Exception as e:
-        log.error('Caught exception: {}'.format(e))
+        log.exception(e)
         return 1
     return 0
 
@@ -525,6 +528,6 @@ def delete_ftp_user():
     try:
         r.raise_for_status()
     except Exception as e:
-        log.error('Caught exception: {}'.format(e))
+        log.exception(e)
         return 1
     return 0

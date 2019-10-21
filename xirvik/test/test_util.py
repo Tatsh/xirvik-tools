@@ -1,10 +1,10 @@
-from __future__ import print_function
 from hashlib import sha1
 from io import BytesIO as StringIO
 from os import close as close_fd, remove as rm, rmdir, write as write_fd
 from os.path import basename, dirname
 from random import SystemRandom
 from tempfile import mkdtemp, mkstemp
+from typing import List, Optional
 import sys
 import unittest
 
@@ -15,12 +15,12 @@ from xirvik.util import VerificationError, verify_torrent_contents
 random = SystemRandom()
 
 
-def create_random_data(size):
+def create_random_data(size: int):
     return bytearray(random.getrandbits(8) for _ in range(size))
 
 
-class TempFilesMixin(object):
-    _temp_files = []
+class TempFilesMixin:
+    _temp_files: List[str] = []
 
     def tearDown(self):
         for x in self._temp_files:
@@ -32,9 +32,12 @@ class TempFilesMixin(object):
                 else:
                     print(str(e), file=sys.stderr)
 
-    def _mktemp(self, contents=None, prefix='test-', dir=None):
+    def _mktemp(self,
+                contents: Optional[bytes] = None,
+                prefix: str = 'test-',
+                dir: Optional[str] = None):
         fd, name = mkstemp(prefix=prefix, dir=dir)
-        write_fd(fd, contents)
+        write_fd(fd, contents or b'')
         close_fd(fd)
 
         self._temp_files.append(name)
@@ -46,13 +49,6 @@ class TestTorrentVerfication(TempFilesMixin, unittest.TestCase):
     FILE_SIZE = 2509
     PIECE_LENGTH = 256
 
-    file1 = None
-    file2 = None
-    torrent_data = None
-    torrent_data_path = None
-    torrent_data_dict = None
-    torrent_name = None
-
     def setUp(self):
         """ A torrent generator! """
         self.torrent_data_path = mkdtemp(prefix='test-torrent-verification-')
@@ -61,10 +57,10 @@ class TestTorrentVerfication(TempFilesMixin, unittest.TestCase):
         all_data = create_random_data(self.FILE_SIZE * 2)
         pieces = b''
 
-        self.file1 = self._mktemp(
-            contents=all_data[0:self.FILE_SIZE], dir=self.torrent_data_path)
-        self.file2 = self._mktemp(
-            contents=all_data[self.FILE_SIZE:], dir=self.torrent_data_path)
+        self.file1 = self._mktemp(contents=all_data[0:self.FILE_SIZE],
+                                  dir=self.torrent_data_path)
+        self.file2 = self._mktemp(contents=all_data[self.FILE_SIZE:],
+                                  dir=self.torrent_data_path)
 
         for i in range(0, self.FILE_SIZE * 2, self.PIECE_LENGTH):
             s = sha1()
@@ -109,8 +105,8 @@ class TestTorrentVerfication(TempFilesMixin, unittest.TestCase):
                                 dirname(self.torrent_data_path))
 
     def test_verify_torrent_contents_stringio(self):
-        verify_torrent_contents(
-            StringIO(self.torrent_data), dirname(self.torrent_data_path))
+        verify_torrent_contents(StringIO(self.torrent_data),
+                                dirname(self.torrent_data_path))
 
     def test_verify_torrent_contents_invalid_path(self):
         with self.assertRaises(IOError):
@@ -152,12 +148,6 @@ class TestSingleFileTorrentVerification(TempFilesMixin, unittest.TestCase):
     FILE_SIZE = 2509
     PIECE_LENGTH = 256
 
-    file1 = None
-    torrent_data = None
-    torrent_data_path = None
-    torrent_data_dict = None
-    torrent_name = None
-
     def setUp(self):
         all_data = create_random_data(self.FILE_SIZE)
         self.file1 = self._mktemp(contents=all_data)
@@ -188,8 +178,8 @@ class TestSingleFileTorrentVerification(TempFilesMixin, unittest.TestCase):
         verify_torrent_contents(self.torrent_file_path, self.torrent_data_path)
 
     def test_verify_torrent_contents_stringio(self):
-        verify_torrent_contents(
-            StringIO(self.torrent_data), self.torrent_data_path)
+        verify_torrent_contents(StringIO(self.torrent_data),
+                                self.torrent_data_path)
 
     def test_verify_torrent_contents_file_missing(self):
         rm(self.file1)

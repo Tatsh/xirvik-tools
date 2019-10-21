@@ -3,13 +3,14 @@ from hashlib import sha1
 from hmac import compare_digest
 from os import R_OK, access, environ, stat
 from os.path import isdir, join as path_join, realpath
+from typing import (Any, BinaryIO, Iterator, List, Optional, Sequence, TypeVar,
+                    Union, cast)
 import argparse
 import platform
 import struct
 import sys
 
 from bencodepy import decode as bdecode
-import six
 
 from xirvik.log import cleanup
 
@@ -21,14 +22,20 @@ __all__ = (
     'ReadableDirectoryListAction',
 )
 
+T = TypeVar('T')
+
 
 class ReadableDirectoryAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self,
+                 parser: argparse.ArgumentParser,
+                 namespace: argparse.Namespace,
+                 values: Optional[Union[str, Sequence[Any]]],
+                 option_string: Optional[str] = None):
         prospective_dir = values
 
-        if not isdir(prospective_dir):
-            raise argparse.ArgumentTypeError(
-                '%s is not a valid directory' % (prospective_dir,))
+        if not isdir(cast(str, prospective_dir)):
+            raise argparse.ArgumentTypeError('%s is not a valid directory' %
+                                             (prospective_dir, ))
 
         # Since macOS 10.15, the Python binary will need access to this
         # directory and a prompt from TCC must appear for this to work
@@ -37,23 +44,27 @@ class ReadableDirectoryAction(argparse.Action):
         if platform.system() == 'Darwin':
             return
 
-        if access(prospective_dir, R_OK):
-            setattr(namespace, self.dest, realpath(prospective_dir))
+        if access(cast(str, prospective_dir), R_OK):
+            setattr(namespace, self.dest, realpath(cast(str, prospective_dir)))
             return
 
         username = environ['USER']
-        msg = '{} is not a readable directory (checking as user {})'.format(
-            prospective_dir, username)
-        raise argparse.ArgumentTypeError(msg)
+        raise argparse.ArgumentTypeError(
+            f'{prospective_dir} is not a readable directory (checking as user '
+            f'{username})')
 
 
 class ReadableDirectoryListAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self,
+                 parser: argparse.ArgumentParser,
+                 namespace: argparse.Namespace,
+                 values: Optional[Union[str, Sequence[Any]]],
+                 option_string: Optional[str] = None):
         dirs = []
         kwa = dict(self._get_kwargs())
         parent = ReadableDirectoryAction(**kwa)
 
-        for prospective_dir in values:
+        for prospective_dir in cast(Sequence[Any], values):
             ns = argparse.Namespace()
             ns.directory = prospective_dir
             parent(parser, ns, prospective_dir, option_string)
@@ -62,25 +73,26 @@ class ReadableDirectoryListAction(argparse.Action):
         setattr(namespace, self.dest, dirs)
 
 
-def cleanup_and_exit(status=0):
+def cleanup_and_exit(status: int = 0):
     """Called instead of sys.exit(). status is the integer to exit with."""
     cleanup()
     sys.exit(status)
 
 
-def ctrl_c_handler(signum, frame):
+def ctrl_c_handler(signum: int, frame):
     """Used as a TERM signal handler. Arguments are ignored."""
     cleanup()
     raise SystemExit('Signal raised')
 
 
-def _chunks(l, n):
+def _chunks(l: Sequence[T], n: int) -> Iterator[Sequence[T]]:
     # Source: http://stackoverflow.com/a/312464/374110
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
 
-def _get_torrent_pieces(filenames, basepath, piece_length):
+def _get_torrent_pieces(filenames: Sequence[str], basepath: str,
+                        piece_length: int) -> Iterator[Optional[bytes]]:
     # Yes this is a generator and should not be used any other way (i.e. do not
     # wrap in list()).
     buf = b''
@@ -139,7 +151,8 @@ class VerificationError(Exception):
     pass
 
 
-def verify_torrent_contents(torrent_file, path):
+def verify_torrent_contents(torrent_file: Union[str, BinaryIO, bytes],
+                            path: str):
     """
     Verify torrent contents.
 
@@ -148,11 +161,11 @@ def verify_torrent_contents(torrent_file, path):
     orig_path = path
 
     if hasattr(torrent_file, 'seek') and hasattr(torrent_file, 'read'):
-        torrent_file.seek(0)
-        torrent = bdecode(torrent_file.read())
+        cast(BinaryIO, torrent_file).seek(0)
+        torrent = bdecode(cast(BinaryIO, torrent_file).read())
     else:
         try:
-            with open(torrent_file, 'rb') as f:
+            with open(cast(str, torrent_file), 'rb') as f:
                 torrent = bdecode(f.read())
         except (IOError, TypeError, ValueError):
             # ValueError for 'embedded null byte' in Python 3.5
@@ -176,8 +189,9 @@ def verify_torrent_contents(torrent_file, path):
     piece_hashes = _chunks(piece_hashes, sha1().digest_size)
 
     try:
-        filenames = ('/'.join([y.decode('utf-8') for y in x[b'path']])
-                     for x in torrent[b'info'][b'files'])
+        filenames: Union[Iterator[str], List[str]] = ('/'.join(
+            [y.decode('utf-8')
+             for y in x[b'path']]) for x in torrent[b'info'][b'files'])
     except KeyError as e:
         if e.args[0] != b'files':
             raise e
@@ -186,16 +200,13 @@ def verify_torrent_contents(torrent_file, path):
         filenames = [path]
         path = orig_path
 
-    pieces = _get_torrent_pieces(filenames, path, piece_length)
+    pieces = _get_torrent_pieces(list(filenames), path, piece_length)
 
     for known_hash, piece in zip(piece_hashes, pieces):
-        if six.PY2:
-            known_hash = ''.join([six.int2byte(x) for x in known_hash])
-        else:
-            known_hash = bytes(known_hash)
+        known_hash = bytes(known_hash)
 
         try:
-            file_hash = sha1(piece).digest()
+            file_hash = sha1(cast(bytes, piece)).digest()
         except TypeError:
             raise VerificationError('Unable to get hash for piece')
 
