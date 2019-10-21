@@ -5,7 +5,7 @@ python:
   - '3.8-dev'
 install:
   - pip install -e .
-  - pip install coveralls nose requests-mock
+  - pip install coveralls nose requests-mock requests-futures
   # Temporary until https://github.com/eweast/BencodePy/pull/5 is merged
   - 'pip install --upgrade -e git+https://github.com/Tatsh/BencodePy.git@py2#egg=bencodepy'
 script:
