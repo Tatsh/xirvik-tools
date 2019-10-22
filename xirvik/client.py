@@ -7,6 +7,7 @@ from typing import (Any, Dict, Iterator, List, Optional, Sequence, Tuple,
                     Union, cast)
 import logging
 import re
+import ssl
 
 from cached_property import cached_property
 from requests.adapters import HTTPAdapter
@@ -96,7 +97,8 @@ class ruTorrentClient:
 
         uri = 'https://{}:{}@{}/rtorrent/plugins/multirpc/action.php'.format(
             self.name, self.password, self.host)
-        self._xmlrpc_proxy = xmlrpc.ServerProxy(uri)
+        self._xmlrpc_proxy = xmlrpc.ServerProxy(
+            uri, context=ssl._create_unverified_context())
 
     @cached_property
     def http_prefix(self):
