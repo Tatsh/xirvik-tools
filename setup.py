@@ -17,16 +17,18 @@ setup(name='xirvik-tools',
           'lockfile>=0.10.2',
           'paramiko>=1.17.0',
           'requests>=2.6.0',
+          'requests-futures>=1.0.0',
           'six>=1.10.0',
           'Unidecode>=0.4.19',
       ],
       entry_points={
           'console_scripts': [
               'xirvik-add-ftp-user = xirvik.commands:add_ftp_user',
+              'xirvik-auth-ip = xirvik.commands:authorize_ip',
               'xirvik-delete-ftp-user = xirvik.commands:delete_ftp_user',
               'xirvik-mirror = xirvik.commands:mirror_main',
               'xirvik-start-torrents = xirvik.commands:start_torrents',
           ]
       },
       test_suite='xirvik.test',
-      tests_require=['coveralls', 'nose', 'requests-mock', 'requests-futures'])
+      tests_require=['coveralls', 'nose', 'requests-mock'])
