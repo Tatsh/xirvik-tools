@@ -167,7 +167,7 @@ def mirror_main():
                      debug=args.debug,
                      syslog=args.syslog)
     if args.debug:
-        for name in ('requests', ):
+        for name in ('requests',):
             _log = logging.getLogger(name)
             formatter = logging.Formatter('%(asctime)s - %(name)s - '
                                           '%(levelname)s - %(message)s')
@@ -469,7 +469,6 @@ def add_ftp_user():
     parser.add_argument('-r', '--root-directory', default='/')
     parser.add_argument('-d', '--debug', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-p', '--port', type=int, default=443)
     args = parser.parse_args()
@@ -507,7 +506,6 @@ def delete_ftp_user():
     parser.add_argument('-u', '--username', required=True)
     parser.add_argument('-d', '--debug', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-p', '--port', type=int, default=443)
     args = parser.parse_args()
@@ -524,6 +522,35 @@ def delete_ftp_user():
     user = b64encode(args.username.encode('utf-8')).decode('utf-8')
     uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/ftp_users/'
            f'delete/{user}')
+    r = requests.get(uri)
+    try:
+        r.raise_for_status()
+    except Exception as e:
+        log.exception(e)
+        return 1
+    return 0
+
+
+def authorize_ip():
+    log = logging.getLogger('xirvik')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--debug', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-H', '--host', required=True)
+    parser.add_argument('-p', '--port', type=int, default=443)
+    args = parser.parse_args()
+    verbose = args.debug or args.verbose
+    log.setLevel(logging.INFO)
+    if verbose:
+        channel = logging.StreamHandler(
+            sys.stdout if args.verbose else sys.stderr)
+        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+        channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
+        log.addHandler(channel)
+        if args.debug:
+            log.setLevel(logging.DEBUG)
+    uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/'
+           'virtual_machine/authorize_ip')
     r = requests.get(uri)
     try:
         r.raise_for_status()
