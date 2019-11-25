@@ -2,7 +2,7 @@
 from setuptools import setup
 
 setup(name='xirvik-tools',
-      version='0.2.0',
+      version='0.2.1',
       author='Fa An',
       author_email='2998784916@qq.com',
       packages=['xirvik'],
