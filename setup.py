@@ -26,6 +26,7 @@ setup(name='xirvik-tools',
               'xirvik-add-ftp-user = xirvik.commands:add_ftp_user',
               'xirvik-auth-ip = xirvik.commands:authorize_ip',
               'xirvik-delete-ftp-user = xirvik.commands:delete_ftp_user',
+              'xirvik-fix-rtorrent = xirvik.commands:fix_rtorrent',
               'xirvik-mirror = xirvik.commands:mirror_main',
               'xirvik-start-torrents = xirvik.commands:start_torrents',
           ]

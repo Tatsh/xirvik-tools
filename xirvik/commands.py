@@ -6,7 +6,7 @@ from os import chmod, close as close_fd, listdir, makedirs, remove as rm, utime
 from os.path import (basename, dirname, expanduser, isdir, join as path_join,
                      realpath, splitext)
 from tempfile import gettempdir, mkstemp
-from typing import Optional, cast
+from typing import Any, Optional, cast
 import argparse
 import hashlib
 import json
@@ -33,7 +33,7 @@ from xirvik.util import (ReadableDirectoryListAction, VerificationError,
 _lock = None
 
 
-def lock_ctrl_c_handler(signum, frame):
+def lock_ctrl_c_handler(signum: int, frame: Any):
     """TERM signal/^C handler."""
     if _lock:
         try:
@@ -46,11 +46,11 @@ def lock_ctrl_c_handler(signum, frame):
 
 
 def mirror(sftp_client: SFTPClient,
-           rclient,
-           path='.',
-           destroot='.',
-           keep_modes=True,
-           keep_times=True):
+           rclient: ruTorrentClient,
+           path: str = '.',
+           destroot: str = '.',
+           keep_modes: bool = True,
+           keep_times: bool = True):
     """
     Mirror a remote directory to local.
 
@@ -90,16 +90,17 @@ def mirror(sftp_client: SFTPClient,
             current_size = None
 
         if current_size is None or current_size != info.st_size:
-            sess = rclient._session
+            session = rclient._session
             uri = '{}/downloads{}{}'.format(rclient.http_prefix, cwd,
                                             _path[1:])
             uri = uri.replace('#', '%23')
             log.info('Downloading {} -> {}'.format(uri, dest))
 
-            r = sess.get(uri, stream=True)
+            r = session.get(uri, stream=True)
             r.raise_for_status()
             try:
-                total: Optional[int] = int(r.headers.get('content-length'))
+                total: Optional[int] = int(
+                    cast(str, r.headers.get('content-length')))
                 log.info('Content-Length: {}'.format(total))
             except (KeyError, ValueError):
                 total = None
@@ -551,6 +552,36 @@ def authorize_ip():
             log.setLevel(logging.DEBUG)
     uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/'
            'virtual_machine/authorize_ip')
+    r = requests.get(uri)
+    try:
+        r.raise_for_status()
+    except Exception as e:
+        log.exception(e)
+        return 1
+    return 0
+
+
+def fix_rtorrent():
+    log = logging.getLogger('xirvik')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--debug', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-H', '--host', required=True)
+    parser.add_argument('-p', '--port', type=int, default=443)
+    args = parser.parse_args()
+    verbose = args.debug or args.verbose
+    log.setLevel(logging.INFO)
+    if verbose:
+        channel = logging.StreamHandler(
+            sys.stdout if args.verbose else sys.stderr)
+        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+        channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
+        log.addHandler(channel)
+        if args.debug:
+            log.setLevel(logging.DEBUG)
+    log.warning('No guarantees this will work!')
+    uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/services/'
+           'restart/rtorrent')
     r = requests.get(uri)
     try:
         r.raise_for_status()
