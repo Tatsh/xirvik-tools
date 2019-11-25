@@ -9,15 +9,16 @@ import sys
 
 from xirvik.client import ruTorrentClient
 
-USERNAME = sys.argv[1]
 HOST = sys.argv[2]
 try:
     PATH = sys.argv[3]
 except IndexError:
     PATH = ''
+USERNAME = sys.argv[1]
 PREFIX = '/torrents/{}/{}'.format(USERNAME, PATH)
 
-if __name__ == '__main__':
+
+def main() -> int:
     client = ruTorrentClient(HOST)
     count = 0
 
@@ -41,3 +42,9 @@ if __name__ == '__main__':
         count += 1
         if count and (count % 10) == 0:
             sleep(10)
+
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
