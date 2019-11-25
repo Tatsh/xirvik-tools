@@ -1,7 +1,37 @@
 {
+  "[python]": {
+    "editor.tabSize": 4
+  },
+  "cSpell.words": [
+    "API's",
+    "SFTP",
+    "Unexpectedru",
+    "aheads",
+    "chmod",
+    "destroot",
+    "dicttoolz",
+    "functools",
+    "functoolz",
+    "getcwd",
+    "hmac",
+    "itertoolz",
+    "mmtp",
+    "nargs",
+    "paramiko",
+    "preds",
+    "psax",
+    "rclient",
+    "rtorrent",
+    "syslogh",
+    "tadd",
+    "toolz",
+    "xirvik"
+  ],
   "editor.insertSpaces": true,
-  "editor.tabSize": 4,
   "python.formatting.provider": "yapf",
-  "python.formatting.yapfArgs": ["--style", "pep8"],
+  "python.formatting.yapfArgs": [
+    "--style",
+    "pep8"
+  ],
   "python.pythonPath": "/home/tatsh/.virtualenvs/xirvik-tools/bin/python"
 }
