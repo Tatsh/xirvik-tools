@@ -2,7 +2,6 @@
 from datetime import datetime, timedelta
 from time import sleep
 from typing import Any, Callable, Dict, Optional, Tuple, Union
-import argparse
 import logging
 import sys
 
@@ -10,7 +9,7 @@ from requests.exceptions import HTTPError
 import argcomplete
 
 from ..client import ruTorrentClient
-from .util import setup_logging_stdout
+from .util import setup_logging_stdout, common_parser
 
 TestsDict = Dict[str,
                  Tuple[bool, Callable[[Dict[str, Any]], Tuple[str, bool]]]]
@@ -48,25 +47,18 @@ def test_ignore(info: Dict[str, Any]) -> Tuple[str, bool]:
 
 def main() -> int:
     global log
-    log = setup_logging_stdout()
-    assert log is not None
-    parser = argparse.ArgumentParser()
+    parser = common_parser()
     parser.add_argument('-a', '--ignore-ratio', action='store_true')
     parser.add_argument('-D', '--ignore-date', action='store_true')
-    parser.add_argument('-u', '--username', required=False)
-    parser.add_argument('-p', '--password', required=False)
-    parser.add_argument('-r', '--max-retries', type=int, default=10)
     parser.add_argument('-y', '--dry-run', action='store_true')
-    parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('--backoff-factor', type=int, default=5)
     parser.add_argument('--max-attempts', type=int, default=3)
     parser.add_argument('--label')
-    parser.add_argument('--netrc', required=False)
     parser.add_argument('--sleep-time', type=int, default=10)
     parser.add_argument('--days', type=int, default=14)
-    parser.add_argument('host', nargs=1)
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
+    log = setup_logging_stdout(verbose=args.verbose)
+    assert log is not None
 
     client = ruTorrentClient(args.host[0],
                              name=args.username,

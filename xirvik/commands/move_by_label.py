@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from time import sleep
 from typing import Any, Callable, Dict, Optional, Tuple, Union
-import argparse
 import logging
 import sys
 
@@ -9,7 +8,7 @@ from requests.exceptions import HTTPError
 import argcomplete
 
 from ..client import ruTorrentClient
-from .util import setup_logging_stdout
+from .util import common_parser, setup_logging_stdout
 
 PREFIX = '/torrents/{}/_completed'
 log: Optional[logging.Logger] = None
@@ -33,21 +32,32 @@ def key_check(hi: Tuple[Any, Dict[str, Union[bool, int]]]) -> bool:
 
 def main() -> int:
     global log
-    log = setup_logging_stdout()
-    assert log is not None
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-a', '--ignore-ratio', action='store_true')
-    parser.add_argument('-u', '--username', required=False)
-    parser.add_argument('-p', '--password', required=False)
-    parser.add_argument('-r', '--max-retries', type=int, default=10)
-    parser.add_argument('-c', '--completed-dir', default='_completed')
-    parser.add_argument('-t', '--sleep-time', default=10, type=int)
-    parser.add_argument('-l', '--lower-label', action='store_true')
-    parser.add_argument('--netrc', required=False)
-    parser.add_argument('--ignore-labels', nargs='+', default=[])
-    parser.add_argument('host', nargs=1)
+    parser = common_parser()
+    parser.add_argument(
+        '-c',
+        '--completed-dir',
+        default='_completed',
+        help='Top directory where moved torrent data will be placed')
+    parser.add_argument(
+        '-t',
+        '--sleep-time',
+        default=10,
+        type=int,
+        help=('Time to sleep in seconds at certain times during this batch '
+              'of requests'))
+    parser.add_argument(
+        '-l',
+        '--lower-label',
+        action='store_true',
+        help='Call lower() on labels used to make directory names')
+    parser.add_argument('--ignore-labels',
+                        nargs='+',
+                        default=[],
+                        help='List of label names to ignore')
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
+    log = setup_logging_stdout(verbose=args.verbose)
+    assert log is not None
     client = ruTorrentClient(args.host[0],
                              name=args.username,
                              password=args.password,

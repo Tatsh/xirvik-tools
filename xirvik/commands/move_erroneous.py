@@ -3,12 +3,11 @@ from functools import partial
 from time import sleep
 from typing import (Any, Callable, Hashable, Iterator, List, Mapping, Optional,
                     Sequence, Tuple)
-import argparse
 import logging
 import sys
 
 from ..client import ruTorrentClient
-from .util import setup_logging_stdout
+from .util import common_parser, setup_logging_stdout
 
 PREFIX = '/torrents/{}/_completed-not-active'
 BAD_MESSAGES = (
@@ -109,17 +108,13 @@ def any_pass(*funcs) -> Callable[[Any], bool]:
 
 
 def main() -> int:
-    setup_logging_stdout()
-    assert log is not None
-    parser = argparse.ArgumentParser()
+    global log
+    parser = common_parser()
     parser.add_argument('-a', '--ignore-ratio', action='store_true')
-    parser.add_argument('-u', '--username', required=False)
-    parser.add_argument('-p', '--password', required=False)
-    parser.add_argument('-r', '--max-retries', type=int, default=10)
-    parser.add_argument('--netrc', required=False)
     parser.add_argument('-t', '--sleep-time', default=10, type=int)
-    parser.add_argument('host', nargs=1)
     args = parser.parse_args()
+    log = setup_logging_stdout(verbose=args.verbose)
+    assert log is not None
     client = ruTorrentClient(args.host[0],
                              name=args.username,
                              password=args.password,
