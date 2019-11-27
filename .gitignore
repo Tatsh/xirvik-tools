@@ -4,3 +4,4 @@ MANIFEST
 .coverage
 /bin/
 /.vscode/settings.json
+/.vscode/.ropeproject/objectdb
