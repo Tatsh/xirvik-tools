@@ -5,23 +5,17 @@ from netrc import netrc
 from os.path import expanduser
 from typing import (Any, Dict, Iterator, List, Optional, Sequence, Tuple,
                     Union, cast)
+from urllib.parse import quote
 import logging
 import re
 import ssl
+import xmlrpc.client as xmlrpc
 
 from cached_property import cached_property
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util import Retry
-from six.moves import xmlrpc_client as xmlrpc
-from six.moves.urllib.parse import quote
+from requests_futures.sessions import FuturesSession
 import requests
-
-try:
-    from requests_futures.sessions import FuturesSession
-
-    has_futures = True
-except ImportError:
-    has_futures = False
 
 __all__ = (
     'LOG_NAME',
@@ -311,11 +305,8 @@ class ruTorrentClient:
 
         Yields the GET future request for each hash.
         """
-        if not session and has_futures:
+        if not session:
             session = FuturesSession(max_workers=4)
-        else:
-            raise ValueError('Must install requests_futures or pass an '
-                             'equivalent FuturesSession object')
 
         for hash in hashes:
             source_torrent_uri = (
