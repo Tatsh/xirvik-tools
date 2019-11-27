@@ -12,6 +12,7 @@ setup(
     description='Xirvik (ruTorrent mostly) tools.',
     long_description=open('README.md').read(),
     install_requires=[
+        'argcomplete>=1.10.3',
         'bencodepy>=0.9.5',
         'cached-property>=1.0.0',
         'humanize>=0.5.1',
