@@ -44,7 +44,7 @@ def main() -> int:
     parser.add_argument('-t', '--sleep-time', default=10, type=int)
     parser.add_argument('-l', '--lower-label', action='store_true')
     parser.add_argument('--netrc', required=False)
-    parser.add_argument('--ignore-labels')
+    parser.add_argument('--ignore-labels', nargs='+', default=[])
     parser.add_argument('host', nargs=1)
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
