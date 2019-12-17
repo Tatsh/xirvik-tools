@@ -11,7 +11,7 @@ def setup_logging_stdout(name: Optional[str] = None,
     log = logging.getLogger(name)
     log.setLevel(logging.DEBUG if verbose else logging.INFO)
     channel = logging.StreamHandler(sys.stdout)
-    channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+    channel.setFormatter(logging.Formatter('%(message)s'))
     channel.setLevel(logging.DEBUG if verbose else logging.INFO)
     log.addHandler(channel)
     return log
