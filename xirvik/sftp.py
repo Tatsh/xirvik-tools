@@ -77,7 +77,7 @@ class SFTPClient:
         self._log.debug('Dynamically adding methods from original SFTPClient')
         for method_name, method in members:
             if method_name[0:2] == '__' or method_name == '_log':
-                self._log.debug('Ignorning {}()'.format(method_name))
+                self._log.debug('Ignoring {}()'.format(method_name))
                 continue
 
             if not is_reconnect and hasattr(self, method_name):
