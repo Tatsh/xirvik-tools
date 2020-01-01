@@ -45,7 +45,7 @@ class TempFilesMixin:
         return name
 
 
-class TestTorrentVerfication(TempFilesMixin, unittest.TestCase):
+class TestTorrentVerification(TempFilesMixin, unittest.TestCase):
     FILE_SIZE = 2509
     PIECE_LENGTH = 256
 
@@ -93,7 +93,7 @@ class TestTorrentVerfication(TempFilesMixin, unittest.TestCase):
         self.torrent_file_path = self._mktemp(contents=self.torrent_data)
 
     def tearDown(self):
-        super(TestTorrentVerfication, self).tearDown()
+        super(TestTorrentVerification, self).tearDown()
         rmdir(self.torrent_data_path)
 
     def test_verify_torrent_contents_string(self):

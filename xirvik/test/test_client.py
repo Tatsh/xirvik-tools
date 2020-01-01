@@ -11,7 +11,7 @@ from xirvik.client import (TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL,
                            UnexpectedruTorrentError, ruTorrentClient)
 
 
-def isfile(filepath):
+def isfile(filepath: str) -> bool:
     try:
         with open(filepath, 'rb'):
             return True
@@ -69,7 +69,7 @@ class TestRuTorrentClient(unittest.TestCase):
             client.add_torrent(torrent)
 
     @requests_mock.Mocker()
-    def test_list_torrents_bad_status(self, m):
+    def test_list_torrents_bad_status(self, m: requests_mock.Mocker):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
         m.post(client.multirpc_action_uri, status_code=400)
 
@@ -77,7 +77,7 @@ class TestRuTorrentClient(unittest.TestCase):
             client.list_torrents()
 
     @requests_mock.Mocker()
-    def test_list_torrents(self, m):
+    def test_list_torrents(self, m: requests_mock.Mocker):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
         m.post(client.multirpc_action_uri,
                json=dict(
