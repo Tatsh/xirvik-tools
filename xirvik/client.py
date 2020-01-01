@@ -134,7 +134,7 @@ class ruTorrentClient:
 
             r.raise_for_status()
 
-    def list_torrents(self) -> Dict[str, Dict[str, Any]]:
+    def list_torrents(self) -> Dict[str, List[Any]]:
         """
         List torrents as they come from ruTorrent.
 
@@ -294,7 +294,7 @@ class ruTorrentClient:
     def get_torrents_futures(self,
                              hashes: Sequence[str],
                              session: Optional[FuturesSession] = None,
-                             background_callback=None):
+                             background_callback=None) -> FuturesSession:
         """
         Similar to get_torrent() but uses requests_futures.
 
@@ -419,7 +419,7 @@ class ruTorrentClient:
             else:
                 self._log.warning('Passed recursion limit for label fix')
 
-    def set_label(self, label, hash):
+    def set_label(self, label: str, hash: str) -> None:
         """Set a label to a torrent hash."""
         self.set_label_to_hashes(hashes=[hash], label=label)
 
@@ -464,7 +464,7 @@ class ruTorrentClient:
 
             yield x
 
-    def delete(self, hash: str):
+    def delete(self, hash: str) -> None:
         """
         Delete a torrent and its files by hash. Use the remove() method to
         remove the torrent but keep the data.
@@ -482,7 +482,7 @@ class ruTorrentClient:
             except (TypeError, KeyError):
                 pass
 
-    def remove(self, hash: str):
+    def remove(self, hash: str) -> None:
         """
         Remove a torrent from the client but keep the data. Use the delete()
         method to remove and delete the torrent data.
@@ -495,7 +495,7 @@ class ruTorrentClient:
                                auth=self.auth)
         r.raise_for_status()
 
-    def stop(self, hash: str):
+    def stop(self, hash: str) -> None:
         """
         Stop a torrent by hash.
 
@@ -508,6 +508,7 @@ class ruTorrentClient:
         r.raise_for_status()
 
     def add_torrent_url(self, url: str):
+        """Add a torrent via a publicly accessible URI."""
         r = self._session.post(self._add_torrent_uri,
                                data=dict(url=url),
                                auth=self.auth)
