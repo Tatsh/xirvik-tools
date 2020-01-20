@@ -3,10 +3,10 @@ from setuptools import setup
 
 setup(
     name='xirvik-tools',
-    version='0.2.1',
+    version='0.2.2',
     author='Fa An',
     author_email='2998784916@qq.com',
-    packages=['xirvik'],
+    packages=['xirvik', 'xirvik.commands', 'xirvik.test'],
     url='https://github.com/Tatsh/xirvik-tools',
     license='LICENSE.txt',
     description='Xirvik (ruTorrent mostly) tools.',
