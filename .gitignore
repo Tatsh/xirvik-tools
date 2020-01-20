@@ -5,3 +5,4 @@ MANIFEST
 /bin/
 /.vscode/settings.json
 /.vscode/.ropeproject/objectdb
+/build/
