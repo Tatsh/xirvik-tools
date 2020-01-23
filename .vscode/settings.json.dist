@@ -2,30 +2,41 @@
   "[python]": {
     "editor.tabSize": 4
   },
-  "cSpell.words": [
+  "cSpell.ignoreWords": [
     "API's",
+    "DONT",
     "SFTP",
     "Unexpectedru",
     "aheads",
     "chmod",
+    "cmds",
     "destroot",
     "dicttoolz",
+    "dlstrat",
     "functools",
     "functoolz",
+    "fvalue",
     "getcwd",
     "hmac",
+    "ismethod",
     "itertoolz",
     "mmtp",
+    "multirpc",
     "nargs",
+    "nsize",
     "paramiko",
     "preds",
     "psax",
     "rclient",
+    "readv",
+    "repos",
     "rtorrent",
+    "stringio",
     "syslogh",
     "tadd",
     "toolz",
-    "xirvik"
+    "xirvik",
+    "xmlrpc"
   ],
   "editor.insertSpaces": true,
   "python.formatting.provider": "yapf",
@@ -33,5 +44,7 @@
     "--style",
     "pep8"
   ],
-  "python.pythonPath": "/home/tatsh/.virtualenvs/xirvik-tools/bin/python"
+  "python.pythonPath": "/home/tatsh/.virtualenvs/xirvik-tools/bin/python",
+  "python.linting.flake8Enabled": false,
+  "python.linting.pylintEnabled": true
 }
