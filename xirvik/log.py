@@ -6,7 +6,7 @@ import sys
 syslogh = None
 
 
-def cleanup():
+def cleanup() -> None:
     """Close syslog handle and calls logging.shutdown()."""
     global syslogh
 
@@ -34,8 +34,7 @@ def get_logger(name: str,
         log.setLevel(level if not debug else logging.DEBUG)
 
         channel = logging.StreamHandler(sys.stdout if debug else sys.stderr)
-        channel.setFormatter(
-            logging.Formatter('%(levelname)s - %(message)s'))
+        channel.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
         channel.setLevel(level if not debug else logging.DEBUG)
         log.addHandler(channel)
 

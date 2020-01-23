@@ -3,8 +3,8 @@ from hashlib import sha1
 from hmac import compare_digest
 from os import R_OK, access, environ, stat
 from os.path import isdir, join as path_join, realpath
-from typing import (Any, BinaryIO, Iterator, List, Optional, Sequence, TypeVar,
-                    Union, cast)
+from typing import (Any, BinaryIO, Iterator, List, NoReturn, Optional,
+                    Sequence, TypeVar, Union, cast)
 import argparse
 import platform
 import struct
@@ -30,7 +30,7 @@ class ReadableDirectoryAction(argparse.Action):
                  parser: argparse.ArgumentParser,
                  namespace: argparse.Namespace,
                  values: Optional[Union[str, Sequence[Any]]],
-                 option_string: Optional[str] = None):
+                 option_string: Optional[str] = None) -> None:
         prospective_dir = values
 
         if not isdir(cast(str, prospective_dir)):
@@ -59,7 +59,7 @@ class ReadableDirectoryListAction(argparse.Action):
                  parser: argparse.ArgumentParser,
                  namespace: argparse.Namespace,
                  values: Optional[Union[str, Sequence[Any]]],
-                 option_string: Optional[str] = None):
+                 option_string: Optional[str] = None) -> None:
         dirs = []
         kwa = dict(self._get_kwargs())
         parent = ReadableDirectoryAction(**kwa)
@@ -73,13 +73,13 @@ class ReadableDirectoryListAction(argparse.Action):
         setattr(namespace, self.dest, dirs)
 
 
-def cleanup_and_exit(status: int = 0):
+def cleanup_and_exit(status: int = 0) -> NoReturn:
     """Called instead of sys.exit(). status is the integer to exit with."""
     cleanup()
     sys.exit(status)
 
 
-def ctrl_c_handler(signum: int, frame):
+def ctrl_c_handler(signum: int, frame: Any) -> NoReturn:
     """Used as a TERM signal handler. Arguments are ignored."""
     cleanup()
     raise SystemExit('Signal raised')
@@ -148,11 +148,9 @@ def _get_torrent_pieces(filenames: Sequence[str], basepath: str,
 class VerificationError(Exception):
     """Raised when an error occurs in verify_torrent_contents()."""
 
-    pass
-
 
 def verify_torrent_contents(torrent_file: Union[str, BinaryIO, bytes],
-                            path: str):
+                            path: str) -> None:
     """
     Verify torrent contents.
 
