@@ -68,10 +68,10 @@ class TestTorrentVerification(TempFilesMixin, unittest.TestCase):
             pieces += s.digest()
 
         self.torrent_data_dict = {
-            b'announce': 'https://fake.com',
+            b'announce': b'https://fake.com',
             b'info': {
                 b'name':
-                self.torrent_name,
+                self.torrent_name.encode('utf-8'),
                 b'piece length':
                 self.PIECE_LENGTH,
                 b'pieces':
@@ -79,11 +79,11 @@ class TestTorrentVerification(TempFilesMixin, unittest.TestCase):
                 b'files': [
                     {
                         b'length': self.FILE_SIZE,
-                        b'path': [basename(self.file1)],
+                        b'path': [basename(self.file1).encode('utf-8')],
                     },
                     {
                         b'length': self.FILE_SIZE,
-                        b'path': [basename(self.file2)],
+                        b'path': [basename(self.file2).encode('utf-8')],
                     },
                 ],
             }
@@ -160,9 +160,9 @@ class TestSingleFileTorrentVerification(TempFilesMixin, unittest.TestCase):
             pieces += s.digest()
 
         self.torrent_data_dict = {
-            b'announce': 'https://fake.com',
+            b'announce': b'https://fake.com',
             b'info': {
-                b'name': self.file1,
+                b'name': self.file1.encode('utf-8'),
                 b'piece length': self.PIECE_LENGTH,
                 b'pieces': pieces,
             }
