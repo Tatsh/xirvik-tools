@@ -10,7 +10,7 @@ import platform
 import struct
 import sys
 
-from bencodepy import decode as bdecode
+from benc import decode as bdecode
 
 from xirvik.log import cleanup
 

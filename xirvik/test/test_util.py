@@ -8,7 +8,7 @@ from typing import List, Optional
 import sys
 import unittest
 
-from bencodepy import encode as bencode
+from benc import encode as bencode
 
 from xirvik.util import VerificationError, verify_torrent_contents
 

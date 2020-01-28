@@ -13,7 +13,7 @@ setup(
     long_description=open('README.md').read(),
     install_requires=[
         'argcomplete>=1.10.3',
-        'bencodepy>=0.9.5',
+        'benc>=2019.8.1',
         'cached-property>=1.0.0',
         'humanize>=0.5.1',
         'lockfile>=0.10.2',
