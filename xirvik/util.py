@@ -12,8 +12,6 @@ import sys
 
 from benc import decode as bdecode
 
-from xirvik.log import cleanup
-
 __all__ = (
     'cleanup_and_exit',
     'ctrl_c_handler',
@@ -75,13 +73,11 @@ class ReadableDirectoryListAction(argparse.Action):
 
 def cleanup_and_exit(status: int = 0) -> NoReturn:
     """Called instead of sys.exit(). status is the integer to exit with."""
-    cleanup()
     sys.exit(status)
 
 
 def ctrl_c_handler(signum: int, frame: Any) -> NoReturn:
     """Used as a TERM signal handler. Arguments are ignored."""
-    cleanup()
     raise SystemExit('Signal raised')
 
 
