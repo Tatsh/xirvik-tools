@@ -1,17 +1,11 @@
 """Logging utility module."""
+from functools import lru_cache
 from logging.handlers import SysLogHandler
 import logging
 import sys
 
-syslogh = None
 
-
-def cleanup() -> None:
-    """Close syslog handle and calls logging.shutdown()."""
-    if syslogh:
-        syslogh.close()
-
-
+@lru_cache()
 def get_logger(name: str,
                level: int = logging.INFO,
                verbose: bool = False,
@@ -22,7 +16,6 @@ def get_logger(name: str,
 
     Return a logger object.
     """
-    global syslogh
     log = logging.getLogger(name)
     if verbose or debug:
         log.setLevel(level if not debug else logging.DEBUG)
