@@ -1,4 +1,12 @@
 """Mirror (copy data from remote to local) helper."""
+from base64 import b64encode
+from logging.handlers import SysLogHandler
+from netrc import netrc
+from os import chmod, close as close_fd, listdir, makedirs, remove as rm, utime
+from os.path import (basename, dirname, expanduser, isdir, join as path_join,
+                     realpath, splitext)
+from tempfile import gettempdir, mkstemp
+from typing import Any, Optional, cast
 import argparse
 import hashlib
 import json
@@ -8,24 +16,12 @@ import signal
 import socket
 import subprocess as sp
 import sys
-from base64 import b64encode
-from logging.handlers import SysLogHandler
-from netrc import netrc
-from os import chmod
-from os import close as close_fd
-from os import listdir, makedirs
-from os import remove as rm
-from os import utime
-from os.path import basename, dirname, expanduser, isdir
-from os.path import join as path_join
-from os.path import realpath, splitext
-from tempfile import gettempdir, mkstemp
-from typing import Any, Optional, cast
 
-import requests
 from lockfile import LockFile, NotLocked
 from paramiko import SFTPClient as OriginalSFTPClient
+from requests.exceptions import HTTPError
 from unidecode import unidecode
+import requests
 
 from xirvik.client import (TORRENT_PATH_INDEX, UnexpectedruTorrentError,
                            ruTorrentClient)
@@ -35,21 +31,21 @@ from xirvik.util import (ReadableDirectoryListAction, VerificationError,
                          cleanup_and_exit, ctrl_c_handler,
                          verify_torrent_contents)
 
-_lock = None
+LOCK = None
 
 
 def lock_ctrl_c_handler(signum: int, frame: Any) -> None:
     """TERM signal/^C handler."""
-    if _lock:
-        try:
-            _lock.release()
+    if LOCK:
+        try:  # type: ignore[misc]
+            LOCK.release()
         except NotLocked:
             pass
-
     ctrl_c_handler(signum, frame)
     raise SystemExit('Signal raised')
 
 
+# pylint: disable=protected-access
 def mirror(sftp_client: SFTPClient,
            rclient: ruTorrentClient,
            path: str = '.',
@@ -103,12 +99,13 @@ def mirror(sftp_client: SFTPClient,
             except (KeyError, ValueError):
                 total = None
             with open(dest, 'wb+') as f:
-                dl = 0
+                downloaded = 0
                 for chunk in r.iter_content(chunk_size=4096):
                     f.write(chunk)
-                    dl += len(chunk)
-                    done = int(50 * dl / cast(int, total))
-                    percent = (float(dl) / float(cast(int, total))) * 100
+                    downloaded += len(chunk)
+                    done = int(50 * downloaded / cast(int, total))
+                    percent = (float(downloaded) /
+                               float(cast(int, total))) * 100
                     args = (
                         '=' * done,
                         ' ' * (50 - done),
@@ -170,7 +167,9 @@ def mirror_main() -> None:
             channel.setFormatter(formatter)
             _log.addHandler(channel)
     local_dir: str = realpath(args.local_dir[0])
-    user, _, password = netrc(args.netrc_path).authenticators(args.host)
+    user_pass = netrc(args.netrc_path).authenticators(args.host)
+    assert user_pass is not None
+    user, _, password = user_pass
     sftp_host = 'sftp://{user:s}@{host:s}'.format(
         user=user,
         host=args.host,
@@ -178,12 +177,12 @@ def mirror_main() -> None:
     lf_hash = hashlib.sha256(json.dumps(
         args._get_kwargs()).encode('utf-8')).hexdigest()
     lf_path = path_join(gettempdir(), 'xirvik-mirror-{}'.format(lf_hash))
-    log.debug('Acquiring lock at {}.lock'.format(lf_path))
+    log.debug('Acquiring lock at %s.lock', lf_path)
     _lock = LockFile(lf_path)
     if _lock.is_locked():
         psax = [
-            x
-            for x in sp.check_output(['ps', 'ax']).decode('utf-8').split('\n')
+            x for x in sp.check_output(('ps',
+                                        'ax'), encoding='utf-8').split('\n')
             if sys.argv[0] in x
         ]
         if len(psax) == 1:
@@ -215,19 +214,18 @@ def mirror_main() -> None:
         except NotLocked:
             pass
         cleanup_and_exit(1)
-    for hash, v in torrents.items():
+    for hash_, v in torrents.items():
         if not v[TORRENT_PATH_INDEX].startswith(look_for):
             continue
         bn = basename(v[TORRENT_PATH_INDEX])
         names[bn] = (
-            hash,
+            hash_,
             v[TORRENT_PATH_INDEX],
         )
-
         log.info(
             'Completed torrent "%s" found with hash %s',
             bn,
-            hash,
+            hash_,
         )
     sftp_client_args = dict(
         hostname=args.host,
@@ -239,7 +237,7 @@ def mirror_main() -> None:
         with SFTPClient(**sftp_client_args) as sftp_client:
             log.info('Verifying contents of %s with previous '
                      'response', look_for)
-            sftp_client.chdir(args.remote_dir[0])
+            assert sftp_client.chdir(args.remote_dir[0]) is not None
             for item in sftp_client.listdir_iter(read_aheads=10):
                 if item.filename not in names:
                     log.error(
@@ -248,7 +246,7 @@ def mirror_main() -> None:
                     continue
                 log.debug('Found matching torrent "%s" from ls output',
                           item.filename)
-            if not len(names.items()):
+            if not names:
                 log.info('Nothing found to mirror')
                 _lock.release()
                 cleanup_and_exit()
@@ -257,7 +255,7 @@ def mirror_main() -> None:
                    destroot=local_dir,
                    keep_modes=not args.no_preserve_permissions,
                    keep_times=not args.no_preserve_times)
-    except Exception as e:
+    except (AssertionError, IndexError) as e:
         if args.debug:
             _lock.release()
             raise e
@@ -268,13 +266,13 @@ def mirror_main() -> None:
     _all = names.items()
     exit_status = 0
     bad = []
-    for bn, (hash, fullpath) in _all:
+    for bn, (hash_, fullpath) in _all:
         # There is a warning that can get raised here by urllib3 if
         # Content-Disposition header's filename field has any
         # non-ASCII characters. It is ignorable as the content still gets
         # downloaded correctly
         log.info('Verifying "%s"', bn)
-        r, _ = client.get_torrent(hash)
+        r, _ = client.get_torrent(hash_)
         try:
             verify_torrent_contents(r.content, local_dir)
         except VerificationError:
@@ -282,27 +280,30 @@ def mirror_main() -> None:
                 'Could not verify "%s" contents against piece hashes '
                 'in torrent file', bn)
             exit_status = 1
-            bad.append(hash)
+            bad.append(hash_)
     # Move to _seeding directory and set label
     # Unfortunately, there is no method, via the API, to do this one HTTP
     #   request
-    for bn, (hash, fullpath) in _all:
-        if hash in bad:
+    for bn, (hash_, fullpath) in _all:
+        if hash_ in bad:
             continue
         log.info('Moving "%s" to "%s" directory', bn, move_to)
         try:
-            client.move_torrent(hash, move_to)
+            client.move_torrent(hash_, move_to)
         except UnexpectedruTorrentError as e:
             log.error(str(e))
     log.info('Setting label to "%s" for downloaded items', args.label)
     client.set_label_to_hashes(hashes=[
-        hash for bn, (hash, fullpath) in names.items() if hash not in bad
+        hash_ for bn, (hash, fullpath) in names.items() if hash not in bad
     ],
                                label=args.label)
     if exit_status != 0:
         log.error('Could not verify torrent checksums')
     _lock.release()
     cleanup_and_exit(exit_status)
+
+
+# pylint: enable=protected-access
 
 
 def start_torrents() -> None:
@@ -350,8 +351,8 @@ def start_torrents() -> None:
             syslogh = SysLogHandler(address='/dev/log')
         except (OSError, socket.error):
             syslogh = SysLogHandler(address='/var/run/syslog',
-                                    facility='local1')
-            syslogh.ident = 'xirvik-start-torrents'
+                                    facility=SysLogHandler.LOG_USER)
+            syslogh.ident = 'xirvik-start-torrents'  # type: ignore[attr-defined]
             logging.INFO = logging.WARNING
 
         syslogh.setFormatter(
@@ -359,14 +360,13 @@ def start_torrents() -> None:
         syslogh.setLevel(logging.DEBUG if args.debug else logging.INFO)
         log.addHandler(syslogh)
 
-    try:
-        _user, _, _password = netrc(args.netrc_path).authenticators(
-            args.host[0])
-    except TypeError:
+    user_pass = netrc(args.netrc_path).authenticators(args.host[0])
+    if not user_pass:
         print((f'Cannot find host {args.host[0]} in netrc. Specify user name '
                'and password'),
               file=sys.stderr)
         sys.exit(1)
+    _user, _, _password = user_pass
     post_url = ('https://{host:s}:{port:d}/rtorrent/php/'
                 'addtorrent.php?'.format(host=args.host[0], port=args.port[0]))
     form_data = {}
@@ -390,28 +390,25 @@ def start_torrents() -> None:
                     w.write(r.read())
             old = item
             item = name
-            with open(item, 'rb') as f:
+            with open(item, 'rb') as torrent_file:
                 # Because the server does not understand filename*=UTF8 syntax
                 # https://github.com/kennethreitz/requests/issues/2117
                 # This is not a huge concern, as the API's "Get .torrent" does
                 # not return the file with its original name either
-                try:
-                    filename = unidecode(f.name.decode('utf8'))
-                except AttributeError:  # decode
-                    filename = unidecode(f.name)
+                filename = unidecode(torrent_file.name)
                 files = dict(torrent_file=(
                     filename,
-                    f,
+                    torrent_file,
                 ))
                 try:
                     log.info('Uploading torrent %s (actual name: "%s")',
                              basename(item), basename(filename))
                 except OSError:
                     pass
-                r = requests.post(post_url, data=form_data, files=files)
+                resp = requests.post(post_url, data=form_data, files=files)
                 try:
-                    r.raise_for_status()
-                except Exception as e:
+                    resp.raise_for_status()
+                except HTTPError as e:
                     log.error('Caught exception: %s', e)
                 # Delete original only after successful upload
                 log.debug('Deleting %s', old)
@@ -419,6 +416,7 @@ def start_torrents() -> None:
 
 
 def add_ftp_user() -> int:
+    """Adds an FTP user."""
     log = logging.getLogger('xirvik')
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--username', required=True)
@@ -451,13 +449,14 @@ def add_ftp_user() -> int:
                                 read_only='no'))
     try:
         r.raise_for_status()
-    except Exception as e:
+    except HTTPError as e:
         log.exception(e)
         return 1
     return 0
 
 
 def delete_ftp_user() -> int:
+    """Deletes an FTP user."""
     log = logging.getLogger('xirvik')
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--username', required=True)
@@ -482,13 +481,14 @@ def delete_ftp_user() -> int:
     r = requests.get(uri)
     try:
         r.raise_for_status()
-    except Exception as e:
+    except HTTPError as e:
         log.exception(e)
         return 1
     return 0
 
 
 def authorize_ip() -> int:
+    """Authorises an IP for access to the VM via SSH, removing the previous."""
     log = logging.getLogger('xirvik')
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action='store_true')
@@ -511,13 +511,17 @@ def authorize_ip() -> int:
     r = requests.get(uri)
     try:
         r.raise_for_status()
-    except Exception as e:
+    except HTTPError as e:
         log.exception(e)
         return 1
     return 0
 
 
 def fix_rtorrent() -> int:
+    """
+    Restarts the rtorrent service in case ruTorrent cannot connect to it. Not
+    guaranteed to fix anything!
+    """
     log = logging.getLogger('xirvik')
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action='store_true')
@@ -541,7 +545,7 @@ def fix_rtorrent() -> int:
     r = requests.get(uri)
     try:
         r.raise_for_status()
-    except Exception as e:
+    except HTTPError as e:
         log.exception(e)
         return 1
     return 0
