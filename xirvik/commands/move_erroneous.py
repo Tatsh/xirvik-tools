@@ -39,7 +39,7 @@ def is_hash_checking(x: Mapping[str, bool]) -> bool:
 
 
 def complement(x: Callable[..., Any]) -> Callable[..., bool]:
-    def z(*args, **kwargs) -> bool:
+    def z(*args: Any, **kwargs: Any) -> bool:
         return not x(*args, **kwargs)
 
     return z
@@ -85,8 +85,8 @@ def left_bytes_gt_0(x: Mapping[str, int]) -> bool:
 # ))
 
 
-def any_pass(*funcs) -> Callable[[Any], bool]:
-    def ret(x: Any):
+def any_pass(*funcs: Callable[..., bool]) -> Callable[[Any], bool]:
+    def ret(x: Any) -> bool:
         for pred in funcs:
             if pred(x):
                 return True
@@ -128,9 +128,9 @@ def main() -> int:
         client.list_torrents().items())
 
     count = 0
-    for hash, info in items:
+    for hash_, info in items:
         log.info('Stopping %s', info['name'])
-        client.stop(hash)
+        client.stop(hash_)
         count += 1
         if count > 0 and (count % 10) == 0:
             sleep(args.sleep_time)
@@ -141,21 +141,21 @@ def main() -> int:
                          base_path_check(move_to)), filter())
 
     count = 0
-    for hash, info in items:
+    for hash_, info in items:
         move_to = make_move_to(prefix, info['custom1'].lower())
         name = get_name(info)
-        to_delete.append((hash, name))
+        to_delete.append((hash_, name))
         log.info('Moving %s to %s/', name, move_to)
-        client.move_torrent(hash, move_to)
-        client.stop(hash)
+        client.move_torrent(hash_, move_to)
+        client.stop(hash_)
         count += 1
         if count > 0 and (count % 10) == 0:
             sleep(args.sleep_time)
 
     count = 0
-    for hash, name in to_delete:
+    for hash_, name in to_delete:
         log.info('Removing torrent "%s" (without deleting data)', name)
-        client.remove(hash)
+        client.remove(hash_)
         count += 1
         if count > 0 and (count % 10) == 0:
             sleep(args.sleep_time)
