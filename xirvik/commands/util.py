@@ -1,3 +1,4 @@
+from functools import lru_cache
 from os.path import basename
 from typing import Optional
 import argparse
@@ -5,6 +6,7 @@ import logging
 import sys
 
 
+@lru_cache()
 def setup_logging_stdout(name: Optional[str] = None,
                          verbose: bool = False) -> logging.Logger:
     name = name if name else basename(sys.argv[0])
