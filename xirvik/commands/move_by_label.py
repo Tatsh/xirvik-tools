@@ -1,7 +1,7 @@
 #!/usr/bin/env python
+"""Organise torrents based on labels assigned in ruTorrent."""
 from time import sleep
-from typing import Any, Callable, Dict, Optional, Tuple, Union
-import logging
+from typing import Any, Callable, Dict, Mapping, Tuple, Union
 import sys
 
 from requests.exceptions import HTTPError
@@ -11,13 +11,12 @@ from ..client import ruTorrentClient
 from .util import common_parser, setup_logging_stdout
 
 PREFIX = '/torrents/{}/_completed'
-log: Optional[logging.Logger] = None
 
 
-def base_path_check(username: str
-                    ) -> Callable[[Tuple[Any, Dict[str, str]]], bool]:
-    def bpc(hi: Tuple[Any, Dict[str, str]]) -> bool:
-        _, info = hi
+def _base_path_check(
+        username: str) -> Callable[[Tuple[Any, Mapping[str, str]]], bool]:
+    def bpc(hash_info: Tuple[Any, Mapping[str, str]]) -> bool:
+        _, info = hash_info
         move_to = '{}/{}'.format(PREFIX.format(username),
                                  str.lower(info['custom1']))
         return not info['base_path'].startswith(move_to)
@@ -25,13 +24,13 @@ def base_path_check(username: str
     return bpc
 
 
-def key_check(hi: Tuple[Any, Dict[str, Union[bool, int]]]) -> bool:
-    _, info = hi
+def _key_check(hash_info: Tuple[Any, Mapping[str, Union[bool, int]]]) -> bool:
+    _, info = hash_info
     return not info['is_hash_checking'] and info['left_bytes'] == 0
 
 
 def main() -> int:
-    global log
+    """Entry point."""
     parser = common_parser()
     parser.add_argument(
         '-c',
@@ -71,10 +70,10 @@ def main() -> int:
         return 1
     count = 0
     assert username is not None
-    hash: str
+    hash_: str
     info: Dict[str, str]
-    for hash, info in list(
-            filter(base_path_check(username), filter(key_check, torrents))):
+    for hash_, info in list(
+            filter(_base_path_check(username), filter(_key_check, torrents))):
         label = info['custom1']
         if label in args.ignore_labels:
             continue
@@ -82,7 +81,7 @@ def main() -> int:
             label = label.lower()
         move_to = '{}/{}'.format(PREFIX.format(username), label)
         log.info('Moving %s to %s/', info['name'], move_to)
-        client.move_torrent(hash, move_to)
+        client.move_torrent(hash_, move_to)
         count += 1
         if count > 0 and (count % 10) == 0:
             sleep(args.sleep_time)
