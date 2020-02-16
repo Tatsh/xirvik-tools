@@ -6,3 +6,4 @@ MANIFEST
 /.vscode/settings.json
 /.vscode/.ropeproject/objectdb
 /build/
+/.pytest_cache/
