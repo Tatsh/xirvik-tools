@@ -60,7 +60,7 @@ class ruTorrentClient:
         Host should be the hostname with no protocol.
 
         If no name and no password are passed, ~/.netrc will be searched with
-        the host provided. The path can be overriden with the netrc_path
+        the host provided. The path can be overridden with the netrc_path
         argument.
 
         max_retries is used as an argument for urllib3's Retry() class.
