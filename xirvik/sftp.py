@@ -14,6 +14,8 @@ from paramiko import SFTPAttributes, SFTPClient as OriginalSFTPClient, SFTPFile
 from paramiko.client import SSHClient
 from paramiko.sftp import SFTPError
 
+from .typing import Method0, Method1
+
 __all__ = (
     'SFTPClient',
     'LOG_NAME',
@@ -25,8 +27,8 @@ LOG_INTERVAL = 60
 
 class SFTPClient:
     """Dynamic extension on paramiko's SFTPClient."""
-    chdir: Callable[['SFTPClient', str], Optional[str]]
-    getcwd: Callable[['SFTPClient'], str]
+    chdir: Method1['SFTPClient', str, Optional[str]]
+    getcwd: Method0['SFTPClient', str]
     listdir_iter: Callable[..., Iterator[Any]]
 
     MAX_PACKET_SIZE: int = SFTPFile.__dict__['MAX_REQUEST_SIZE']
