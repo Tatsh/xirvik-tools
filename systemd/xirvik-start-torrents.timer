@@ -1,5 +1,5 @@
 [Unit]
-Description=Bi-minutely trigger for Xirvik syncer
+Description=Bi-minutely trigger for Xirvik sync
 
 [Timer]
 OnCalendar=*-*-* *:0/2:00
