@@ -107,7 +107,7 @@ each_dict_entry_on_separate_line=True
 i18n_comment=
 
 # The i18n function call names. The presence of this function stops
-# reformattting on that line, because the string it has cannot be moved
+# reformatting on that line, because the string it has cannot be moved
 # away from the i18n comment.
 i18n_function_call=
 
@@ -242,13 +242,13 @@ split_penalty_for_added_line_split=30
 
 # The penalty of splitting a list of "import as" names. For example:
 #
-#   from a_very_long_or_indented_module_name_yada_yad import (long_argument_1,
+#   from a_very_long_or_indented_module_name import (long_argument_1,
 #                                                             long_argument_2,
 #                                                             long_argument_3)
 #
 # would reformat to something like:
 #
-#   from a_very_long_or_indented_module_name_yada_yad import (
+#   from a_very_long_or_indented_module_name import (
 #       long_argument_1, long_argument_2, long_argument_3)
 split_penalty_import_names=0
 
