@@ -1,8 +1,4 @@
 """Client for ruTorrent."""
-import logging
-import re
-import ssl
-import xmlrpc.client as xmlrpc
 from cgi import parse_header
 from datetime import datetime
 from netrc import netrc
@@ -10,12 +6,18 @@ from os.path import expanduser
 from typing import (Any, Callable, Dict, Iterable, Iterator, Mapping, Optional,
                     Sequence, Tuple, Union, cast)
 from urllib.parse import quote
+import logging
+import re
+import ssl
+import xmlrpc.client as xmlrpc
 
-import requests
 from cached_property import cached_property
 from requests.adapters import HTTPAdapter
 from requests_futures.sessions import FuturesSession
 from urllib3.util import Retry
+import requests
+
+from .typing import TorrentDict
 
 __all__ = (
     'LOG_NAME',
@@ -146,7 +148,7 @@ class ruTorrentClient:
             raise ValueError('Unexpected type from API')
         return cast(Mapping[str, Sequence[Any]], ret)
 
-    def list_torrents_dict(self) -> Mapping[str, Any]:
+    def list_torrents_dict(self) -> Mapping[str, TorrentDict]:
         """
         Get all torrent information.
 
@@ -225,7 +227,7 @@ class ruTorrentClient:
             'is_private',
             'is_multi_file',
         )
-        ret: Dict[str, Dict[str, Any]] = dict()
+        ret: Dict[str, Dict[str, Any]] = {}
         for hash_, torrent in self.list_torrents().items():
             ret[hash_] = {}
             value: Any
@@ -258,7 +260,7 @@ class ruTorrentClient:
                     ret[hash_][fields[i]] = value
                 except IndexError:
                     continue
-        return ret
+        return cast(Mapping[str, TorrentDict], ret)
 
     def get_torrent(self, hash_: str) -> Tuple[requests.Response, str]:
         """
