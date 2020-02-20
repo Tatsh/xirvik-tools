@@ -21,6 +21,7 @@ setup(
         'requests>=2.6.0',
         'requests-futures>=1.0.0',
         'six>=1.10.0',
+        'typing-extensions>=3.7.4.1',
         'Unidecode>=0.4.19',
     ],
     entry_points={
