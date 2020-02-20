@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='xirvik-tools',
-    version='0.2.2',
+    version='0.3.0',
     author='Fa An',
     author_email='2998784916@qq.com',
     packages=['xirvik', 'xirvik.commands', 'xirvik.test'],
