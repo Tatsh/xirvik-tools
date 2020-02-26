@@ -21,6 +21,7 @@ from lockfile import LockFile, NotLocked
 from paramiko import SFTPClient as OriginalSFTPClient
 from requests.exceptions import HTTPError
 from unidecode import unidecode
+import argcomplete
 import requests
 
 from xirvik.client import (TORRENT_PATH_INDEX, UnexpectedruTorrentError,
@@ -151,6 +152,7 @@ def mirror_main() -> None:
     parser.add_argument('--max-retries', type=int, default=10)
     parser.add_argument('remote_dir', metavar='REMOTEDIR', nargs=1)
     parser.add_argument('local_dir', metavar='LOCALDIR', nargs=1)
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
     log = get_logger('xirvik',
                      verbose=args.verbose,
@@ -330,7 +332,7 @@ def start_torrents() -> None:
                         metavar='DIRECTORY',
                         action=ReadableDirectoryListAction,
                         nargs='*')
-
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
     verbose = args.debug or args.verbose
     log.setLevel(logging.INFO)
@@ -426,6 +428,7 @@ def add_ftp_user() -> int:
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-p', '--port', type=int, default=443)
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
     verbose = args.debug or args.verbose
     log.setLevel(logging.INFO)
@@ -464,6 +467,7 @@ def delete_ftp_user() -> int:
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-p', '--port', type=int, default=443)
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
     verbose = args.debug or args.verbose
     log.setLevel(logging.INFO)
@@ -495,6 +499,7 @@ def authorize_ip() -> int:
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-p', '--port', type=int, default=443)
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
     verbose = args.debug or args.verbose
     log.setLevel(logging.INFO)
@@ -528,6 +533,7 @@ def fix_rtorrent() -> int:
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-p', '--port', type=int, default=443)
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
     verbose = args.debug or args.verbose
     log.setLevel(logging.INFO)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# PYTHON_ARGCOMPLETE_OK
 """Organise torrents based on labels assigned in ruTorrent."""
 from time import sleep
 from typing import Any, Callable, Dict, Mapping, Tuple, Union

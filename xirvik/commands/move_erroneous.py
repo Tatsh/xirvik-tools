@@ -6,6 +6,8 @@ from typing import (Any, Callable, Hashable, Iterator, List, Mapping, Optional,
 import logging
 import sys
 
+import argcomplete
+
 from ..client import ruTorrentClient
 from .util import common_parser, setup_logging_stdout
 
@@ -112,6 +114,7 @@ def main() -> int:
     parser = common_parser()
     parser.add_argument('-a', '--ignore-ratio', action='store_true')
     parser.add_argument('-t', '--sleep-time', default=10, type=int)
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
     log = setup_logging_stdout(verbose=args.verbose)
     assert log is not None
