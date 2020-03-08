@@ -14,6 +14,7 @@ Method1 = Callable[[T, U], V]
 
 
 class TorrentDict(TypedDict):
+    """Torrent information."""
     base_path: str
     bytes_done: int
     chunk_size: int
@@ -33,6 +34,7 @@ class TorrentDict(TypedDict):
     is_private: bool
     left_bytes: int
     message: str
+    name: str
     peers_accounted: int
     peers_connected: int
     peers_not_connected: int
