@@ -1,3 +1,4 @@
+"""Utility functions for CLI commands."""
 from functools import lru_cache
 from os.path import basename
 from typing import Optional
@@ -9,6 +10,15 @@ import sys
 @lru_cache()
 def setup_logging_stdout(name: Optional[str] = None,
                          verbose: bool = False) -> logging.Logger:
+    """Basic way to set up and get a logger.
+
+    Parameters
+    ----------
+    name : Optional[str]
+        Name of the logger.
+    verbose : bool
+        If log level should be DEBUG instead of INFO.
+    """
     name = name if name else basename(sys.argv[0])
     log = logging.getLogger(name)
     log.setLevel(logging.DEBUG if verbose else logging.INFO)
@@ -20,6 +30,7 @@ def setup_logging_stdout(name: Optional[str] = None,
 
 
 def common_parser() -> argparse.ArgumentParser:
+    """Common parser."""
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--username', required=False, help='Xirvik user')
     parser.add_argument('-p',
