@@ -127,28 +127,28 @@ class SFTPClient:
             if (total_time_s % LOG_INTERVAL) != 0:
                 return
 
-            nsize_tx = naturalsize(tx_bytes, binary=True, format='%.2f')
-            nsize_total = naturalsize(total_bytes, binary=True, format='%.2f')
+            n_size_tx = naturalsize(tx_bytes, binary=True, format='%.2f')
+            n_size = naturalsize(total_bytes, binary=True, format='%.2f')
 
             speed_in_s = tx_bytes / total_time_total_secs
             speed_in_s = naturalsize(speed_in_s, binary=True, format='%.2f')
 
-            _log.info('Downloaded %s / %s in %s (%s/s)', nsize_tx, nsize_total,
+            _log.info('Downloaded %s / %s in %s (%s/s)', n_size_tx, n_size,
                       naturaldelta(datetime.now() - start_time), speed_in_s)
 
         return cb
 
     def mirror(self,
                path: str = '.',
-               destroot: str = '.',
+               dest_root: str = '.',
                keep_modes: bool = True,
                keep_times: bool = True,
                resume: bool = True) -> int:
         """
         Mirror a remote directory to a local location.
 
-        path is the remote directory. destroot must be the location where
-        destroot/path will be created (the path must not already exist).
+        path is the remote directory. dest_root must be the location where
+        dest_root/path will be created (the path must not already exist).
 
         keep_modes and keep_times are boolean to ensure permissions and time
         are retained respectively.
@@ -161,7 +161,7 @@ class SFTPClient:
         for _path, info in self.listdir_attr_recurse(path=path):
             if info.st_mode & 0o700 == 0o700:
                 continue
-            dest_path = path_join(destroot, dirname(_path))
+            dest_path = path_join(dest_root, dirname(_path))
             dest = path_join(dest_path, basename(_path))
             if dest_path not in self._dircache:
                 try:
