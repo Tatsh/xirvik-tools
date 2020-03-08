@@ -3,14 +3,14 @@ from hashlib import sha1
 from hmac import compare_digest
 from os import R_OK, access, environ, stat
 from os.path import isdir, join as path_join, realpath
-from typing import (Any, BinaryIO, Iterator, List, NoReturn, Optional,
+from typing import (Any, BinaryIO, Iterable, Iterator, NoReturn, Optional,
                     Sequence, TypeVar, Union, cast)
 import argparse
 import platform
 import struct
 import sys
 
-from benc import decode as bdecode
+import benc
 
 __all__ = (
     'cleanup_and_exit',
@@ -88,7 +88,7 @@ def _chunks(l: Sequence[T], n: int) -> Iterator[Sequence[T]]:
         yield l[i:i + n]
 
 
-def _get_torrent_pieces(filenames: Sequence[str], basepath: str,
+def _get_torrent_pieces(filenames: Iterable[str], basepath: str,
                         piece_length: int) -> Iterator[Optional[bytes]]:
     # Yes this is a generator and should not be used any other way (i.e. do not
     # wrap in list()).
@@ -157,14 +157,14 @@ def verify_torrent_contents(torrent_file: Union[str, BinaryIO, bytes],
 
     if hasattr(torrent_file, 'seek') and hasattr(torrent_file, 'read'):
         cast(BinaryIO, torrent_file).seek(0)
-        torrent = bdecode(cast(BinaryIO, torrent_file).read())
+        torrent = benc.decode(cast(BinaryIO, torrent_file).read())
     else:
         try:
             with open(cast(str, torrent_file), 'rb') as f:
-                torrent = bdecode(f.read())
+                torrent = benc.decode(f.read())
         except (IOError, TypeError, ValueError):
             # ValueError for 'embedded null byte' in Python 3.5
-            torrent = bdecode(torrent_file)
+            torrent = benc.decode(torrent_file)
 
     path = path_join(path, torrent[b'info'][b'name'].decode('utf-8'))
     is_a_file = False
@@ -178,15 +178,15 @@ def verify_torrent_contents(torrent_file: Union[str, BinaryIO, bytes],
         raise IOError('Path specified for torrent data is invalid')
 
     piece_length = torrent[b'info'][b'piece length']
-    piece_hashes = torrent[b'info'][b'pieces']
-    piece_hashes = struct.unpack('<{}B'.format(len(piece_hashes)),
-                                 piece_hashes)
-    piece_hashes = _chunks(piece_hashes, sha1().digest_size)
+    piece_hashes = _chunks(
+        struct.unpack('<{}B'.format(len(torrent[b'info'][b'pieces'])),
+                      torrent[b'info'][b'pieces']),
+        sha1().digest_size)
 
     try:
-        filenames: Union[Iterator[str], List[str]] = ('/'.join(
-            [y.decode('utf-8')
-             for y in x[b'path']]) for x in torrent[b'info'][b'files'])
+        filenames: Iterable[str] = ('/'.join((y.decode('utf-8')
+                                              for y in x[b'path']))
+                                    for x in torrent[b'info'][b'files'])
     except KeyError as e:
         if e.args[0] != b'files':
             raise e
