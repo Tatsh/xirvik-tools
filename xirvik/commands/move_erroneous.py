@@ -29,7 +29,7 @@ def _has_one(look_for_list: Iterable[T], val: Iterable[T]) -> bool:
 
 
 def _should_process(x: TorrentDict) -> bool:
-    return (_has_one(BAD_MESSAGES, x['message']) and not x['is_hash_checking']
+    return (_has_one(BAD_MESSAGES, x['message'].lower()) and not x['is_hash_checking']
             and x['left_bytes'] == 0)
 
 
@@ -50,7 +50,7 @@ def main() -> int:
                                     password=args.password,
                                     max_retries=args.max_retries,
                                     netrc_path=args.netrc)
-    prefix: Final = PREFIX.format(args.username)
+    prefix: Final = PREFIX.format(client.name)
     to_delete: List[Tuple[str, str]] = []
     items: Final = [(hash_, cast(TorrentDict, info))
                     for hash_, info in client.list_torrents_dict().items()
