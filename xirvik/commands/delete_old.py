@@ -5,7 +5,7 @@ Deletes old torrents based on specified criteria.
 """
 from datetime import datetime, timedelta
 from time import sleep
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple
 import logging
 import sys
 import xmlrpc.client as xmlrpc
@@ -13,16 +13,17 @@ import xmlrpc.client as xmlrpc
 from requests.exceptions import HTTPError
 import argcomplete
 
+from xirvik.typing import TorrentDict
+
 from ..client import ruTorrentClient
 from .util import common_parser, setup_logging_stdout
 
-TestCallable = Callable[[Dict[str, Any], logging.Logger], Tuple[str, bool]]
+TestCallable = Callable[[TorrentDict, logging.Logger], Tuple[str, bool]]
 TestsDict = Dict[str, Tuple[bool, TestCallable]]
 
 
 def _test_date_cb(days: int = 14) -> TestCallable:
-    def test_date(info: Dict[str, datetime],
-                  log: logging.Logger) -> Tuple[str, bool]:
+    def test_date(info: TorrentDict, log: logging.Logger) -> Tuple[str, bool]:
         cond1 = info.get('creation_date')
         cond2 = info.get('state_changed')
         expect = datetime.now() - timedelta(days=days)
@@ -39,13 +40,12 @@ def _test_date_cb(days: int = 14) -> TestCallable:
     return test_date
 
 
-def _test_ratio(info: Dict[str, float],
-                log: logging.Logger) -> Tuple[str, bool]:
+def _test_ratio(info: TorrentDict, log: logging.Logger) -> Tuple[str, bool]:
     log.debug('ratio: %.2f', info.get('ratio', 0.0))
     return 'ratio >= 1', info.get('ratio', 0.0) >= 1
 
 
-def _test_ignore(_info: Any) -> Tuple[str, bool]:
+def _test_ignore(_info: TorrentDict) -> Tuple[str, bool]:
     return 'ignoring criteria', True
 
 
@@ -76,7 +76,7 @@ def main() -> int:
         ratio=(args.ignore_ratio, _test_ratio),
         date=(args.ignore_date, _test_date_cb(args.days)),
     )
-    info: Dict[str, Union[int, str, bool]]
+    info: TorrentDict
     for hash_, info in torrents:
         if info['left_bytes'] != 0 or info['custom1'] != args.label:
             continue
