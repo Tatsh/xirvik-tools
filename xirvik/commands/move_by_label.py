@@ -2,11 +2,13 @@
 # PYTHON_ARGCOMPLETE_OK
 """Organise torrents based on labels assigned in ruTorrent."""
 from time import sleep
-from typing import Any, Callable, Dict, Mapping, Tuple, Union
+from typing import Any, Callable, Tuple
 import sys
 
 from requests.exceptions import HTTPError
 import argcomplete
+
+from xirvik.typing import TorrentDict
 
 from ..client import ruTorrentClient
 from .util import common_parser, setup_logging_stdout
@@ -15,8 +17,8 @@ PREFIX = '/torrents/{}/_completed'
 
 
 def _base_path_check(
-        username: str) -> Callable[[Tuple[Any, Mapping[str, str]]], bool]:
-    def bpc(hash_info: Tuple[Any, Mapping[str, str]]) -> bool:
+        username: str) -> Callable[[Tuple[Any, TorrentDict]], bool]:
+    def bpc(hash_info: Tuple[Any, TorrentDict]) -> bool:
         _, info = hash_info
         move_to = '{}/{}'.format(PREFIX.format(username),
                                  str.lower(info['custom1']))
@@ -25,7 +27,7 @@ def _base_path_check(
     return bpc
 
 
-def _key_check(hash_info: Tuple[Any, Mapping[str, Union[bool, int]]]) -> bool:
+def _key_check(hash_info: Tuple[Any, TorrentDict]) -> bool:
     _, info = hash_info
     return not info['is_hash_checking'] and info['left_bytes'] == 0
 
@@ -72,7 +74,7 @@ def main() -> int:
     count = 0
     assert username is not None
     hash_: str
-    info: Dict[str, str]
+    info: TorrentDict
     for hash_, info in list(
             filter(_base_path_check(username), filter(_key_check, torrents))):
         label = info['custom1']
