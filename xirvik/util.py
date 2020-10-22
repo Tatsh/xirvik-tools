@@ -97,11 +97,13 @@ def _get_torrent_pieces(filenames: Iterable[str], basepath: str,
 
     for name in filenames:
         name = path_join(basepath, name)
+        size = None
         try:
             size = stat(name).st_size
         except OSError:
             yield None
 
+        assert size is not None
         if size <= piece_length and p_delta > size:
             with open(name, 'rb') as f:
                 tmp = f.read()
@@ -202,8 +204,8 @@ def verify_torrent_contents(torrent_file: Union[str, BinaryIO, bytes],
 
         try:
             file_hash = sha1(cast(bytes, piece)).digest()
-        except TypeError:
-            raise VerificationError('Unable to get hash for piece')
+        except TypeError as e:
+            raise VerificationError('Unable to get hash for piece') from e
 
         if not compare_digest(known_hash, file_hash):
             raise VerificationError('Computed hash does not match torrent '
