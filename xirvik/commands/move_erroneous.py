@@ -1,6 +1,6 @@
 """Move torrents in error state to another location."""
 from time import sleep
-from typing import Iterable, List, Tuple, TypeVar, cast
+from typing import Iterable, List, Tuple, TypeVar
 import sys
 
 from typing_extensions import Final
@@ -29,8 +29,8 @@ def _has_one(look_for_list: Iterable[T], val: Iterable[T]) -> bool:
 
 
 def _should_process(x: TorrentDict) -> bool:
-    return (_has_one(BAD_MESSAGES, x['message'].lower()) and not x['is_hash_checking']
-            and x['left_bytes'] == 0)
+    return (_has_one(BAD_MESSAGES, x['message'].lower())
+            and not x['is_hash_checking'] and x['left_bytes'] == 0)
 
 
 def _make_move_to(prefix: str, label: str) -> str:
@@ -52,9 +52,9 @@ def main() -> int:
                                     netrc_path=args.netrc)
     prefix: Final = PREFIX.format(client.name)
     to_delete: List[Tuple[str, str]] = []
-    items: Final = [(hash_, cast(TorrentDict, info))
+    items: Final = [(hash_, info)
                     for hash_, info in client.list_torrents_dict().items()
-                    if _should_process(cast(TorrentDict, info))]
+                    if _should_process(info)]
     count = 0
     for hash_, info in items:
         log.info('Stopping %s', info['name'])
