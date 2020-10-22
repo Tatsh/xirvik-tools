@@ -6,7 +6,7 @@ from os import chmod, close as close_fd, listdir, makedirs, remove as rm, utime
 from os.path import (basename, dirname, expanduser, isdir, join as path_join,
                      realpath, splitext)
 from tempfile import gettempdir, mkstemp
-from typing import Any, Optional, cast
+from typing import Optional, cast
 import argparse
 import hashlib
 import json
@@ -31,19 +31,6 @@ from xirvik.sftp import SFTPClient
 from xirvik.util import (ReadableDirectoryListAction, VerificationError,
                          cleanup_and_exit, ctrl_c_handler,
                          verify_torrent_contents)
-
-LOCK = None
-
-
-def lock_ctrl_c_handler(signum: int, frame: Any) -> None:
-    """TERM signal/^C handler."""
-    if LOCK:
-        try:  # type: ignore[misc]
-            LOCK.release()
-        except NotLocked:
-            pass
-    ctrl_c_handler(signum, frame)
-    raise SystemExit('Signal raised')
 
 
 # pylint: disable=protected-access
@@ -133,7 +120,7 @@ def mirror(sftp_client: SFTPClient,
 
 def mirror_main() -> None:
     """Entry point."""
-    signal.signal(signal.SIGINT, lock_ctrl_c_handler)
+    signal.signal(signal.SIGINT, ctrl_c_handler)
     parser = argparse.ArgumentParser()
     parser.add_argument('-H', '--host', required=True)
     parser.add_argument('-P', '--port', type=int, default=22)
@@ -216,6 +203,7 @@ def mirror_main() -> None:
         except NotLocked:
             pass
         cleanup_and_exit(1)
+    hash_ = None
     for hash_, v in torrents.items():
         if not v[TORRENT_PATH_INDEX].startswith(look_for):
             continue
@@ -268,7 +256,7 @@ def mirror_main() -> None:
     _all = names.items()
     exit_status = 0
     bad = []
-    for bn, (hash_, fullpath) in _all:
+    for bn, (hash_, unused_) in _all:
         # There is a warning that can get raised here by urllib3 if
         # Content-Disposition header's filename field has any
         # non-ASCII characters. It is ignorable as the content still gets
@@ -286,7 +274,7 @@ def mirror_main() -> None:
     # Move to _seeding directory and set label
     # Unfortunately, there is no method, via the API, to do this one HTTP
     #   request
-    for bn, (hash_, fullpath) in _all:
+    for bn, (hash_, unused_) in _all:
         if hash_ in bad:
             continue
         log.info('Moving "%s" to "%s" directory', bn, move_to)
