@@ -441,7 +441,9 @@ class ruTorrentClient:
         getattr(mc, 'd.erase')(hash_)
         for x in mc().results:
             try:
-                raise xmlrpc.Fault(x['faultCode'], x['faultString'])
+                raise xmlrpc.Fault(
+                    cast(Dict[str, Any], x)['faultCode'],
+                    cast(Dict[str, Any], x)['faultString'])
             except (TypeError, KeyError):
                 pass
 
