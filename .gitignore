@@ -1,9 +1,10 @@
-MANIFEST
-/dist/
-/htmlcov/
 .coverage
-/bin/
-/.vscode/settings.json
-/.vscode/.ropeproject/objectdb
-/build/
 /.pytest_cache/
+/.vscode/.ropeproject/objectdb
+/.vscode/settings.json
+/bin/
+/build/
+/dist/
+/doc/_build/
+/htmlcov/
+MANIFEST
