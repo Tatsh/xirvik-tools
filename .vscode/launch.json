@@ -1,0 +1,13 @@
+{
+  "configurations": [
+    {
+      "args": ["-x"],
+      "console": "integratedTerminal",
+      "name": "Nose",
+      "program": "~/.virtualenvs/xirvik-tools/bin/nosetests",
+      "request": "launch",
+      "type": "python"
+    }
+  ],
+  "version": "0.2.0"
+}
