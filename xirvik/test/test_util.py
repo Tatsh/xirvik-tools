@@ -15,6 +15,8 @@ from xirvik.util import VerificationError, verify_torrent_contents
 
 random = SystemRandom()
 
+# pylint: disable=invalid-name,missing-function-docstring,missing-class-docstring,too-few-public-methods,no-self-use
+
 
 def create_random_data(size: int) -> bytearray:
     return bytearray(random.getrandbits(8) for _ in range(size))
@@ -30,8 +32,7 @@ class TempFilesMixin:
             except OSError as e:
                 if e.errno == 2:
                     continue
-                else:
-                    print(str(e), file=sys.stderr)
+                print(str(e), file=sys.stderr)
 
     def _mktemp(self,
                 contents: Optional[bytes] = None,
@@ -94,7 +95,7 @@ class TestTorrentVerification(TempFilesMixin, unittest.TestCase):
         self.torrent_file_path = self._mktemp(contents=self.torrent_data)
 
     def tearDown(self) -> None:
-        super(TestTorrentVerification, self).tearDown()
+        super().tearDown()
         rmdir(self.torrent_data_path)
 
     def test_verify_torrent_contents_string(self) -> None:

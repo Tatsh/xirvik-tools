@@ -1,3 +1,4 @@
+"""Client tests."""
 from os import close as close_fd, remove as rm, write as write_fd
 from tempfile import mkstemp
 from typing import List, Optional
@@ -9,6 +10,8 @@ import requests_mock
 from xirvik.client import (TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL,
                            TORRENT_FILE_PRIORITY_NORMAL,
                            UnexpectedruTorrentError, ruTorrentClient)
+
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,no-self-use
 
 
 def isfile(filepath: str) -> bool:
@@ -172,7 +175,7 @@ class TestRuTorrentClient(unittest.TestCase):
             t=dict(hash1=[
                 '1', '0', '1', '1', 'torrent name', '250952849', '958', '958',
                 '250952849', '357999402', '1426', '0', '0', '262144', 'a label'
-            ], ),
+            ],),
             cid=92983,
         )
         responses = [

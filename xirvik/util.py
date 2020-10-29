@@ -22,6 +22,8 @@ __all__ = (
 
 T = TypeVar('T')
 
+# pylint: disable=too-few-public-methods
+
 
 class ReadableDirectoryAction(argparse.Action):
     """Checks if a directory argument is a directory and is readable."""
@@ -32,8 +34,8 @@ class ReadableDirectoryAction(argparse.Action):
                  option_string: Optional[str] = None) -> None:
         prospective_dir = values
         if not isdir(cast(str, prospective_dir)):
-            raise argparse.ArgumentTypeError('%s is not a valid directory' %
-                                             (prospective_dir, ))
+            raise argparse.ArgumentTypeError(
+                '%s is not a valid directory' % (prospective_dir,))
         # Since macOS 10.15, the Python binary will need access to this
         # directory and a prompt from TCC must appear for this to work
         # Because of TCC becoming more strict, hecking with access() is not
@@ -70,6 +72,9 @@ class ReadableDirectoryListAction(argparse.Action):
             dirs.append(ns.directory)
 
         setattr(namespace, self.dest, dirs)
+
+
+# pylint: enable=too-few-public-methods
 
 
 def cleanup_and_exit(status: int = 0) -> NoReturn:

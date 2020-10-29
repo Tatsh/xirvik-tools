@@ -96,8 +96,7 @@ def main() -> int:
         if args.dry_run:
             log.info('Would delete %s, reason: %s', info['name'], reason)
             continue
-        else:
-            log.info('Deleting %s, reason: %s', info['name'], reason)
+        log.info('Deleting %s, reason: %s', info['name'], reason)
         attempts = 0
         while attempts < args.max_attempts:
             attempts += 1
@@ -105,7 +104,7 @@ def main() -> int:
                 client.delete(hash_)
             except xmlrpc.Fault as e:
                 log.exception(e)
-                sleep_time = args.backoff_factor * (2**(attempts - 1))
+                sleep_time = args.backoff_factor * (2 ** (attempts - 1))
                 sleep(sleep_time)
             else:
                 sleep(args.sleep_time)
