@@ -84,11 +84,10 @@ class ruTorrentClient:
         self._session = requests.Session()
         self._session.mount('http://', self._http_adapter)
         self._session.mount('https://', self._http_adapter)
-
-        uri = 'https://{}:{}@{}/rtorrent/plugins/multirpc/action.php'.format(
-            self.name, self.password, self.host)
         self._xmlrpc_proxy = xmlrpc.ServerProxy(
-            uri, context=ssl._create_unverified_context())
+            f'https://{self.name}:{self.password}@{self.host}'
+            '/rtorrent/plugins/multirpc/action.php',
+            context=ssl._create_unverified_context())
 
     @cached_property
     def http_prefix(self) -> str:
