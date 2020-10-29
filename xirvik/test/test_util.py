@@ -1,3 +1,4 @@
+"""Utility tests."""
 from hashlib import sha1
 from io import BytesIO as StringIO
 from os import close as close_fd, remove as rm, rmdir, write as write_fd
@@ -15,14 +16,14 @@ from xirvik.util import VerificationError, verify_torrent_contents
 random = SystemRandom()
 
 
-def create_random_data(size: int):
+def create_random_data(size: int) -> bytearray:
     return bytearray(random.getrandbits(8) for _ in range(size))
 
 
 class TempFilesMixin:
     _temp_files: List[str] = []
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         for x in self._temp_files:
             try:
                 rm(x)
@@ -35,8 +36,8 @@ class TempFilesMixin:
     def _mktemp(self,
                 contents: Optional[bytes] = None,
                 prefix: str = 'test-',
-                dir: Optional[str] = None):
-        fd, name = mkstemp(prefix=prefix, dir=dir)
+                dir_: Optional[str] = None) -> str:
+        fd, name = mkstemp(prefix=prefix, dir=dir_)
         write_fd(fd, contents or b'')
         close_fd(fd)
 
@@ -49,7 +50,7 @@ class TestTorrentVerification(TempFilesMixin, unittest.TestCase):
     FILE_SIZE = 2509
     PIECE_LENGTH = 256
 
-    def setUp(self):
+    def setUp(self) -> None:
         """ A torrent generator! """
         self.torrent_data_path = mkdtemp(prefix='test-torrent-verification-')
         self.torrent_name = basename(self.torrent_data_path)
@@ -58,9 +59,9 @@ class TestTorrentVerification(TempFilesMixin, unittest.TestCase):
         pieces = b''
 
         self.file1 = self._mktemp(contents=all_data[0:self.FILE_SIZE],
-                                  dir=self.torrent_data_path)
+                                  dir_=self.torrent_data_path)
         self.file2 = self._mktemp(contents=all_data[self.FILE_SIZE:],
-                                  dir=self.torrent_data_path)
+                                  dir_=self.torrent_data_path)
 
         for i in range(0, self.FILE_SIZE * 2, self.PIECE_LENGTH):
             s = sha1()
@@ -92,34 +93,34 @@ class TestTorrentVerification(TempFilesMixin, unittest.TestCase):
 
         self.torrent_file_path = self._mktemp(contents=self.torrent_data)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         super(TestTorrentVerification, self).tearDown()
         rmdir(self.torrent_data_path)
 
-    def test_verify_torrent_contents_string(self):
+    def test_verify_torrent_contents_string(self) -> None:
         verify_torrent_contents(self.torrent_data,
                                 dirname(self.torrent_data_path))
 
-    def test_verify_torrent_contents_filepath(self):
+    def test_verify_torrent_contents_filepath(self) -> None:
         verify_torrent_contents(self.torrent_file_path,
                                 dirname(self.torrent_data_path))
 
-    def test_verify_torrent_contents_stringio(self):
+    def test_verify_torrent_contents_stringio(self) -> None:
         verify_torrent_contents(StringIO(self.torrent_data),
                                 dirname(self.torrent_data_path))
 
-    def test_verify_torrent_contents_invalid_path(self):
+    def test_verify_torrent_contents_invalid_path(self) -> None:
         with self.assertRaises(IOError):
             verify_torrent_contents(self.torrent_data,
                                     dirname(self.torrent_data_path) + 'junk')
 
-    def test_verify_torrent_contents_file_missing(self):
+    def test_verify_torrent_contents_file_missing(self) -> None:
         rm(self.file2)
         with self.assertRaises(VerificationError):
             verify_torrent_contents(self.torrent_data,
                                     dirname(self.torrent_data_path))
 
-    def test_verify_torrent_contents_keyerror(self):
+    def test_verify_torrent_contents_keyerror(self) -> None:
         del self.torrent_data_dict[b'info'][b'files'][0][b'path']
         self.torrent_data = bencode(self.torrent_data_dict)
 
@@ -127,7 +128,7 @@ class TestTorrentVerification(TempFilesMixin, unittest.TestCase):
             verify_torrent_contents(self.torrent_data,
                                     dirname(self.torrent_data_path))
 
-    def test_verify_torrent_contents_keyerror2(self):
+    def test_verify_torrent_contents_keyerror2(self) -> None:
         del self.torrent_data_dict[b'info']
         self.torrent_data = bencode(self.torrent_data_dict)
 
@@ -135,7 +136,7 @@ class TestTorrentVerification(TempFilesMixin, unittest.TestCase):
             verify_torrent_contents(self.torrent_data,
                                     dirname(self.torrent_data_path))
 
-    def test_verify_torrent_contents_bad_compare(self):
+    def test_verify_torrent_contents_bad_compare(self) -> None:
         with open(self.file2, 'w') as f:
             f.write('junk\n')
 
@@ -148,7 +149,7 @@ class TestSingleFileTorrentVerification(TempFilesMixin, unittest.TestCase):
     FILE_SIZE = 2509
     PIECE_LENGTH = 256
 
-    def setUp(self):
+    def setUp(self) -> None:
         all_data = create_random_data(self.FILE_SIZE)
         self.file1 = self._mktemp(contents=all_data)
         self.torrent_data_path = dirname(self.file1)
@@ -171,22 +172,22 @@ class TestSingleFileTorrentVerification(TempFilesMixin, unittest.TestCase):
 
         self.torrent_file_path = self._mktemp(contents=self.torrent_data)
 
-    def test_verify_torrent_contents_string(self):
+    def test_verify_torrent_contents_string(self) -> None:
         verify_torrent_contents(self.torrent_data, self.torrent_data_path)
 
-    def test_verify_torrent_contents_filepath(self):
+    def test_verify_torrent_contents_filepath(self) -> None:
         verify_torrent_contents(self.torrent_file_path, self.torrent_data_path)
 
-    def test_verify_torrent_contents_stringio(self):
+    def test_verify_torrent_contents_stringio(self) -> None:
         verify_torrent_contents(StringIO(self.torrent_data),
                                 self.torrent_data_path)
 
-    def test_verify_torrent_contents_file_missing(self):
+    def test_verify_torrent_contents_file_missing(self) -> None:
         rm(self.file1)
         with self.assertRaises(IOError):
             verify_torrent_contents(self.torrent_data, self.torrent_data_path)
 
-    def test_verify_torrent_contents_bad_compare(self):
+    def test_verify_torrent_contents_bad_compare(self) -> None:
         with open(self.file1, 'w') as f:
             f.write('junk\n')
 
