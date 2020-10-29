@@ -5,7 +5,7 @@ from os import close as close_fd, remove as rm, rmdir, write as write_fd
 from os.path import basename, dirname
 from random import SystemRandom
 from tempfile import mkdtemp, mkstemp
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, cast
 import sys
 import unittest
 
@@ -121,7 +121,8 @@ class TestTorrentVerification(TempFilesMixin, unittest.TestCase):
                                     dirname(self.torrent_data_path))
 
     def test_verify_torrent_contents_keyerror(self) -> None:
-        del self.torrent_data_dict[b'info'][b'files'][0][b'path']
+        del cast(Dict[bytes, Any],
+                 self.torrent_data_dict[b'info'])[b'files'][0][b'path']
         self.torrent_data = bencode(self.torrent_data_dict)
 
         with self.assertRaises(KeyError):
