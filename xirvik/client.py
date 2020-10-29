@@ -3,8 +3,8 @@ from cgi import parse_header
 from datetime import datetime
 from netrc import netrc
 from os.path import expanduser
-from typing import (Any, Callable, Dict, Iterable, Iterator, Mapping, Optional,
-                    Sequence, Tuple, Union, cast)
+from typing import (Any, Callable, Dict, Final, Iterable, Iterator, Mapping,
+                    Optional, Sequence, Tuple, Union, cast)
 from urllib.parse import quote
 import logging
 import re
@@ -27,17 +27,17 @@ __all__ = (
 )
 
 #: Name used in logger.
-LOG_NAME = 'xirvik.rutorrent'
-TORRENT_FILE_DOWNLOAD_STRATEGY_LEADING_CHUNK_FIRST = 1
-TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL = 0
-TORRENT_FILE_DOWNLOAD_STRATEGY_TRAILING_CHUNK_FIRST = 2
-TORRENT_FILE_PRIORITY_DONT_DOWNLOAD = 0
-TORRENT_FILE_PRIORITY_HIGH = 2
-TORRENT_FILE_PRIORITY_NORMAL = 1
+LOG_NAME: Final[str] = 'xirvik.rutorrent'
+TORRENT_FILE_DOWNLOAD_STRATEGY_LEADING_CHUNK_FIRST: Final[int] = 1
+TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL: Final[int] = 0
+TORRENT_FILE_DOWNLOAD_STRATEGY_TRAILING_CHUNK_FIRST: Final[int] = 2
+TORRENT_FILE_PRIORITY_DONT_DOWNLOAD: Final[int] = 0
+TORRENT_FILE_PRIORITY_HIGH: Final[int] = 2
+TORRENT_FILE_PRIORITY_NORMAL: Final[int] = 1
 TORRENT_LABEL_INDEX = 14
 #: Index of the torrent information list that has the path
-TORRENT_PATH_INDEX = 25
-TORRENT_PIECE_SIZE_INDEX = 13
+TORRENT_PATH_INDEX: Final[int] = 25
+TORRENT_PIECE_SIZE_INDEX: Final[int] = 13
 
 
 class UnexpectedruTorrentError(Exception):
@@ -112,10 +112,7 @@ class ruTorrentClient:
     @cached_property
     def auth(self) -> Tuple[Optional[str], Optional[str]]:
         """Return basic authentication credentials."""
-        return (
-            self.name,
-            self.password,
-        )
+        return (self.name, self.password)
 
     def add_torrent(self, filepath: str, start_now: bool = True) -> None:
         """Add a torrent. Use start_now=False to start paused."""
