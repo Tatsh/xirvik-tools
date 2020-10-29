@@ -344,10 +344,10 @@ class ruTorrentClient:
                             'arguments are required')
         data = b'mode=setlabel'
         for hash_ in hashes:
-            data += '&hash={}'.format(hash_).encode()
-        data += '&v={}'.format(label).encode() * len(hashes)
+            data += f'&hash={hash_}'.encode()
+        data += f'&v={label}'.encode() * len(hashes)
         data += b'&s=label' * len(hashes)
-        self._log.debug('set_labels() with data: %s', data.decode('utf-8'))
+        self._log.debug('set_labels() with data: %s', data.decode())
         r = self._session.post(self.multirpc_action_uri,
                                data=data,
                                auth=self.auth)
@@ -370,7 +370,7 @@ class ruTorrentClient:
                 for hash_, v in self.list_torrents().items():
                     if hash_ not in hashes or v[TORRENT_LABEL_INDEX].strip():
                         continue
-                    data += '&hash={}'.format(hash_).encode()
+                    data += f'&hash={hash_}'.encode()
                     new_hashes.append(hash_)
                 if not new_hashes:
                     self._log.debug('Found no torrents to correct')
@@ -406,8 +406,8 @@ class ruTorrentClient:
             quote('f.prioritize_first='),
             quote('f.prioritize_last='),
         )
-        query = 'mode=fls&hash={}'.format(hash_).encode()
-        cmds = '&'.join(['cmd={}'.format(x) for x in cmds])
+        query = f'mode=fls&hash={hash_}'.encode()
+        cmds = '&'.join(f'cmd={x}' for x in cmds)
         query += b'&'
         query += cmds.encode()
         r = self._session.post(self.multirpc_action_uri,
