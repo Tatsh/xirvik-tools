@@ -3,17 +3,15 @@ from cgi import parse_header
 from datetime import datetime
 from netrc import netrc
 from os.path import expanduser
-from typing import (Any, Callable, Dict, Final, Iterable, Iterator, Mapping,
-                    Optional, Sequence, Tuple, Union, cast)
+from typing import (Any, Dict, Final, Iterator, Mapping, Optional, Sequence,
+                    Tuple, Union, cast)
 from urllib.parse import quote
 import logging
 import re
-import ssl
 import xmlrpc.client as xmlrpc
 
 from cached_property import cached_property
 from requests.adapters import HTTPAdapter
-from requests_futures.sessions import FuturesSession
 from urllib3.util import Retry
 import requests
 
@@ -86,8 +84,7 @@ class ruTorrentClient:
         self._session.mount('https://', self._http_adapter)
         self._xmlrpc_proxy = xmlrpc.ServerProxy(
             f'https://{self.name}:{self.password}@{self.host}'
-            '/rtorrent/plugins/multirpc/action.php',
-            context=ssl._create_unverified_context())
+            '/rtorrent/plugins/multirpc/action.php')
 
     @cached_property
     def http_prefix(self) -> str:
@@ -270,26 +267,6 @@ class ruTorrentClient:
         r.raise_for_status()
         fn = parse_header(r.headers['content-disposition'])[1]['filename']
         return r, fn
-
-    def get_torrents_futures(
-        self,
-        hashes: Iterable[str],
-        session: Optional[FuturesSession] = None,
-        background_callback: Callable[[Any], Any] = None
-    ) -> Iterator[FuturesSession]:
-        """
-        Similar to get_torrent() but uses requests_futures.
-
-        Pass a list of hashes, optionally a session and a callback.
-
-        Yields the GET future request for each hash.
-        """
-        if not session:
-            session = FuturesSession(max_workers=4)
-        for hash_ in hashes:
-            yield session.get((f'{self.http_prefix}/rtorrent/plugins/source/'
-                               f'action.php?hash={hash_}'),
-                              background_callback=background_callback)
 
     def move_torrent(self,
                      hash_: str,
