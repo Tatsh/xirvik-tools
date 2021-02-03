@@ -27,11 +27,11 @@ def _test_date_cb(days: int = 14) -> TestCallable:
         cond1 = info.get('creation_date')
         cond2 = info.get('state_changed')
         expect = datetime.now() - timedelta(days=days)
-        log = setup_logging_stdout()
-        log.debug('creation date: %s', cond1)
-        log.debug('state changed: %s', cond2)
-        log.debug('%s <= %s or', cond1, expect)
-        log.debug('    %s <= %s', cond2, expect)
+        date_log = setup_logging_stdout('test_date')
+        date_log.debug('creation date: %s', cond1)
+        date_log.debug('state changed: %s', cond2)
+        date_log.debug('%s <= %s or', cond1, expect)
+        date_log.debug('    %s <= %s', cond2, expect)
         return (
             'over 14 days seeded',
             bool((cond1 and cond1 <= expect) or (cond2 and cond2 <= expect)),
@@ -45,20 +45,16 @@ def _test_ratio(info: TorrentDict, log: logging.Logger) -> Tuple[str, bool]:
     return 'ratio >= 1', info.get('ratio', 0.0) >= 1
 
 
-def _test_ignore(_info: TorrentDict) -> Tuple[str, bool]:
-    return 'ignoring criteria', True
-
-
 def main() -> int:
     """Entry point."""
     parser = common_parser()
-    parser.add_argument('-a', '--ignore-ratio', action='store_true')
     parser.add_argument('-D', '--ignore-date', action='store_true')
+    parser.add_argument('-a', '--ignore-ratio', action='store_true')
     parser.add_argument('-y', '--dry-run', action='store_true')
-    parser.add_argument('--max-attempts', type=int, default=3)
-    parser.add_argument('--label')
-    parser.add_argument('--sleep-time', type=int, default=10)
     parser.add_argument('--days', type=int, default=14)
+    parser.add_argument('--label')
+    parser.add_argument('--max-attempts', type=int, default=3)
+    parser.add_argument('--sleep-time', type=int, default=10)
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
     log = setup_logging_stdout(verbose=args.verbose)
@@ -76,7 +72,6 @@ def main() -> int:
         ratio=(args.ignore_ratio, _test_ratio),
         date=(args.ignore_date, _test_date_cb(args.days)),
     )
-    info: TorrentDict
     for hash_, info in torrents:
         if info['left_bytes'] != 0 or info['custom1'] != args.label:
             continue
