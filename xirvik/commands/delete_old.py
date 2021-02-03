@@ -5,7 +5,7 @@ Deletes old torrents based on specified criteria.
 """
 from datetime import datetime, timedelta
 from time import sleep
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple, cast
 import logging
 import sys
 import xmlrpc.client as xmlrpc
@@ -67,15 +67,17 @@ def main() -> int:
     except HTTPError:
         log.error('Connection failed on list_torrents() call', file=sys.stderr)
         return 1
-    tests: TestsDict = dict(
-        ratio=(args.ignore_ratio, _test_ratio),
-        date=(args.ignore_date, _test_date_cb(args.days)),
-    )
+    tests = cast(
+        TestsDict,
+        dict(
+            ratio=(args.ignore_ratio, _test_ratio),
+            date=(args.ignore_date, _test_date_cb(args.days)),
+        ))
     for hash_, info in torrents:
         if info['left_bytes'] != 0 or info['custom1'] != args.label:
             continue
         reason: Optional[str] = None
-        can_delete: bool = False
+        can_delete = False
         for key, (can_ignore, test) in tests.items():
             if can_ignore:
                 can_delete = True
