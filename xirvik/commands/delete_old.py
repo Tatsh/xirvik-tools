@@ -27,11 +27,10 @@ def _test_date_cb(days: int = 14) -> TestCallable:
         cond1 = info.get('creation_date')
         cond2 = info.get('state_changed')
         expect = datetime.now() - timedelta(days=days)
-        date_log = setup_logging_stdout('test_date')
-        date_log.debug('creation date: %s', cond1)
-        date_log.debug('state changed: %s', cond2)
-        date_log.debug('%s <= %s or', cond1, expect)
-        date_log.debug('    %s <= %s', cond2, expect)
+        log.debug('creation date: %s', cond1)
+        log.debug('state changed: %s', cond2)
+        log.debug('%s <= %s or', cond1, expect)
+        log.debug('    %s <= %s', cond2, expect)
         return (
             'over 14 days seeded',
             bool((cond1 and cond1 <= expect) or (cond2 and cond2 <= expect)),
