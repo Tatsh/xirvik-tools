@@ -97,7 +97,7 @@ def main() -> int:
             attempts += 1
             try:
                 client.delete(hash_)
-            except xmlrpc.Fault as e:
+            except (xmlrpc.Fault, xmlrpc.ProtocolError) as e:
                 log.exception(e)
                 sleep_time = args.backoff_factor * (2 ** (attempts - 1))
                 sleep(sleep_time)
