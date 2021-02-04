@@ -17,6 +17,7 @@ setup(name='xirvik-tools',
           'cached-property>=1.0.0',
           'requests>=2.6.0',
           'typing-extensions>=3.7.4.1',
+          'urllib3>=1.26.2',
       ],
       entry_points={
           'console_scripts': [
