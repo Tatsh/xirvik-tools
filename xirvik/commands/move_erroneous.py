@@ -42,7 +42,7 @@ def _make_move_to(prefix: str, label: str) -> str:
     return '{}/{}'.format(prefix, label)
 
 
-class Namespace(argparse.Namespace):
+class Namespace(argparse.Namespace):  # pylint: disable=too-few-public-methods
     """Arguments."""
     ignore_ratio: bool
     sleep_time: int
