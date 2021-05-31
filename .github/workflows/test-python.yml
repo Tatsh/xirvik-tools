@@ -24,12 +24,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .
-          pip install coveralls nose requests-mock
+          pip install pytest pytest-cov requests-mock
       - name: Run tests
-        run: coverage run --source=xirvik '--omit=xirvik/test/*' -m nose -x
+        run: pytest --cov
       - name: Coveralls
-        uses: coverallsapp/github-action@master
+        run: |
+          pip install coveralls
+          coveralls --service=github
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./coverage
         if: matrix.python-version == 3.8

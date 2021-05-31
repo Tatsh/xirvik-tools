@@ -32,4 +32,4 @@ setup(name='xirvik-tools',
           ]
       },
       test_suite='xirvik.test',
-      tests_require=['nose', 'requests-mock'])
+      tests_require=['pytest', 'pytest-cov', 'requests-mock'])
