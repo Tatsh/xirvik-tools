@@ -66,7 +66,7 @@ def start_torrents() -> None:
         except (OSError, socket.error):
             syslogh = SysLogHandler(address='/var/run/syslog',
                                     facility=SysLogHandler.LOG_USER)
-            syslogh.ident = 'xirvik-start-torrents'  # type: ignore[attr-defined]
+            syslogh.ident = 'xirvik-start-torrents'
             logging.INFO = logging.WARNING
 
         syslogh.setFormatter(

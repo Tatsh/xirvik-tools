@@ -1,7 +1,7 @@
 """Client tests."""
 from os import close as close_fd, remove as rm, write as write_fd
 from tempfile import mkstemp
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, cast
 import unittest
 
 from requests.exceptions import HTTPError
@@ -146,7 +146,7 @@ class TestRuTorrentClient(unittest.TestCase):
             },
             cid=92983,
         )
-        responses = [
+        responses = cast(List[Dict[str, Any]], [
             dict(json=[]),
             dict(json=list_torrents_json),
             dict(json=[]),
@@ -158,7 +158,7 @@ class TestRuTorrentClient(unittest.TestCase):
             dict(json=[]),
             dict(json=list_torrents_json),
             dict(json=[]),
-        ]
+        ])
 
         m.post(client.multirpc_action_uri, responses)
         client.set_label_to_hashes(hashes=hashes,
@@ -178,10 +178,10 @@ class TestRuTorrentClient(unittest.TestCase):
             ],),
             cid=92983,
         )
-        responses = [
+        responses = cast(List[Dict[str, Any]], [
             dict(json=[]),
             dict(json=list_torrents_json),
-        ]
+        ])
 
         m.post(client.multirpc_action_uri, responses)
         client.set_label('hash1', 'a label')
