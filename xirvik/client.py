@@ -78,7 +78,7 @@ class ruTorrentClient:
                       redirect=False,
                       backoff_factor=1)
         self._log = logging.getLogger(LOG_NAME)
-        self._http_adapter = HTTPAdapter(max_retries=retry)
+        self._http_adapter = HTTPAdapter(max_retries=cast(Any, retry))
         self._session = requests.Session()
         self._session.mount('http://', self._http_adapter)
         self._session.mount('https://', self._http_adapter)
