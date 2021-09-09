@@ -35,5 +35,7 @@ with open('README.md') as f:
                 'xirvik-start-torrents = xirvik.commands:start_torrents',
             ]
         },
-        test_suite='xirvik.test',
-        tests_require=['pytest', 'pytest-cov', 'requests-mock'])
+        extras_require={
+            'testing':
+            ['mock', 'pytest', 'pytest-cov', 'pytest-mock', 'requests-mock']
+        })
