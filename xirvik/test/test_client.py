@@ -1,6 +1,7 @@
 """Client tests."""
-from os import close as close_fd, remove as rm, write as write_fd
-from tempfile import mkstemp
+from os import close as close_fd, environ, remove as rm, write as write_fd
+from os.path import join as path_join
+from tempfile import mkstemp, TemporaryDirectory
 from typing import Any, Dict, List, Optional, cast
 import unittest
 
@@ -57,6 +58,14 @@ class TestRuTorrentClient(unittest.TestCase):
 
         self.assertEqual('a', client.auth[0])
         self.assertEqual('bbbb', client.auth[1])
+
+    def test_no_netrc_path(self):
+        with TemporaryDirectory() as d:
+            environ['HOME'] = d
+            with open(path_join(d, '.netrc'), 'w') as f:
+                f.write('machine hostname-test.com login a password b')
+            client = ruTorrentClient('hostname-test.com')
+            self.assertEqual('hostname-test.com', client.host)
 
     def test_http_prefix(self):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
