@@ -98,8 +98,8 @@ class TestRuTorrentClient(unittest.TestCase):
     @requests_mock.Mocker()
     def test_get_torrent(self, m: requests_mock.Mocker):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
-        uri = ('{}/rtorrent/plugins/source/action.php'
-               '?hash=hash_of_torrent').format(client.http_prefix)
+        uri = (f'{client.http_prefix}/rtorrent/plugins/source/action.php'
+               '?hash=hash_of_torrent')
         m.get(uri,
               headers={
                   'content-disposition': 'attachment; '
