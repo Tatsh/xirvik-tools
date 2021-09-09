@@ -308,6 +308,10 @@ def test_add_torrent_url(requests_mock: req_mock.Mocker):
 
 
 def test_delete(mocker: MockerFixture):
-    mocker.patch.object(xmlrpc.client, 'MultiCall')
+    mc = mocker.patch.object(xmlrpc.client, 'MultiCall')
+    mc.return_value.return_value.results = [
+        dict(faultCode='2000', faultString='some string')
+    ]
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    client.delete('some hash')
+    with pytest.raises(xmlrpc.client.Fault):
+        client.delete('some hash')
