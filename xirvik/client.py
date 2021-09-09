@@ -249,7 +249,7 @@ class ruTorrentClient:
                             try:
                                 value = cons(value)
                             except ValueError:
-                                pass
+                                value = None
                     ret[hash_][fields[i]] = value
                 except IndexError:
                     continue
