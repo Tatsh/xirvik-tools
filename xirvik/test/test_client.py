@@ -63,11 +63,13 @@ class TestRuTorrentClient(unittest.TestCase):
         self.assertEqual('https://hostname-test.com', client.http_prefix)
 
     @requests_mock.Mocker()
-    def test_add_torrent_bad_status(self, m):
+    def test_add_torrent_bad_status(self, m: requests_mock.Mocker):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
         torrent = self._mktemp('torrent file fake'.encode('utf-8'))
 
-        m.post(client._add_torrent_uri, status_code=400)
+        m.post(
+            client._add_torrent_uri,  # type: ignore
+            status_code=400)
         with self.assertRaises(HTTPError):
             client.add_torrent(torrent)
 
