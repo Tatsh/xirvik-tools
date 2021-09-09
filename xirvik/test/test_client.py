@@ -1,4 +1,5 @@
 """Client tests."""
+from datetime import datetime
 from os import close as close_fd, environ, remove as rm, write as write_fd
 from os.path import join as path_join
 from tempfile import mkstemp, TemporaryDirectory
@@ -89,6 +90,13 @@ class TestRuTorrentClient(unittest.TestCase):
             client.list_torrents()
 
     @requests_mock.Mocker()
+    def test_list_torrents_bad_type(self, m: requests_mock.Mocker):
+        client = ruTorrentClient('hostname-test.com', 'a', 'b')
+        m.post(client.multirpc_action_uri, json=dict(t=[]))
+        with self.assertRaises(ValueError):
+            client.list_torrents()
+
+    @requests_mock.Mocker()
     def test_list_torrents(self, m: requests_mock.Mocker):
         client = ruTorrentClient('hostname-test.com', 'a', 'b')
         m.post(client.multirpc_action_uri,
@@ -101,6 +109,111 @@ class TestRuTorrentClient(unittest.TestCase):
 
         self.assertEqual(client.list_torrents()['hash here'][4],
                          'name of torrent?')
+
+    @requests_mock.Mocker()
+    def test_list_torrents_dict(self, m: requests_mock.Mocker):
+        client = ruTorrentClient('hostname-test.com', 'a', 'b')
+        m.post(
+            client.multirpc_action_uri,
+            json=dict(
+                t={
+                    'hash here': [
+                        '1',  # is_open
+                        '0',  # is_hash_checking
+                        '1',  # is_hash_checked
+                        '1',  # state
+                        'name of torrent?',  # name
+                        '100',  # size_bytes
+                        '1',  # completed_chunks
+                        '1',  # size_chunks
+                        '100',  # bytes_done
+                        '0',  # up_total
+                        '0',  # ratio,
+                        '0',  # up_rate
+                        '0',  # down_rate
+                        '256',  # chunk_size
+                        'label',  # custom1
+                        '0',  # peers_accounted
+                        '0',  # peers_not_connected
+                        '0',  # peers_connected
+                        '0',  # peers_complete
+                        '0',  # left_bytes
+                        '0',  # priority
+                        '1631205742',  # state_changed
+                        '0',  # skip_total
+                        '0',  # hashing
+                        '1',  # chunks_hashed
+                        '/path',  # base_path
+                        '1631205742',  # creation_date
+                        '0',  # tracker_focus
+                        '1',  # is_active
+                        'some message',  # message
+                        'unknown field',  # custom2
+                        '1',  # free_diskspace
+                        '1',  # is_private
+                        '0',  # is_multi_file
+                        'junk',  # junk, ignored
+                    ],
+                },
+                cid=92385,
+            ))
+        d = list(client.list_torrents_dict().values())[0]
+        self.assertIsInstance(d['state_changed'], datetime)
+        self.assertIsInstance(d['creation_date'], datetime)
+        self.assertEqual(True, d['is_open'])
+        self.assertEqual(False, d['is_hash_checking'])
+        self.assertEqual('name of torrent?', d['name'])
+        self.assertNotIn('junk', d.values())
+
+    @requests_mock.Mocker()
+    def test_list_torrents_dict_bad_values(self, m: requests_mock.Mocker):
+        client = ruTorrentClient('hostname-test.com', 'a', 'b')
+        m.post(
+            client.multirpc_action_uri,
+            json=dict(
+                t={
+                    'hash here': [
+                        '1',  # is_open
+                        '0',  # is_hash_checking
+                        '1',  # is_hash_checked
+                        '1',  # state
+                        'name of torrent?',  # name
+                        '100',  # size_bytes
+                        '1',  # completed_chunks
+                        '1',  # size_chunks
+                        '100',  # bytes_done
+                        '0',  # up_total
+                        '0',  # ratio,
+                        '0',  # up_rate
+                        '0',  # down_rate
+                        '256',  # chunk_size
+                        'label',  # custom1
+                        '0',  # peers_accounted
+                        '0',  # peers_not_connected
+                        '0',  # peers_connected
+                        '0',  # peers_complete
+                        '0',  # left_bytes
+                        '0',  # priority
+                        '1631205742',  # state_changed
+                        '0',  # skip_total
+                        '0',  # hashing
+                        '1',  # chunks_hashed
+                        '/path',  # base_path
+                        '1631205742aaaa',  # creation_date
+                        '0',  # tracker_focus
+                        '1',  # is_active
+                        'some message',  # message
+                        'unknown field',  # custom2
+                        '1.0.',  # free_diskspace
+                        '1',  # is_private
+                        '0',  # is_multi_file
+                    ],
+                },
+                cid=92385,
+            ))
+        d = list(client.list_torrents_dict().values())[0]
+        self.assertIsNone(d['creation_date'])
+        self.assertIsNone(d['free_diskspace'])
 
     @requests_mock.Mocker()
     def test_get_torrent(self, m: requests_mock.Mocker):
