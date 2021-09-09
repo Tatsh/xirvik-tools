@@ -3,8 +3,8 @@
     {
       "args": ["-x"],
       "console": "integratedTerminal",
-      "name": "Nose",
-      "program": "~/.virtualenvs/xirvik-tools/bin/nosetests",
+      "name": "Pytest",
+      "program": "~/.virtualenvs/xirvik-tools/bin/pytest",
       "request": "launch",
       "type": "python"
     }
