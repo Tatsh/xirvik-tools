@@ -341,14 +341,12 @@ class ruTorrentClient:
                 self._log.info('Attempting label again '
                                '(%d out of %d)', recursion_attempt,
                                recursion_limit)
-
                 data = b'mode=setlabel'
                 new_hashes = []
                 for hash_, v in self.list_torrents().items():
-                    if hash_ not in hashes or v[TORRENT_LABEL_INDEX].strip():
-                        continue
-                    data += f'&hash={hash_}'.encode()
-                    new_hashes.append(hash_)
+                    if hash_ in hashes or not v[TORRENT_LABEL_INDEX].strip():
+                        data += f'&hash={hash_}'.encode()
+                        new_hashes.append(hash_)
                 if not new_hashes:
                     self._log.debug('Found no torrents to correct')
                     return
