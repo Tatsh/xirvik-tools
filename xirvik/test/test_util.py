@@ -196,7 +196,3 @@ class TestSingleFileTorrentVerification(TempFilesMixin, unittest.TestCase):
         with self.assertRaises(VerificationError):
             verify_torrent_contents(self.torrent_file_path,
                                     self.torrent_data_path)
-
-
-if __name__ == '__main__':
-    unittest.main()
