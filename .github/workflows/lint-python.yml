@@ -26,5 +26,7 @@ jobs:
       - name: Lint with mypy
         run: mypy .
       - name: Lint with Pylint
-        run: pylint xirvik setup.py
+        run: |
+          pip install pylint
+          pylint xirvik setup.py
         if: matrix.python-version == 3.8
