@@ -79,12 +79,12 @@ class ReadableDirectoryListAction(argparse.Action):
 
 def cleanup_and_exit(status: int = 0) -> NoReturn:
     """Called instead of sys.exit(). status is the integer to exit with."""
-    sys.exit(status)
+    sys.exit(status)  # pragma: no cover
 
 
 def ctrl_c_handler(signum: int, frame: Any) -> NoReturn:
     """Used as a TERM signal handler. Arguments are ignored."""
-    raise SystemExit('Signal raised')
+    raise SystemExit('Signal raised')  # pragma: no cover
 
 
 def _chunks(l: Sequence[T], n: int) -> Iterator[Sequence[T]]:
