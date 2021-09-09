@@ -80,7 +80,6 @@ def start_torrents() -> None:
                'and password'),
               file=sys.stderr)
         sys.exit(1)
-    _user, _, _password = user_pass
     post_url = ('https://{host:s}:{port:d}/rtorrent/php/'
                 'addtorrent.php?'.format(host=args.host[0], port=args.port[0]))
     form_data = {}
