@@ -1,24 +1,12 @@
 """General utility module."""
-from hashlib import sha1
-from hmac import compare_digest
-from os import R_OK, access, environ, stat
-from os.path import isdir, join as path_join, realpath
-from typing import (Any, BinaryIO, Iterable, Iterator, NoReturn, Optional,
-                    Sequence, TypeVar, Union, cast)
+from os import R_OK, access, environ
+from os.path import isdir, realpath
+from typing import (Any, NoReturn, Optional, Sequence, TypeVar, Union, cast)
 import argparse
 import platform
-import struct
-import sys
 
-import benc
-
-__all__ = (
-    'cleanup_and_exit',
-    'ctrl_c_handler',
-    'VerificationError',
-    'verify_torrent_contents',
-    'ReadableDirectoryListAction',
-)
+__all__ = ('ReadableDirectoryListAction', 'ReadableDirectoryAction',
+           'ctrl_c_handler')
 
 T = TypeVar('T')
 
@@ -28,10 +16,10 @@ T = TypeVar('T')
 class ReadableDirectoryAction(argparse.Action):
     """Checks if a directory argument is a directory and is readable."""
     def __call__(self,
-                 parser: argparse.ArgumentParser,
+                 _: argparse.ArgumentParser,
                  namespace: argparse.Namespace,
                  values: Optional[Union[str, Sequence[Any]]],
-                 option_string: Optional[str] = None) -> None:
+                 __: Optional[str] = None) -> None:
         prospective_dir = values
         if not isdir(cast(str, prospective_dir)):
             raise argparse.ArgumentTypeError(
@@ -64,13 +52,11 @@ class ReadableDirectoryListAction(argparse.Action):
         dirs = []
         kwa = dict(self._get_kwargs())
         parent = ReadableDirectoryAction(**kwa)
-
         for prospective_dir in cast(Sequence[Any], values):
             ns = argparse.Namespace()
             ns.directory = prospective_dir
             parent(parser, ns, prospective_dir, option_string)
             dirs.append(ns.directory)
-
         setattr(namespace, self.dest, dirs)
 
 
