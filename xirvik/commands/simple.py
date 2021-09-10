@@ -7,10 +7,15 @@ from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
 from tempfile import mkstemp
 import argparse
+import itertools
 import logging
+import re
 import signal
 import socket
 import sys
+from typing import Any, Iterator, Sequence
+
+import click
 
 from requests.exceptions import HTTPError
 from unidecode import unidecode
@@ -18,6 +23,8 @@ import argcomplete
 import requests
 
 from xirvik.util import ReadableDirectoryListAction, ctrl_c_handler
+
+log = logging.getLogger(__name__)
 
 
 def start_torrents() -> None:
@@ -233,36 +240,62 @@ def authorize_ip() -> int:
     return 0
 
 
-def fix_rtorrent() -> int:
+def _clean_host(s: str) -> str:
+    # Attempt to not break IPv6 addresses
+    if '[' not in s and (re.search(r'[0-9]+\:[0-9]+', s) or s == '::1'):
+        return s
+    # Remove brackets and remove port at end
+    return re.sub(r'[\[\]]', '', re.sub(r'\:[0-9]+$', '', s))
+
+
+def _read_ssh_known_hosts() -> Iterator[str]:
+    try:
+        with open(expanduser('~/.ssh/known_hosts')) as f:
+            for line in f.readlines():
+                host_part = line.split()[0]
+                if ',' in host_part:
+                    yield from (_clean_host(x) for x in host_part.split(','))
+                else:
+                    yield _clean_host(host_part)
+    except FileNotFoundError:
+        pass
+
+
+def _read_netrc_hosts() -> Iterator[str]:
+    try:
+        with open(expanduser('~/.netrc')) as f:
+            yield from (x.split()[1] for x in f.readlines())
+    except FileNotFoundError:
+        pass
+
+
+def _complete_hosts(_: Any, __: Any, incomplete: str) -> Sequence[str]:
+    return [
+        k
+        for k in itertools.chain(_read_ssh_known_hosts(), _read_netrc_hosts())
+        if k.startswith(incomplete)
+    ]
+
+
+def _complete_ports(_, __, incomplete: str) -> Sequence[str]:
+    return [k for k in ('80', '443', '8080') if k.startswith(incomplete)]
+
+
+@click.command()
+@click.argument('host', shell_complete=_complete_hosts)
+@click.option('--port', type=int, default=443, shell_complete=_complete_ports)
+def fix_rtorrent(host: str, port: int) -> int:
     """
     Restarts the rtorrent service in case ruTorrent cannot connect to it. Not
     guaranteed to fix anything!
     """
-    log = logging.getLogger('xirvik')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--debug', action='store_true')
-    parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-H', '--host', required=True)
-    parser.add_argument('-p', '--port', type=int, default=443)
-    argcomplete.autocomplete(parser)
-    args = parser.parse_args()
-    verbose = args.debug or args.verbose
-    log.setLevel(logging.INFO)
-    if verbose:
-        channel = logging.StreamHandler(
-            sys.stdout if args.verbose else sys.stderr)
-        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-        channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
-        log.addHandler(channel)
-        if args.debug:
-            log.setLevel(logging.DEBUG)
-    log.warning('No guarantees this will work!')
-    uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/services/'
+    click.echo('No guarantees this will work!')
+    uri = (f'https://{host}:{port:d}/userpanel/index.php/services/'
            'restart/rtorrent')
     r = requests.get(uri)
     try:
         r.raise_for_status()
     except HTTPError as e:
-        log.exception(e)
+        click.echo(str(e), err=True)
         return 1
     return 0
