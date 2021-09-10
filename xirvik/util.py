@@ -63,6 +63,6 @@ class ReadableDirectoryListAction(argparse.Action):
 # pylint: enable=too-few-public-methods
 
 
-def ctrl_c_handler(signum: int, frame: Any) -> NoReturn:
+def ctrl_c_handler(signum: int, frame: Any) -> NoReturn:  # pragma: no cover
     """Used as a TERM signal handler. Arguments are ignored."""
-    raise SystemExit('Signal raised')  # pragma: no cover
+    raise SystemExit('Signal raised')
