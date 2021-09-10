@@ -15,8 +15,8 @@ with open('README.md') as f:
         install_requires=[
             'Unidecode>=0.4.19',
             'argcomplete>=1.10.3',
-            'benc>=2019.8.1',
             'cached-property>=1.0.0',
+            'click>=8.0.0',
             'requests>=2.6.0',
             'rich>=10.1.0',
             'types-requests==2.25.6',
