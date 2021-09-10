@@ -36,7 +36,6 @@ def start_torrents() -> None:
     if not isdir(cache_dir):
         makedirs(cache_dir)
 
-    log = logging.getLogger('xirvik-start-torrents')
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-d', '--debug', action='store_true')
@@ -137,7 +136,6 @@ def start_torrents() -> None:
 
 def add_ftp_user() -> int:
     """Adds an FTP user."""
-    log = logging.getLogger('xirvik')
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--username', required=True)
     parser.add_argument('-P', '--password', required=True)
@@ -178,7 +176,6 @@ def add_ftp_user() -> int:
 
 def delete_ftp_user() -> int:
     """Deletes an FTP user."""
-    log = logging.getLogger('xirvik')
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--username', required=True)
     parser.add_argument('-d', '--debug', action='store_true')
@@ -211,7 +208,6 @@ def delete_ftp_user() -> int:
 
 def authorize_ip() -> int:
     """Authorises an IP for access to the VM via SSH, removing the previous."""
-    log = logging.getLogger('xirvik')
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
@@ -277,7 +273,7 @@ def _complete_hosts(_: Any, __: Any, incomplete: str) -> Sequence[str]:
     ]
 
 
-def _complete_ports(_, __, incomplete: str) -> Sequence[str]:
+def _complete_ports(_: Any, __: Any, incomplete: str) -> Sequence[str]:
     return [k for k in ('80', '443', '8080') if k.startswith(incomplete)]
 
 
