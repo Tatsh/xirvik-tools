@@ -25,7 +25,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e '.[testing]'
       - name: Run tests
-        run: pytest --cov
+        run: pytest --cov=xirvik --cov-branch
       - name: Coveralls
         run: |
           pip install coveralls
