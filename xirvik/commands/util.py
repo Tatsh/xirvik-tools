@@ -132,4 +132,5 @@ class InterceptHandler(logging.Handler):
 
 
 def setup_log_intercept_handler() -> None:
+    """Sets up Loguru to intercept records from the logging module."""
     logging.basicConfig(handlers=[InterceptHandler()], level=0)
