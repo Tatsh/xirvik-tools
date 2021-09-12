@@ -111,7 +111,7 @@ def complete_ports(_: Any, __: Any, incomplete: str) -> Sequence[str]:
     return [k for k in ('80', '443', '8080') if k.startswith(incomplete)]
 
 
-class InterceptHandler(logging.Handler):
+class InterceptHandler(logging.Handler):  # pragma: no cover
     """Intercept handler taken from Loguru's documentation."""
     def emit(self, record: logging.LogRecord) -> None:
         level: Union[str, int]
@@ -131,6 +131,6 @@ class InterceptHandler(logging.Handler):
             level, record.getMessage())
 
 
-def setup_log_intercept_handler() -> None:
+def setup_log_intercept_handler() -> None:  # pragma: no cover
     """Sets up Loguru to intercept records from the logging module."""
     logging.basicConfig(handlers=[InterceptHandler()], level=0)
