@@ -45,13 +45,13 @@ def start_torrents(host: str,
     cache_dir = realpath(expanduser('~/.cache/xirvik'))
     if not isdir(cache_dir):
         makedirs(cache_dir)
-    if debug:
+    if debug:  # pragma: no cover
         setup_log_intercept_handler()
         logger.enable('')
     else:
         logger.configure(handlers=[dict(sink=sys.stdout, format='{message}')])
         logger.level('INFO')
-    if syslog:
+    if syslog:  # pragma: no cover
         try:
             syslogh = SysLogHandler(address='/dev/log')
         except (OSError, socket.error):
@@ -168,7 +168,7 @@ def delete_ftp_user(host: str,
                     port: int = 443,
                     debug: bool = False) -> int:
     """Deletes an FTP user."""
-    if debug:
+    if debug:  # pragma: no cover
         setup_log_intercept_handler()
         logger.enable('')
     else:
@@ -195,7 +195,7 @@ def delete_ftp_user(host: str,
 @click.argument('host', shell_complete=complete_hosts)
 def authorize_ip(host: str, port: int = 443, debug: bool = False) -> int:
     """Authorises the current IP for access to the VM via SSH/VNC/RDP."""
-    if debug:
+    if debug:  # pragma: no cover
         setup_log_intercept_handler()
         logger.enable('')
     else:
@@ -224,7 +224,7 @@ def fix_rtorrent(host: str, port: int, debug: bool = False) -> int:
     Restarts the rtorrent service in case ruTorrent cannot connect to it. Not
     guaranteed to fix anything!
     """
-    if debug:
+    if debug:  # pragma: no cover
         setup_log_intercept_handler()
         logger.enable('')
     else:
