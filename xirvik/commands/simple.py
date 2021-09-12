@@ -179,8 +179,8 @@ def delete_ftp_user(host: str,
     r = requests.get(uri)
     try:
         r.raise_for_status()
-    except HTTPError as e:
-        logger.exception(e)
+    except HTTPError:
+        logger.exception('HTTP error')
         return 1
     return 0
 
@@ -205,8 +205,8 @@ def authorize_ip(host: str, port: int = 443, debug: bool = False) -> int:
     r = requests.get(uri)
     try:
         r.raise_for_status()
-    except HTTPError as e:
-        logger.exception(e)
+    except HTTPError:
+        logger.exception('HTTP error')
         return 1
     return 0
 
@@ -235,7 +235,7 @@ def fix_rtorrent(host: str, port: int, debug: bool = False) -> int:
     r = requests.get(uri)
     try:
         r.raise_for_status()
-    except HTTPError as e:
-        logger.exception(str(e), err=True)
+    except HTTPError:
+        logger.exception('HTTP error')
         return 1
     return 0
