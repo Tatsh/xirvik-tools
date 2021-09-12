@@ -4,6 +4,8 @@ import click
 from .simple import (add_ftp_user, authorize_ip, delete_ftp_user, fix_rtorrent,
                      start_torrents)
 
+# pylint: disable=invalid-name
+
 
 @click.group()
 def xirvik() -> None:
