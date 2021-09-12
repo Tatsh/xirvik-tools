@@ -107,7 +107,7 @@ def start_torrents(host: str,
                 try:
                     resp.raise_for_status()
                 except HTTPError:
-                    logger.exception('HTTP error')
+                    logger.exception(e)
                 # Delete original only after successful upload
                 logger.debug(f'Deleting {old}')
                 rm(old)
@@ -150,7 +150,7 @@ def add_ftp_user(host: str,
         r.raise_for_status()
     except HTTPError as e:
         logger.exception(e)
-        return 1
+        raise click.Abort() from e
     return 0
 
 
@@ -179,9 +179,9 @@ def delete_ftp_user(host: str,
     r = requests.get(uri)
     try:
         r.raise_for_status()
-    except HTTPError:
-        logger.exception('HTTP error')
-        return 1
+    except HTTPError as e:
+        logger.exception(e)
+        raise click.Abort() from e
     return 0
 
 
@@ -205,9 +205,9 @@ def authorize_ip(host: str, port: int = 443, debug: bool = False) -> int:
     r = requests.get(uri)
     try:
         r.raise_for_status()
-    except HTTPError:
-        logger.exception('HTTP error')
-        return 1
+    except HTTPError as e:
+        logger.exception(e)
+        raise click.Abort() from e
     return 0
 
 
@@ -235,7 +235,7 @@ def fix_rtorrent(host: str, port: int, debug: bool = False) -> int:
     r = requests.get(uri)
     try:
         r.raise_for_status()
-    except HTTPError:
-        logger.exception('HTTP error')
-        return 1
+    except HTTPError as e:
+        logger.exception(e)
+        raise click.Abort() from e
     return 0
