@@ -6,67 +6,52 @@ from os import close as close_fd, listdir, makedirs, remove as rm
 from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
 from tempfile import mkstemp
-import argparse
-import itertools
 import logging
-import re
 import signal
 import socket
 import sys
-from typing import Any, Iterator, Sequence
-
-import click
 
 from requests.exceptions import HTTPError
 from unidecode import unidecode
-import argcomplete
+import click
 import requests
 
-from xirvik.util import ReadableDirectoryListAction, ctrl_c_handler
+from loguru import logger
+from ..util import ctrl_c_handler
+from .util import complete_hosts, complete_ports, setup_log_intercept_handler
 
-log = logging.getLogger(__name__)
 
-
-def start_torrents() -> None:
+@click.command()
+@click.option('-p',
+              '--port',
+              type=int,
+              default=443,
+              shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+@click.option('--start-stopped', is_flag=True)
+@click.option('-s', '--syslog', is_flag=True)
+@click.argument('host', shell_complete=complete_hosts)
+@click.argument('directories',
+                type=click.Path(exists=True, file_okay=False),
+                nargs=-1)
+def start_torrents(host: str,
+                   directories: str,
+                   port: int = 443,
+                   debug: bool = False,
+                   start_stopped: bool = False,
+                   syslog: bool = False) -> None:
     """Uploads torrent files to the server."""
     signal.signal(signal.SIGINT, ctrl_c_handler)
-
     cache_dir = realpath(expanduser('~/.cache/xirvik'))
-
     if not isdir(cache_dir):
         makedirs(cache_dir)
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('-d', '--debug', action='store_true')
-    parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-c', '--netrc-path', default=expanduser('~/.netrc'))
-    # parser.add_argument('-C', '--client', default='rutorrent3')
-    parser.add_argument('-H', '--host', nargs=1, required=True)
-    parser.add_argument('-p', '--port', nargs=1, default=[443])
-    parser.add_argument('--start-stopped', action='store_true')
-    parser.add_argument('-s', '--syslog', action='store_true')
-    parser.add_argument('directory',
-                        metavar='DIRECTORY',
-                        action=ReadableDirectoryListAction,
-                        nargs='*')
-    argcomplete.autocomplete(parser)
-    args = parser.parse_args()
-    verbose = args.debug or args.verbose
-    log.setLevel(logging.INFO)
-
-    if verbose:
-        channel = logging.StreamHandler(
-            sys.stdout if args.verbose else sys.stderr)
-
-        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-        channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
-        log.addHandler(channel)
-
-        if args.debug:
-            log.setLevel(logging.DEBUG)
-
-    if args.syslog:
+    if debug:
+        setup_log_intercept_handler()
+        logger.enable('')
+    else:
+        logger.configure(handlers=[dict(sink=sys.stdout, format='{message}')])
+        logger.level('INFO')
+    if syslog:
         try:
             syslogh = SysLogHandler(address='/dev/log')
         except (OSError, socket.error):
@@ -74,28 +59,22 @@ def start_torrents() -> None:
                                     facility=SysLogHandler.LOG_USER)
             syslogh.ident = 'xirvik-start-torrents'
             logging.INFO = logging.WARNING
-
-        syslogh.setFormatter(
-            logging.Formatter('%(name)s[%(process)d]: %(message)s'))
-        syslogh.setLevel(logging.DEBUG if args.debug else logging.INFO)
-        log.addHandler(syslogh)
-
-    user_pass = netrc(args.netrc_path).authenticators(args.host[0])
+        logger.add(syslogh,
+                   level='INFO' if not debug else 'DEBUG',
+                   format='{name}[{process}]: {message}')
+    user_pass = netrc(expanduser('~/.netrc')).authenticators(host)
     if not user_pass:
-        print((f'Cannot find host {args.host[0]} in netrc. Specify user name '
-               'and password'),
-              file=sys.stderr)
+        logger.error(f'Cannot find host {host} in netrc.')
         sys.exit(1)
-    post_url = ('https://{host:s}:{port:d}/rtorrent/php/'
-                'addtorrent.php?'.format(host=args.host[0], port=args.port[0]))
+    post_url = f'https://{host:s}:{port:d}/rtorrent/php/addtorrent.php?'
     form_data = {}
     # rtorrent2/3 params
     # dir_edit - ?
     # tadd_label - Label for the torrents, more param: label=
     # torrent_file - Torrent file blob data
-    if args.start_stopped:
+    if start_stopped:
         form_data['torrents_start_stopped'] = 'on'
-    for d in args.directory:
+    for d in directories:
         for item in listdir(d):
             if not item.lower().endswith('.torrent'):
                 continue
@@ -120,178 +99,143 @@ def start_torrents() -> None:
                     torrent_file,
                 ))
                 try:
-                    log.info('Uploading torrent %s (actual name: "%s")',
-                             basename(item), basename(filename))
+                    logger.info(f'Uploading torrent {basename(item)} (actual '
+                                f'name: "{basename(filename)}")')
                 except OSError:
                     pass
                 resp = requests.post(post_url, data=form_data, files=files)
                 try:
                     resp.raise_for_status()
-                except HTTPError as e:
-                    log.error('Caught exception: %s', e)
+                except HTTPError:
+                    logger.exception('HTTP error')
                 # Delete original only after successful upload
-                log.debug('Deleting %s', old)
+                logger.debug(f'Deleting {old}')
                 rm(old)
 
 
-def add_ftp_user() -> int:
+@click.command()
+@click.option('-p',
+              '--port',
+              type=int,
+              default=443,
+              shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+@click.option('-r', '--root-directory', default='/')
+@click.argument('host', shell_complete=complete_hosts)
+@click.argument('username')
+@click.argument('password')
+def add_ftp_user(host: str,
+                 username: str,
+                 password: str,
+                 port: int = 443,
+                 root_directory: str = '/',
+                 debug: bool = False) -> int:
     """Adds an FTP user."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--username', required=True)
-    parser.add_argument('-P', '--password', required=True)
-    parser.add_argument('-r', '--root-directory', default='/')
-    parser.add_argument('-d', '--debug', action='store_true')
-    parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-H', '--host', required=True)
-    parser.add_argument('-p', '--port', type=int, default=443)
-    argcomplete.autocomplete(parser)
-    args = parser.parse_args()
-    verbose = args.debug or args.verbose
-    log.setLevel(logging.INFO)
-    if verbose:
-        channel = logging.StreamHandler(
-            sys.stdout if args.verbose else sys.stderr)
-        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-        channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
-        log.addHandler(channel)
-        if args.debug:
-            log.setLevel(logging.DEBUG)
-    uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/'
+    if debug:
+        setup_log_intercept_handler()
+        logger.enable('')
+    else:
+        logger.level('INFO')
+    uri = (f'https://{host}:{port:d}/userpanel/index.php/'
            'ftp_users/add_user')
-    rootdir = args.root_directory if args.root_directory.startswith(
-        '/') else f'/{args.root_directory}'
+    rootdir = root_directory if root_directory.startswith(
+        '/') else f'/{root_directory}'
     # Setting read_only=yes does not appear to work
     r = requests.post(uri,
-                      data=dict(username=args.username,
-                                password_1=args.password,
+                      data=dict(username=username,
+                                password_1=password,
                                 root_folder=rootdir,
                                 read_only='no'))
     try:
         r.raise_for_status()
     except HTTPError as e:
-        log.exception(e)
+        logger.exception(e)
         return 1
     return 0
 
 
-def delete_ftp_user() -> int:
+@click.command()
+@click.option('-p',
+              '--port',
+              type=int,
+              default=443,
+              shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+@click.argument('host', shell_complete=complete_hosts)
+@click.argument('username')
+def delete_ftp_user(host: str,
+                    username: str,
+                    port: int = 443,
+                    debug: bool = False) -> int:
     """Deletes an FTP user."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--username', required=True)
-    parser.add_argument('-d', '--debug', action='store_true')
-    parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-H', '--host', required=True)
-    parser.add_argument('-p', '--port', type=int, default=443)
-    argcomplete.autocomplete(parser)
-    args = parser.parse_args()
-    verbose = args.debug or args.verbose
-    log.setLevel(logging.INFO)
-    if verbose:
-        channel = logging.StreamHandler(
-            sys.stdout if args.verbose else sys.stderr)
-        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-        channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
-        log.addHandler(channel)
-        if args.debug:
-            log.setLevel(logging.DEBUG)
-    user = b64encode(args.username.encode('utf-8')).decode('utf-8')
-    uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/ftp_users/'
+    if debug:
+        setup_log_intercept_handler()
+        logger.enable('')
+    else:
+        logger.level('INFO')
+    user = b64encode(username.encode()).decode()
+    uri = (f'https://{host}:{port:d}/userpanel/index.php/ftp_users/'
            f'delete/{user}')
     r = requests.get(uri)
     try:
         r.raise_for_status()
     except HTTPError as e:
-        log.exception(e)
+        logger.exception(e)
         return 1
     return 0
 
 
-def authorize_ip() -> int:
-    """Authorises an IP for access to the VM via SSH, removing the previous."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--debug', action='store_true')
-    parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-H', '--host', required=True)
-    parser.add_argument('-p', '--port', type=int, default=443)
-    argcomplete.autocomplete(parser)
-    args = parser.parse_args()
-    verbose = args.debug or args.verbose
-    log.setLevel(logging.INFO)
-    if verbose:
-        channel = logging.StreamHandler(
-            sys.stdout if args.verbose else sys.stderr)
-        channel.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-        channel.setLevel(logging.INFO if args.verbose else logging.DEBUG)
-        log.addHandler(channel)
-        if args.debug:
-            log.setLevel(logging.DEBUG)
-    uri = (f'https://{args.host}:{args.port:d}/userpanel/index.php/'
-           'virtual_machine/authorize_ip')
+@click.command()
+@click.option('-p',
+              '--port',
+              type=int,
+              default=443,
+              shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+@click.argument('host', shell_complete=complete_hosts)
+def authorize_ip(host: str, port: int = 443, debug: bool = False) -> int:
+    """Authorises the current IP for access to the VM via SSH/VNC/RDP."""
+    if debug:
+        setup_log_intercept_handler()
+        logger.enable('')
+    else:
+        logger.level('INFO')
+    uri = (f'https://{host}:{port:d}/userpanel/index.php/virtual_machine/'
+           'authorize_ip')
     r = requests.get(uri)
     try:
         r.raise_for_status()
     except HTTPError as e:
-        log.exception(e)
+        logger.exception(e)
         return 1
     return 0
 
 
-def _clean_host(s: str) -> str:
-    # Attempt to not break IPv6 addresses
-    if '[' not in s and (re.search(r'[0-9]+\:[0-9]+', s) or s == '::1'):
-        return s
-    # Remove brackets and remove port at end
-    return re.sub(r'[\[\]]', '', re.sub(r'\:[0-9]+$', '', s))
-
-
-def _read_ssh_known_hosts() -> Iterator[str]:
-    try:
-        with open(expanduser('~/.ssh/known_hosts')) as f:
-            for line in f.readlines():
-                host_part = line.split()[0]
-                if ',' in host_part:
-                    yield from (_clean_host(x) for x in host_part.split(','))
-                else:
-                    yield _clean_host(host_part)
-    except FileNotFoundError:
-        pass
-
-
-def _read_netrc_hosts() -> Iterator[str]:
-    try:
-        with open(expanduser('~/.netrc')) as f:
-            yield from (x.split()[1] for x in f.readlines())
-    except FileNotFoundError:
-        pass
-
-
-def _complete_hosts(_: Any, __: Any, incomplete: str) -> Sequence[str]:
-    return [
-        k
-        for k in itertools.chain(_read_ssh_known_hosts(), _read_netrc_hosts())
-        if k.startswith(incomplete)
-    ]
-
-
-def _complete_ports(_: Any, __: Any, incomplete: str) -> Sequence[str]:
-    return [k for k in ('80', '443', '8080') if k.startswith(incomplete)]
-
-
 @click.command()
-@click.argument('host', shell_complete=_complete_hosts)
-@click.option('--port', type=int, default=443, shell_complete=_complete_ports)
-def fix_rtorrent(host: str, port: int) -> int:
+@click.argument('host', shell_complete=complete_hosts)
+@click.option('-p',
+              '--port',
+              type=int,
+              default=443,
+              shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+def fix_rtorrent(host: str, port: int, debug: bool = False) -> int:
     """
     Restarts the rtorrent service in case ruTorrent cannot connect to it. Not
     guaranteed to fix anything!
     """
-    click.echo('No guarantees this will work!')
+    if debug:
+        setup_log_intercept_handler()
+        logger.enable('')
+    else:
+        logger.level('INFO')
+    logger.info('No guarantees this will work!')
     uri = (f'https://{host}:{port:d}/userpanel/index.php/services/'
            'restart/rtorrent')
     r = requests.get(uri)
     try:
         r.raise_for_status()
     except HTTPError as e:
-        click.echo(str(e), err=True)
+        logger.exception(str(e), err=True)
         return 1
     return 0

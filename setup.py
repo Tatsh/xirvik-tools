@@ -14,9 +14,9 @@ with open('README.md') as f:
         long_description=f.read(),
         install_requires=[
             'Unidecode>=0.4.19',
-            'argcomplete>=1.10.3',
             'cached-property>=1.0.0',
             'click>=8.0.0',
+            'loguru>=0.5.3',
             'requests>=2.6.0',
             'rich>=10.1.0',
             'types-requests==2.25.6',
@@ -25,14 +25,10 @@ with open('README.md') as f:
         ],
         entry_points={
             'console_scripts': [
-                'xirvik-add-ftp-user = xirvik.commands:add_ftp_user',
-                'xirvik-auth-ip = xirvik.commands:authorize_ip',
-                'xirvik-delete-ftp-user = xirvik.commands:delete_ftp_user',
                 'xirvik-delete-old = xirvik.commands.delete_old:main',
-                'xirvik-fix-rtorrent = xirvik.commands:fix_rtorrent',
                 'xirvik-move-by-label = xirvik.commands.move_by_label:main',
                 'xirvik-move-erroneous = xirvik.commands.move_erroneous:main',
-                'xirvik-start-torrents = xirvik.commands:start_torrents',
+                'xirvik = xirvik.commands:xirvik',
             ]
         },
         extras_require={
