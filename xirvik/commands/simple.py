@@ -106,7 +106,7 @@ def start_torrents(host: str,
                 resp = requests.post(post_url, data=form_data, files=files)
                 try:
                     resp.raise_for_status()
-                except HTTPError:
+                except HTTPError as e:
                     logger.exception(e)
                 # Delete original only after successful upload
                 logger.debug(f'Deleting {old}')
