@@ -1,10 +1,11 @@
+"""Command line interface tests."""
 from click.testing import CliRunner
 import pytest
 import requests_mock as req_mock
 
 from ..root import xirvik
 
-# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=missing-function-docstring,protected-access,no-self-use,redefined-outer-name
 
 
 @pytest.fixture()
