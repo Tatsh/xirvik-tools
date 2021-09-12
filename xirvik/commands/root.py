@@ -1,3 +1,4 @@
+"""The 'xirvik' command."""
 import click
 
 from .simple import (add_ftp_user, authorize_ip, delete_ftp_user, fix_rtorrent,
@@ -6,29 +7,29 @@ from .simple import (add_ftp_user, authorize_ip, delete_ftp_user, fix_rtorrent,
 
 @click.group()
 def xirvik():
-    pass
+    """Root command."""
 
 
 @click.group()
 def vm():
-    pass
+    """Commands for the Linux virtual machine."""
 
 
 @click.group()
 def ftp():
-    pass
+    """Commands for managing the FTP server."""
 
 
 @click.group()
 def rtorrent():
-    pass
+    """Commands for managing rTorrent."""
 
 
-vm.add_command(authorize_ip)
 ftp.add_command(add_ftp_user, 'add-user')
 ftp.add_command(delete_ftp_user, 'delete-user')
-rtorrent.add_command(start_torrents, 'add')
 rtorrent.add_command(fix_rtorrent, 'fix')
-xirvik.add_command(vm)
+rtorrent.add_command(start_torrents, 'add')
+vm.add_command(authorize_ip)
 xirvik.add_command(ftp)
 xirvik.add_command(rtorrent)
+xirvik.add_command(vm)
