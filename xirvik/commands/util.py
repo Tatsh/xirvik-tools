@@ -1,7 +1,8 @@
 """Utility functions for CLI commands."""
 from functools import lru_cache
 from os.path import basename, expanduser
-from typing import Any, Iterator, Optional, Sequence
+from types import FrameType
+from typing import Any, Iterator, Optional, Sequence, Union
 import argparse
 import itertools
 import logging
@@ -113,12 +114,14 @@ def complete_ports(_: Any, __: Any, incomplete: str) -> Sequence[str]:
 class InterceptHandler(logging.Handler):
     """Intercept handler taken from Loguru's documentation."""
     def emit(self, record: logging.LogRecord) -> None:
+        level: Union[str, int]
         # Get corresponding Loguru level if it exists
         try:
             level = logger.level(record.levelname).name
         except ValueError:
             level = record.levelno
         # Find caller from where originated the logged message
+        frame: Optional[FrameType]
         frame = logging.currentframe()
         depth = 2
         while frame and frame.f_code.co_filename == logging.__file__:
@@ -128,5 +131,5 @@ class InterceptHandler(logging.Handler):
             level, record.getMessage())
 
 
-def setup_log_intercept_handler():
+def setup_log_intercept_handler() -> None:
     logging.basicConfig(handlers=[InterceptHandler()], level=0)

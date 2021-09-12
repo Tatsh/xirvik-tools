@@ -6,22 +6,22 @@ from .simple import (add_ftp_user, authorize_ip, delete_ftp_user, fix_rtorrent,
 
 
 @click.group()
-def xirvik():
+def xirvik() -> None:
     """Root command."""
 
 
 @click.group()
-def vm():
+def vm() -> None:
     """Commands for the Linux virtual machine."""
 
 
 @click.group()
-def ftp():
+def ftp() -> None:
     """Commands for managing the FTP server."""
 
 
 @click.group()
-def rtorrent():
+def rtorrent() -> None:
     """Commands for managing rTorrent."""
 
 
