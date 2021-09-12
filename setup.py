@@ -14,6 +14,7 @@ with open('README.md') as f:
         long_description=f.read(),
         install_requires=[
             'Unidecode>=0.4.19',
+            'argcomplete>=1.10.3',
             'cached-property>=1.0.0',
             'click>=8.0.0',
             'loguru>=0.5.3',
