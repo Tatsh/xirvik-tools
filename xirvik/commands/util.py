@@ -103,8 +103,7 @@ class InterceptHandler(logging.Handler):  # pragma: no cover
         except ValueError:
             level = record.levelno
         # Find caller from where originated the logged message
-        frame: Optional[FrameType]
-        frame = logging.currentframe()
+        frame: Optional[FrameType] = logging.currentframe()
         depth = 2
         while frame and frame.f_code.co_filename == logging.__file__:
             frame = frame.f_back
