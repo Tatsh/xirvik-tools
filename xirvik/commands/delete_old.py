@@ -1,36 +1,35 @@
 #!/usr/bin/env python
-# PYTHON_ARGCOMPLETE_OK
 """
 Deletes old torrents based on specified criteria.
 """
 from datetime import datetime, timedelta
+from os.path import expanduser
 from time import sleep
 from typing import Callable, Dict, Optional, Tuple, cast
-import logging
-import sys
 import xmlrpc.client as xmlrpc
 
+from loguru import logger
 from requests.exceptions import HTTPError
-import argcomplete
+import click
 
 from xirvik.typing import TorrentDict
 
 from ..client import ruTorrentClient
-from .util import common_parser, setup_logging_stdout
+from .util import common_options_and_arguments, setup_log_intercept_handler
 
-TestCallable = Callable[[TorrentDict, logging.Logger], Tuple[str, bool]]
+TestCallable = Callable[[TorrentDict], Tuple[str, bool]]
 TestsDict = Dict[str, Tuple[bool, TestCallable]]
 
 
 def _test_date_cb(days: int = 14) -> TestCallable:
-    def test_date(info: TorrentDict, log: logging.Logger) -> Tuple[str, bool]:
+    def test_date(info: TorrentDict) -> Tuple[str, bool]:
         cond1 = info.get('creation_date')
         cond2 = info.get('state_changed')
         expect = datetime.now() - timedelta(days=days)
-        log.debug('creation date: %s', cond1)
-        log.debug('state changed: %s', cond2)
-        log.debug('%s <= %s or', cond1, expect)
-        log.debug('    %s <= %s', cond2, expect)
+        logger.debug(f'creation date: {cond1}')
+        logger.debug(f'state changed: {cond2}')
+        logger.debug(f'{cond1} <= {expect} or')
+        logger.debug(f'    {cond2} <= {expect}')
         return (
             'over 14 days seeded',
             bool((cond1 and cond1 <= expect) or (cond2 and cond2 <= expect)),
@@ -39,42 +38,60 @@ def _test_date_cb(days: int = 14) -> TestCallable:
     return test_date
 
 
-def _test_ratio(info: TorrentDict, log: logging.Logger) -> Tuple[str, bool]:
-    log.debug('ratio: %.2f', info.get('ratio', 0.0))
+def _test_ratio(info: TorrentDict) -> Tuple[str, bool]:
+    logger.debug(f'ratio: {info.get("ratio", 0.0):.2f}')
     return 'ratio >= 1', info.get('ratio', 0.0) >= 1
 
 
-def main() -> int:
-    """Entry point."""
-    parser = common_parser()
-    parser.add_argument('-D', '--ignore-date', action='store_true')
-    parser.add_argument('-a', '--ignore-ratio', action='store_true')
-    parser.add_argument('-y', '--dry-run', action='store_true')
-    parser.add_argument('--days', type=int, default=14)
-    parser.add_argument('--label')
-    parser.add_argument('--max-attempts', type=int, default=3)
-    parser.add_argument('--sleep-time', type=int, default=10)
-    argcomplete.autocomplete(parser)
-    args = parser.parse_args()
-    log = setup_logging_stdout(verbose=args.verbose)
-    client = ruTorrentClient(args.host[0],
-                             name=args.username,
-                             password=args.password,
-                             max_retries=args.max_retries,
-                             netrc_path=args.netrc)
+@click.command()
+@common_options_and_arguments
+@click.option('-D', '--ignore-date', is_flag=True)
+@click.option('-a', '--ignore-ratio', is_flag=True)
+@click.option('-y', '--dry-run', is_flag=True)
+@click.option('--days', type=int, default=14)
+@click.option('--label', default=None)
+@click.option('--max-attempts', type=int, default=3)
+@click.option('--sleep-time', type=int, default=10)
+def main(
+    host: str,
+    debug: bool = False,
+    netrc: Optional[str] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
+    ignore_ratio: bool = False,
+    ignore_date: bool = False,
+    label: Optional[str] = None,
+    max_attempts: int = 3,
+    dry_run: bool = False,
+    max_retries: int = 10,
+    days: int = 14,
+    backoff_factor: int = 1,
+    sleep_time: int = 10,
+) -> None:
+    """Delete torrents based on certain criteria."""
+    if debug:
+        setup_log_intercept_handler()
+        logger.enable('')
+    else:
+        logger.level('INFO')
+    client = ruTorrentClient(host,
+                             name=username,
+                             password=password,
+                             max_retries=max_retries,
+                             netrc_path=netrc or expanduser('~/.netrc'))
     try:
-        torrents = client.list_torrents_dict().items()
-    except HTTPError:
-        log.error('Connection failed on list_torrents() call', file=sys.stderr)
-        return 1
+        torrents = client.list_torrents_dict()
+    except HTTPError as e:
+        logger.error('Connection failed on list_torrents() call')
+        raise click.Abort() from e
     tests = cast(
         TestsDict,
         dict(
-            ratio=(args.ignore_ratio, _test_ratio),
-            date=(args.ignore_date, _test_date_cb(args.days)),
+            ratio=(ignore_ratio, _test_ratio),
+            date=(ignore_date, _test_date_cb(days)),
         ))
-    for hash_, info in torrents:
-        if info['left_bytes'] != 0 or info['custom1'] != args.label:
+    for hash_, info in torrents.items():
+        if info['left_bytes'] != 0 or info['custom1'] != label:
             continue
         reason: Optional[str] = None
         can_delete = False
@@ -83,30 +100,25 @@ def main() -> int:
                 can_delete = True
                 reason = f'ignoring {key}'
                 break
-            reason, can_delete = test(info, log)
+            reason, can_delete = test(info)
             if can_delete:
                 break
         if not can_delete:
-            log.info('Cannot delete %s', info['name'])
+            logger.info(f'Cannot delete {info["name"]}')
             continue
-        if args.dry_run:
-            log.info('Would delete %s, reason: %s', info['name'], reason)
+        if dry_run:
+            logger.info(f'Would delete {info["name"]}, reason: {reason}')
             continue
-        log.info('Deleting %s, reason: %s', info['name'], reason)
+        logger.info(f'Deleting {info["name"]}, reason: {reason}')
         attempts = 0
-        while attempts < args.max_attempts:
+        while attempts < max_attempts:
             attempts += 1
             try:
                 client.delete(hash_)
             except (xmlrpc.Fault, xmlrpc.ProtocolError) as e:
-                log.exception(e)
-                sleep_time = args.backoff_factor * (2 ** (attempts - 1))
+                logger.exception(e)
+                sleep_time = backoff_factor * (2 ** (attempts - 1))
                 sleep(sleep_time)
             else:
-                sleep(args.sleep_time)
+                sleep(sleep_time)
                 break
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())
