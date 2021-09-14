@@ -1,4 +1,4 @@
-# pylint: disable=redefined-builtin
+# pylint: disable=redefined-builtin,invalid-name
 """
 Configuration file for the Sphinx documentation builder.
 https://www.sphinx-doc.org/en/master/usage/configuration.html
