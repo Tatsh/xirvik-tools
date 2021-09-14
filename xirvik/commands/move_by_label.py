@@ -54,17 +54,18 @@ def _key_check(hash_info: Tuple[Any, TorrentDict]) -> bool:
               multiple=True,
               default=[],
               help='List of labels to ignore (case-sensitive)')
-def main(host: str,
-         ignore_labels: Sequence[str],
-         netrc: Optional[str] = None,
-         username: Optional[str] = None,
-         password: Optional[str] = None,
-         completed_dir: str = '_completed',
-         sleep_time: int = 10,
-         lower_label: bool = False,
-         max_retries: int = 10,
-         debug: bool = False,
-         backoff_factor: int = 1) -> None:
+def main(  # pylint: disable=too-many-arguments
+        host: str,
+        ignore_labels: Sequence[str],
+        netrc: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        completed_dir: str = '_completed',
+        sleep_time: int = 10,
+        lower_label: bool = False,
+        max_retries: int = 10,
+        debug: bool = False,
+        backoff_factor: int = 1) -> None:
     """Move torrents according to labels assigned."""
     if debug:
         setup_log_intercept_handler()
