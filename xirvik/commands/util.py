@@ -42,7 +42,7 @@ def common_options_and_arguments(
                   help='netrc file path')
     @click.argument('host', shell_complete=complete_hosts)
     @functools.wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> None:
+    def wrapper(*args: Any, **kwargs: Any) -> None:  # pragma: no cover
         return func(*args, **kwargs)
 
     return wrapper
