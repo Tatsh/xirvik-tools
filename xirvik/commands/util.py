@@ -2,14 +2,16 @@
 from functools import lru_cache
 from os.path import basename, expanduser
 from types import FrameType
-from typing import Any, Iterator, Optional, Sequence, Union
+from typing import Any, Callable, Iterator, Optional, Sequence, Union
 import argparse
+import functools
 import itertools
 import logging
 import re
 import sys
 
 from loguru import logger
+import click
 
 __all__ = ('common_parser', 'complete_hosts', 'complete_ports',
            'setup_logging_stdout')
@@ -35,6 +37,40 @@ def setup_logging_stdout(name: Optional[str] = None,
     channel.setLevel(logging.DEBUG if verbose else logging.INFO)
     log.addHandler(channel)
     return log
+
+
+def common_options_and_arguments(
+        func: Callable[..., None]) -> Callable[..., None]:
+    """
+    Shared options and arguments, to be used as a decorator with
+    click.command().
+    """
+    @click.option('-u', '--username', default=None, help='Xirvik user')
+    @click.option('-p', '--password', help='Xirvik password')
+    @click.option('-r',
+                  '--max-retries',
+                  type=int,
+                  default=10,
+                  help='Number of retries for each request (passed to client)')
+    @click.option('-d',
+                  '--debug',
+                  is_flag=True,
+                  help='Enable debug level logging')
+    @click.option(
+        '--backoff-factor',
+        default=5,
+        type=int,
+        help=('Back-off factor used when calculating time to wait to retry '
+              'a failed request'))
+    @click.option('--netrc',
+                  default=expanduser('~/.netrc'),
+                  help='netrc file path')
+    @click.argument('host', shell_complete=complete_hosts)
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> None:
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 def common_parser() -> argparse.ArgumentParser:
