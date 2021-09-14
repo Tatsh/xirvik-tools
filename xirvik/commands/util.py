@@ -1,42 +1,17 @@
 """Utility functions for CLI commands."""
-from functools import lru_cache
-from os.path import basename, expanduser
+from os.path import expanduser
 from types import FrameType
 from typing import Any, Callable, Iterator, Optional, Sequence, Union
-import argparse
 import functools
 import itertools
 import logging
 import re
-import sys
 
 from loguru import logger
 import click
 
-__all__ = ('common_parser', 'complete_hosts', 'complete_ports',
-           'setup_logging_stdout')
-
-
-@lru_cache()
-def setup_logging_stdout(name: Optional[str] = None,
-                         verbose: bool = False) -> logging.Logger:
-    """Basic way to set up and get a logger.
-
-    Parameters
-    ----------
-    name : Optional[str]
-        Name of the logger.
-    verbose : bool
-        If log level should be DEBUG instead of INFO.
-    """
-    name = name if name else basename(sys.argv[0])
-    log = logging.getLogger(name)
-    log.setLevel(logging.DEBUG if verbose else logging.INFO)
-    channel = logging.StreamHandler(sys.stdout)
-    channel.setFormatter(logging.Formatter('%(message)s'))
-    channel.setLevel(logging.DEBUG if verbose else logging.INFO)
-    log.addHandler(channel)
-    return log
+__all__ = ('common_options_and_arguments', 'complete_hosts', 'complete_ports',
+           'setup_log_intercept_handler')
 
 
 def common_options_and_arguments(
@@ -71,35 +46,6 @@ def common_options_and_arguments(
         return func(*args, **kwargs)
 
     return wrapper
-
-
-def common_parser() -> argparse.ArgumentParser:
-    """Common parser."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--username', required=False, help='Xirvik user')
-    parser.add_argument('-p',
-                        '--password',
-                        required=False,
-                        help='Xirvik password')
-    parser.add_argument(
-        '-r',
-        '--max-retries',
-        type=int,
-        default=10,
-        help='Number of retries for each request (passed to client)')
-    parser.add_argument('-v',
-                        '--verbose',
-                        action='store_true',
-                        help='Enable verbose logging')
-    parser.add_argument(
-        '--backoff-factor',
-        type=int,
-        default=5,
-        help=('Back-off factor used when calculating time to wait to retry '
-              'a failed request'))
-    parser.add_argument('--netrc', required=False, help='netrc file path')
-    parser.add_argument('host', nargs=1, help='Host name')
-    return parser
 
 
 def _clean_host(s: str) -> str:
