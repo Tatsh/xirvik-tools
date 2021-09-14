@@ -53,7 +53,8 @@ class ruTorrentClient:
                  name: Optional[str] = None,
                  password: Optional[str] = None,
                  max_retries: int = 10,
-                 netrc_path: Optional[str] = None):
+                 netrc_path: Optional[str] = None,
+                 backoff_factor: int = 1):
         """
         Construct a ruTorrent client.
 
@@ -76,7 +77,7 @@ class ruTorrentClient:
         retry = Retry(connect=max_retries,
                       read=max_retries,
                       redirect=False,
-                      backoff_factor=1)
+                      backoff_factor=backoff_factor)
         self._log = logging.getLogger(LOG_NAME)
         self._http_adapter = HTTPAdapter(max_retries=cast(Any, retry))
         self._session = requests.Session()
