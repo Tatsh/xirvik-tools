@@ -52,7 +52,7 @@ def _test_ratio(info: TorrentDict) -> Tuple[str, bool]:
 @click.option('--label', default=None)
 @click.option('--max-attempts', type=int, default=3)
 @click.option('--sleep-time', type=int, default=10)
-def main(
+def main(  # pylint: disable=too-many-arguments
     host: str,
     debug: bool = False,
     netrc: Optional[str] = None,
