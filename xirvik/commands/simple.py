@@ -6,6 +6,7 @@ from os import close as close_fd, listdir, makedirs, remove as rm
 from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
 from tempfile import mkstemp
+from typing import Any, NoReturn
 import logging
 import signal
 import socket
@@ -17,8 +18,12 @@ from unidecode import unidecode
 import click
 import requests
 
-from ..util import ctrl_c_handler
 from .util import complete_hosts, complete_ports, setup_log_intercept_handler
+
+
+def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
+    """Used as a TERM signal handler. Arguments are ignored."""
+    raise SystemExit('Signal raised')
 
 
 @click.command()
@@ -41,7 +46,7 @@ def start_torrents(host: str,
                    start_stopped: bool = False,
                    syslog: bool = False) -> None:
     """Uploads torrent files to the server."""
-    signal.signal(signal.SIGINT, ctrl_c_handler)
+    signal.signal(signal.SIGINT, _ctrl_c_handler)
     cache_dir = realpath(expanduser('~/.cache/xirvik'))
     if not isdir(cache_dir):
         makedirs(cache_dir)
