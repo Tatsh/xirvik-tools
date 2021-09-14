@@ -11,12 +11,12 @@ import signal
 import socket
 import sys
 
+from loguru import logger
 from requests.exceptions import HTTPError
 from unidecode import unidecode
 import click
 import requests
 
-from loguru import logger
 from ..util import ctrl_c_handler
 from .util import complete_hosts, complete_ports, setup_log_intercept_handler
 
