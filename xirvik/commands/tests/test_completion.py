@@ -1,3 +1,4 @@
+"""Command line completion tests."""
 import pathlib
 import os
 
