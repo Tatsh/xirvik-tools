@@ -16,8 +16,8 @@ def runner():
 def test_fix_rtorrent(requests_mock: req_mock.Mocker, runner: CliRunner):
     requests_mock.get('https://somehost.com:443/userpanel/index.php/services/'
                       'restart/rtorrent')
-    result = runner.invoke(xirvik, ['rtorrent', 'fix', 'somehost.com'])
-    assert result.exit_code == 0
+    assert runner.invoke(xirvik,
+                         ('rtorrent', 'fix', 'somehost.com')).exit_code == 0
 
 
 def test_fix_rtorrent_fail(requests_mock: req_mock.Mocker, runner: CliRunner):
@@ -25,5 +25,5 @@ def test_fix_rtorrent_fail(requests_mock: req_mock.Mocker, runner: CliRunner):
         'https://somehost.com:443/userpanel/index.php/services/'
         'restart/rtorrent',
         status_code=500)
-    result = runner.invoke(xirvik, ['rtorrent', 'fix', 'somehost.com'])
-    assert result.exit_code == 1
+    assert runner.invoke(xirvik,
+                         ('rtorrent', 'fix', 'somehost.com')).exit_code == 1
