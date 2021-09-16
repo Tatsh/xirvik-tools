@@ -17,12 +17,17 @@ PREFIX = '/torrents/{}/{}'
 
 
 def _base_path_check(
-        username: str,
-        completed_dir: str) -> Callable[[Tuple[Any, TorrentDict]], bool]:
+        username: str, completed_dir: str,
+        lower_label: bool) -> Callable[[Tuple[Any, TorrentDict]], bool]:
+    def maybe_lower(x: str) -> str:
+        if lower_label:
+            return str.lower(x)
+        return x
+
     def bpc(hash_info: Tuple[Any, TorrentDict]) -> bool:
         _, info = hash_info
         move_to = '{}/{}'.format(PREFIX.format(username, completed_dir),
-                                 str.lower(info['custom1'] or ''))
+                                 maybe_lower(info['custom1'] or ''))
         return not info['base_path'].startswith(move_to)
 
     return bpc
@@ -86,9 +91,9 @@ def main(  # pylint: disable=too-many-arguments
         logger.error('Connection failed on list_torrents() call')
         raise click.Abort() from e
     count = 0
-    for hash_, info in (y
-                        for y in (x for x in torrents.items() if _key_check(x))
-                        if _base_path_check(username, completed_dir)(y)):
+    for hash_, info in (
+            y for y in (x for x in torrents.items() if _key_check(x))
+            if _base_path_check(username, completed_dir, lower_label)(y)):
         label = info['custom1']
         if not label or label in ignore_labels:
             continue
