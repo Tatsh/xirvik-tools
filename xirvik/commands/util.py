@@ -114,4 +114,4 @@ class InterceptHandler(logging.Handler):  # pragma: no cover
 
 def setup_log_intercept_handler() -> None:  # pragma: no cover
     """Sets up Loguru to intercept records from the logging module."""
-    logging.basicConfig(handlers=[InterceptHandler()], level=0)
+    logging.basicConfig(handlers=(InterceptHandler(),), level=0)
