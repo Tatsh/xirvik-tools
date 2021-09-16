@@ -54,7 +54,7 @@ def main(
     max_retries: int = 10,
 ) -> int:
     """Move torrents in error state to another location."""
-    if debug:
+    if debug:  # pragma: no cover
         setup_log_intercept_handler()
         logger.enable('')
     else:
