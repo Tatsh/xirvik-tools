@@ -115,8 +115,7 @@ def main(  # pylint: disable=too-many-arguments
             attempts += 1
             try:
                 client.delete(hash_)
-            except (xmlrpc.Fault, xmlrpc.ProtocolError) as e:
-                logger.exception(e)
+            except (xmlrpc.Fault, xmlrpc.ProtocolError):
                 sleep_time = backoff_factor * (2 ** (attempts - 1))
                 sleep(sleep_time)
             else:
