@@ -67,7 +67,7 @@ def main(  # pylint: disable=too-many-arguments
         debug: bool = False,
         backoff_factor: int = 1) -> None:
     """Move torrents according to labels assigned."""
-    if debug:
+    if debug:  # pragma: no cover
         setup_log_intercept_handler()
         logger.enable('')
     else:
