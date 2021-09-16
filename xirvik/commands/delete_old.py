@@ -69,7 +69,7 @@ def main(  # pylint: disable=too-many-arguments
     sleep_time: int = 10,
 ) -> None:
     """Delete torrents based on certain criteria."""
-    if debug:
+    if debug:  # pragma: no cover
         setup_log_intercept_handler()
         logger.enable('')
     else:
