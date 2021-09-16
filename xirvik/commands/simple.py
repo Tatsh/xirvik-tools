@@ -99,10 +99,7 @@ def start_torrents(host: str,
                 # This is not a huge concern, as the API's "Get .torrent" does
                 # not return the file with its original name either
                 filename = unidecode(torrent_file.name)
-                files = dict(torrent_file=(
-                    filename,
-                    torrent_file,
-                ))
+                files = dict(torrent_file=(filename, torrent_file))
                 try:
                     logger.info(f'Uploading torrent {basename(item)} (actual '
                                 f'name: "{basename(filename)}")')
@@ -136,7 +133,7 @@ def add_ftp_user(host: str,
                  root_directory: str = '/',
                  debug: bool = False) -> int:
     """Adds an FTP user."""
-    if debug:
+    if debug:  # pragma: no cover
         setup_log_intercept_handler()
         logger.enable('')
     else:
