@@ -1,7 +1,6 @@
 """Mirror (copy data from remote to local) helper."""
 from base64 import b64encode
 from logging.handlers import SysLogHandler
-from netrc import netrc
 from os import close as close_fd, listdir, makedirs, remove as rm
 from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
@@ -67,10 +66,6 @@ def start_torrents(host: str,
         logger.add(syslogh,
                    level='INFO' if not debug else 'DEBUG',
                    format='{name}[{process}]: {message}')
-    user_pass = netrc(expanduser('~/.netrc')).authenticators(host)
-    if not user_pass:
-        logger.error(f'Cannot find host {host} in netrc.')
-        raise click.Abort()
     post_url = f'https://{host:s}:{port:d}/rtorrent/php/addtorrent.php?'
     form_data = {}
     # rtorrent2/3 params
