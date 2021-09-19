@@ -52,7 +52,7 @@ def main(
     sleep_time: int = 10,
     debug: bool = False,
     max_retries: int = 10,
-) -> int:
+) -> None:
     """Move torrents in error state to another location."""
     if debug:  # pragma: no cover
         setup_log_intercept_handler()
@@ -93,4 +93,3 @@ def main(
         count += 1
         if count > 0 and (count % 10) == 0:
             sleep(sleep_time)
-    return 0
