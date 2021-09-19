@@ -1,6 +1,6 @@
 """Command line completion tests."""
-import pathlib
 import os
+import pathlib
 
 from ..util import complete_hosts, complete_ports
 
