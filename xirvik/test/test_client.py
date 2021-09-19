@@ -217,6 +217,23 @@ def test_list_files(requests_mock: req_mock.Mocker):
     assert TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL == files[0][5]
 
 
+def test_set_label_to_hashes_bad_args():
+    client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    with pytest.raises(TypeError):
+        client.set_label_to_hashes()
+
+
+def test_set_label_to_hashes_normal(mocker: MockerFixture,
+                                    requests_mock: req_mock.Mocker):
+    client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    spy_log_warning = mocker.spy(client._log, 'warning')
+    requests_mock.post(client.multirpc_action_uri, json=[{}])
+    client.set_label_to_hashes(hashes=['hash1'],
+                               label='new label',
+                               allow_recursive_fix=False)
+    assert spy_log_warning.call_count == 0
+
+
 def test_set_label_to_hashes_recursion_limit_5(requests_mock: req_mock.Mocker):
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     hashes = ['hash1', 'hash2']
@@ -251,12 +268,8 @@ def test_set_label_to_hashes_recursion_limit_5(requests_mock: req_mock.Mocker):
         dict(json=list_torrents_json),
         dict(json=[]),
     ])
-
     requests_mock.post(client.multirpc_action_uri, responses)
     client.set_label_to_hashes(hashes=hashes, label=label, recursion_limit=5)
-
-    with pytest.raises(TypeError):
-        client.set_label_to_hashes()
 
 
 def test_set_label(requests_mock: req_mock.Mocker):
@@ -290,6 +303,15 @@ def test_move_torrent(requests_mock: req_mock.Mocker):
         client.move_torrent('hash1', 'newplace')
 
 
+def test_move_torrent_no_errors(requests_mock: req_mock.Mocker):
+    client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    requests_mock.post(client.datadir_action_uri, json=[])
+    try:
+        client.move_torrent('hash1', 'newplace')
+    except UnexpectedruTorrentError:  # pragma no cover
+        pytest.fail('Unexpected ruTorrent error exception')
+
+
 def test_remove(requests_mock: req_mock.Mocker):
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     requests_mock.post(client.multirpc_action_uri, json=[], status_code=400)
@@ -312,10 +334,20 @@ def test_add_torrent_url(requests_mock: req_mock.Mocker):
 
 
 def test_delete(mocker: MockerFixture):
-    mc = mocker.patch.object(xmlrpc.client, 'MultiCall')
+    mc = mocker.patch('xirvik.client.xmlrpc.MultiCall')
     mc.return_value.return_value.results = [
         dict(faultCode='2000', faultString='some string')
     ]
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     with pytest.raises(xmlrpc.client.Fault):
         client.delete('some hash')
+
+
+def test_delete2(mocker: MockerFixture):
+    mc = mocker.patch('xirvik.client.xmlrpc.MultiCall')
+    mc.return_value.return_value.results = [{}]
+    client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    try:
+        client.delete('some hash')
+    except xmlrpc.client.Fault:  # pragma no cover
+        pytest.fail('Unexpected fault')
