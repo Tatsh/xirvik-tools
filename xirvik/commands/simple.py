@@ -127,7 +127,7 @@ def add_ftp_user(host: str,
                  password: str,
                  port: int = 443,
                  root_directory: str = '/',
-                 debug: bool = False) -> int:
+                 debug: bool = False) -> None:
     """Adds an FTP user."""
     if debug:  # pragma: no cover
         setup_log_intercept_handler()
@@ -148,7 +148,6 @@ def add_ftp_user(host: str,
         r.raise_for_status()
     except HTTPError as e:
         raise click.Abort() from e
-    return 0
 
 
 @click.command()
@@ -163,7 +162,7 @@ def add_ftp_user(host: str,
 def delete_ftp_user(host: str,
                     username: str,
                     port: int = 443,
-                    debug: bool = False) -> int:
+                    debug: bool = False) -> None:
     """Deletes an FTP user."""
     if debug:  # pragma: no cover
         setup_log_intercept_handler()
@@ -178,7 +177,6 @@ def delete_ftp_user(host: str,
         r.raise_for_status()
     except HTTPError as e:
         raise click.Abort() from e
-    return 0
 
 
 @click.command()
@@ -189,7 +187,7 @@ def delete_ftp_user(host: str,
               shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
 @click.argument('host', shell_complete=complete_hosts)
-def authorize_ip(host: str, port: int = 443, debug: bool = False) -> int:
+def authorize_ip(host: str, port: int = 443, debug: bool = False) -> None:
     """Authorises the current IP for access to the VM via SSH/VNC/RDP."""
     if debug:  # pragma: no cover
         setup_log_intercept_handler()
@@ -203,7 +201,6 @@ def authorize_ip(host: str, port: int = 443, debug: bool = False) -> int:
         r.raise_for_status()
     except HTTPError as e:
         raise click.Abort() from e
-    return 0
 
 
 @click.command()
@@ -214,7 +211,7 @@ def authorize_ip(host: str, port: int = 443, debug: bool = False) -> int:
               default=443,
               shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
-def fix_rtorrent(host: str, port: int, debug: bool = False) -> int:
+def fix_rtorrent(host: str, port: int, debug: bool = False) -> None:
     """
     Restarts the rtorrent service in case ruTorrent cannot connect to it. Not
     guaranteed to fix anything!
@@ -232,4 +229,3 @@ def fix_rtorrent(host: str, port: int, debug: bool = False) -> int:
         r.raise_for_status()
     except HTTPError as e:
         raise click.Abort() from e
-    return 0
