@@ -70,7 +70,7 @@ def start_torrents(host: str,
     user_pass = netrc(expanduser('~/.netrc')).authenticators(host)
     if not user_pass:
         logger.error(f'Cannot find host {host} in netrc.')
-        sys.exit(1)
+        raise click.Abort()
     post_url = f'https://{host:s}:{port:d}/rtorrent/php/addtorrent.php?'
     form_data = {}
     # rtorrent2/3 params
@@ -100,15 +100,10 @@ def start_torrents(host: str,
                 # not return the file with its original name either
                 filename = unidecode(torrent_file.name)
                 files = dict(torrent_file=(filename, torrent_file))
-                try:
-                    logger.info(f'Uploading torrent {basename(item)} (actual '
-                                f'name: "{basename(filename)}")')
-                except OSError:
-                    pass
+                logger.info(f'Uploading torrent {basename(item)} (actual '
+                            f'name: "{basename(filename)}")')
                 resp = requests.post(post_url, data=form_data, files=files)
-                try:
-                    resp.raise_for_status()
-                except HTTPError:
+                if not resp.ok:
                     logger.error(f'Error uploading {old}')
                     continue
                 # Delete original only after successful upload
