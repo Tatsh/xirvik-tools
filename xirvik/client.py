@@ -416,7 +416,7 @@ class ruTorrentClient:
                 raise xmlrpc.Fault(
                     cast(Dict[str, Any], x)['faultCode'],
                     cast(Dict[str, Any], x)['faultString'])
-            except (TypeError, KeyError):  # pragma: no cover
+            except (TypeError, KeyError):
                 pass
 
     def remove(self, hash_: str) -> None:
