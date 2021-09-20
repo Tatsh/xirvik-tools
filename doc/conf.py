@@ -15,10 +15,10 @@ sys.path.insert(0, os.path.abspath('..'))
 # endregion
 
 author: Final[str] = ''
-copyright: Final[str] = '2020'
+copyright: Final[str] = '2021'
 project: Final[str] = 'Xirvik Tools'
 """The short X.Y version."""
-version: Final[str] = '1.2.7'
+version: Final[str] = '2.0.0'
 """The full version, including alpha/beta/rc tags."""
 release: Final[str] = f'v{version}'
 """
