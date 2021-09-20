@@ -13,11 +13,6 @@ Typing utilities
 .. automodule:: xirvik.typing
     :members:
 
-Utilities
-=========
-.. automodule:: xirvik.util
-    :members:
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
