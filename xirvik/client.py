@@ -46,7 +46,33 @@ class ruTorrentClient:
     """
     ruTorrent client class.
 
-    Reference on RPC returned fields: https://goo.gl/DvmW4c
+    `Reference on RPC returned fields.`_
+
+    .. _Reference on RPC returned fields.: https://goo.gl/DvmW4c
+
+    Parameters
+    ==========
+    host : str
+        Hostname with no protocol.
+
+    name : Optional[str]
+        Username.
+
+        If no name and no password are passed, ``~/.netrc`` will be searched
+        with the host provided. The path can be overridden with the netrc_path
+        argument.
+
+    password : Optional[str]
+        Password.
+
+    max_retries : int
+        Number of tries to retry any request.
+
+    netrc_path : Optional[str]
+        netrc file path.
+
+    backoff_factor : int
+        Factor used to calculate back-off time when retrying requests.
     """
     def __init__(self,
                  host: str,
@@ -55,17 +81,6 @@ class ruTorrentClient:
                  max_retries: int = 10,
                  netrc_path: Optional[str] = None,
                  backoff_factor: int = 1):
-        """
-        Construct a ruTorrent client.
-
-        Host should be the hostname with no protocol.
-
-        If no name and no password are passed, ~/.netrc will be searched with
-        the host provided. The path can be overridden with the netrc_path
-        argument.
-
-        max_retries is used as an argument for urllib3's Retry() class.
-        """
         if not name and not password:
             if not netrc_path:
                 netrc_path = expanduser('~/.netrc')
@@ -89,33 +104,43 @@ class ruTorrentClient:
 
     @cached_property
     def http_prefix(self) -> str:
-        """Return HTTP URI for the host."""
+        """HTTP URI for the host."""
         return f'https://{self.host:s}'
 
     @cached_property
     def multirpc_action_uri(self) -> str:
-        """Return HTTP multirpc/action.php URI for the host."""
+        """HTTP ``multirpc/action.php`` URI for the host."""
         return f'{self.http_prefix}/rtorrent/plugins/multirpc/action.php'
 
     @cached_property
     def datadir_action_uri(self) -> str:
-        """Return HTTP datadir/action.php URI for the host."""
+        """HTTP ``datadir/action.php`` URI for the host."""
         return f'{self.http_prefix}/rtorrent/plugins/datadir/action.php'
 
     @cached_property
-    def _add_torrent_uri(self) -> str:
+    def add_torrent_uri(self) -> str:
+        """HTTP URI to POST torrents to."""
         return f'{self.http_prefix}/rtorrent/php/addtorrent.php?'
 
     @cached_property
     def auth(self) -> Tuple[Optional[str], Optional[str]]:
-        """Return basic authentication credentials."""
+        """Basic authentication credentials."""
         return (self.name, self.password)
 
     def add_torrent(self, filepath: str, start_now: bool = True) -> None:
-        """Add a torrent. Use start_now=False to start paused."""
+        """Add a torrent. Use ``start_now=False`` to start paused.
+
+        Parameters
+        ----------
+        filepath : str
+            File path to the torrent file.
+
+        start_now : bool
+            If the torrent should start immediately.
+        """
         with open(filepath, 'rb') as f:
             self._session.post(
-                self._add_torrent_uri,
+                self.add_torrent_uri,
                 data=dict(
                     torrents_start_stopped='on') if not start_now else {},
                 auth=self.auth,
@@ -125,16 +150,18 @@ class ruTorrentClient:
         """
         List torrents as they come from ruTorrent.
 
-        Return a dictionary with torrent hashes as the key. The values
-        are lists similar to the columns in ruTorrent's main view.
+        Returns
+        -------
+        Mapping[str, Sequence[Any]]
+            A dictionary with torrent hashes as the key. The values are lists
+            similar to the columns in ruTorrent's main view.
 
-        For a more detailed dictionary, use list_torrents_dict().
+        See Also
+        ========
+        xirvik.client.ruTorrentClient.list_torrents_dict
         """
         r = self._session.post(self.multirpc_action_uri,
-                               data={
-                                   'mode': 'list',
-                                   'cmd': 'd.custom=addtime',
-                               },
+                               data=dict(mode='list', cmd='d.custom=addtime'),
                                auth=self.auth)
         r.raise_for_status()
         ret = r.json()['t']
@@ -146,44 +173,14 @@ class ruTorrentClient:
         """
         Get all torrent information.
 
-        Return a dictionary of dictionaries with the hash of the torrent as
-        the key. The fields will be:
+        Returns
+        -------
+        Mapping[str, TorrentDict]
+            Dictionary of dictionaries with the hash of the torrent as the key.
 
-        - is_open - boolean, ???
-        - is_hash_checking - boolean, if the torrent is hash checking
-        - is_hash_checked - boolean, if the torrent is already hash checked
-        - state - integer, state of the torrent (out of some enumeration)
-        - name - string, Name of the torrent
-        - size_bytes - integer, size of the torrent in bytes
-        - completed_chunks - integer, completed number of chunks
-        - size_chunks - integer, number of chunks in the torrent
-        - bytes_done - integer, bytes completed downloading
-        - up_total - integer, amount of bytes uploaded
-        - ratio - float, Ratio
-        - up_rate - integer, upload rate in bytes per second
-        - down_rate - integer, download rate in bytes per second
-        - chunk_size - integer, size of the chunks
-        - custom1 - string, usually label, blank string if nothing is set
-        - peers_accounted - integer, total number of peers
-        - peers_not_connected - integer, number of inactive peers
-        - peers_connected - integer, numbers of active peers
-        - peers_complete - integer, number of peers who have the completed
-                                    torrent
-        - left_bytes - integer, number of bytes left to download
-        - priority - integer, out of some enumeration
-        - state_changed - datetime, last time the torrent was modified
-        - skip_total - integer, ???
-        - hashing - boolean, if the torrent is hashing
-        - chunks_hashed - integer, number of chunks hashed
-        - base_path - string, path to the torrent files
-        - creation_date - None or datetime
-        - tracker_focus - integer, ???
-        - is_active - if the torrent is active
-        - message - string, ???
-        - custom2 - string, ???
-        - free_diskspace - integer, disk space available on the server
-        - is_private - boolean, if the torrent is private
-        - is_multi_file - boolean, if the torrent contains multiple files
+        See Also
+        ========
+        xirvik.typing.TorrentDict
         """
         fields = (
             'is_open',
@@ -260,7 +257,10 @@ class ruTorrentClient:
         """
         Prepare to get a torrent file given a hash.
 
-        Return tuple Request object and the file name string.
+        Returns
+        -------
+        tuple
+            ``requests.Request`` object and the file name string.
         """
         source_torrent_uri = (f'{self.http_prefix}/rtorrent/plugins/source/'
                               f'action.php?hash={hash_}')
@@ -276,7 +276,14 @@ class ruTorrentClient:
         """
         Move a torrent's files to somewhere else on the server.
 
-        target_dir must be a valid and usable directory.
+        Parameters
+        ----------
+        hash\\_ : str
+            Hash of the torrent.
+        target_dir : str
+            Must be a valid and usable directory.
+        fast_resume : bool
+            Use fast resumption.
         """
         r = self._session.post(self.datadir_action_uri,
                                data={
@@ -300,7 +307,8 @@ class ruTorrentClient:
         To remove a label, pass an empty string as the `label` keyword
         argument.
 
-        Example use:
+        Example use::
+
             client.set_labels(hashes=[hash_1, hash_2], label='my new label')
         """
         # The way to set a label to multiple torrents is to specify the hashes
@@ -359,7 +367,16 @@ class ruTorrentClient:
                 self._log.warning('Passed recursion limit for label fix')
 
     def set_label(self, label: str, hash_: str) -> None:
-        """Set a label to a torrent hash."""
+        """
+        Set a label to a torrent.
+
+        Parameters
+        ----------
+        label : str
+            Label to use.
+        hash\\_ : str
+            Hash of the torrent.
+        """
         self.set_label_to_hashes(hashes=[hash_], label=label)
 
     def list_files(self, hash_: str) -> Iterator[Sequence[Union[int, str]]]:
@@ -375,8 +392,15 @@ class ruTorrentClient:
         - download strategy
         - ??? (some integer)
 
-        for info in list_files():
-            for name, pieces, pieces_dl, size, dlstrat, _ in info:
+        Example use::
+
+            for info in list_files():
+                for name, pieces, pieces_dl, size, dlstrat, _ in info:
+
+        Parameters
+        ----------
+        hash\\_ : str
+            Hash of the torrent.
         """
         cmds: Union[str, Tuple[str, ...]] = (
             quote('f.prioritize_first='),
@@ -406,6 +430,12 @@ class ruTorrentClient:
         remove the torrent but keep the data.
 
         Returns if successful. Faults are converted to xmlrpc.Fault exceptions.
+
+
+        Parameters
+        ----------
+        hash_ : str
+            Hash of the torrent.
         """
         mc = xmlrpc.MultiCall(self._xmlrpc_proxy)
         getattr(mc, 'd.custom5.set')(hash_, '1')
@@ -424,7 +454,12 @@ class ruTorrentClient:
         Remove a torrent from the client but keep the data. Use the delete()
         method to remove and delete the torrent data.
 
-        Returns if successful. Can raise a Requests exception.
+        Returns if successful. Can raise a ``requests`` exception.
+
+        Parameters
+        ----------
+        hash\\_ : str
+            Hash of the torrent.
         """
         self._session.post(self.multirpc_action_uri,
                            data=dict(mode='remove', hash=hash_),
@@ -434,14 +469,26 @@ class ruTorrentClient:
         """
         Stop a torrent by hash.
 
-        Returns if successful. Can raise a Requests exception.
+        Returns if successful. Can raise a ``requests`` exception.
+
+        Parameters
+        ----------
+        hash\\_ : str
+            Hash of the torrent.
         """
         self._session.post(self.multirpc_action_uri,
                            data=dict(mode='stop', hash=hash_),
                            auth=self.auth).raise_for_status()
 
     def add_torrent_url(self, url: str) -> None:
-        """Add a torrent via a publicly accessible URI."""
-        self._session.post(self._add_torrent_uri,
+        """Add a torrent via URI.
+
+        Parameters
+        ----------
+        url : str
+            URI to the torrent file. Must be available either under the current
+            credentials or public.
+        """
+        self._session.post(self.add_torrent_uri,
                            data=dict(url=url),
                            auth=self.auth).raise_for_status()

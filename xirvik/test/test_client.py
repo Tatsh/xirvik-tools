@@ -47,7 +47,7 @@ def test_http_prefix():
 def test_add_torrent_bad_status(requests_mock: req_mock.Mocker):
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     with NamedTemporaryFile('w') as f:
-        requests_mock.post(client._add_torrent_uri, status_code=400)
+        requests_mock.post(client.add_torrent_uri, status_code=400)
         with pytest.raises(HTTPError):
             client.add_torrent(f.name)
 
@@ -328,7 +328,7 @@ def test_stop(requests_mock: req_mock.Mocker):
 
 def test_add_torrent_url(requests_mock: req_mock.Mocker):
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.post(client._add_torrent_uri, json=[], status_code=400)
+    requests_mock.post(client.add_torrent_uri, json=[], status_code=400)
     with pytest.raises(HTTPError):
         client.add_torrent_url('https://some-url')
 
