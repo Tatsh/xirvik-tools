@@ -3,14 +3,9 @@ Welcome to Xirvik Tool's documentation!
 .. automodule:: xirvik.client
     :members:
 
-Logging
-=======
-.. automodule:: xirvik.log
-    :members:
-
-SFTP
-====
-.. automodule:: xirvik.sftp
+CLI
+===
+.. automodule:: xirvik.commands
     :members:
 
 Typing utilities
@@ -21,13 +16,6 @@ Typing utilities
 Utilities
 =========
 .. automodule:: xirvik.util
-    :members:
-
-CLI utilities
-=============
-.. automodule:: xirvik.commands.simple
-    :members:
-.. automodule:: xirvik.commands.util
     :members:
 
 .. toctree::
