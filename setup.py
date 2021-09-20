@@ -4,10 +4,10 @@ from setuptools import setup
 with open('README.md') as f:
     setup(
         name='xirvik-tools',
-        version='0.3.1',
+        version='2.0.0',
         author='Fa An',
         author_email='2998784916@qq.com',
-        packages=['xirvik', 'xirvik.commands', 'xirvik.test'],
+        packages=['xirvik', 'xirvik.commands'],
         url='https://github.com/Tatsh/xirvik-tools',
         license='LICENSE.txt',
         description='Command line utilities for interfacing with Xirvik.',
@@ -18,19 +18,13 @@ with open('README.md') as f:
             'click>=8.0.0',
             'loguru>=0.5.3',
             'requests>=2.6.0',
-            'rich>=10.1.0',
             'types-requests==2.25.6',
             'typing-extensions>=3.7.4.1',
             'urllib3>=1.26.2',
         ],
-        entry_points={
-            'console_scripts': [
-                'xirvik-delete-old = xirvik.commands.delete_old:main',
-                'xirvik-move-by-label = xirvik.commands.move_by_label:main',
-                'xirvik-move-erroneous = xirvik.commands.move_erroneous:main',
-                'xirvik = xirvik.commands:xirvik',
-            ]
-        },
+        entry_points={'console_scripts': [
+            'xirvik = xirvik.commands:xirvik',
+        ]},
         extras_require={
             'testing':
             ['mock', 'pytest', 'pytest-cov', 'pytest-mock', 'requests-mock']
