@@ -1,17 +1,8 @@
+---
 name: Lint
-
-on:
-  push:
-    branches: [develop]
-  pull_request:
-    branches: [develop]
-
 jobs:
   lint:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -25,8 +16,20 @@ jobs:
           pip install -e '.[testing]'
       - name: Lint with mypy
         run: mypy .
-      - name: Lint with Pylint
+      - if: matrix.python-version == 3.8
+        name: Lint with Pylint
         run: |
           pip install pylint
           pylint xirvik setup.py
-        if: matrix.python-version == 3.8
+    strategy:
+      matrix:
+        python-version:
+          - 3.8
+          - 3.9
+"on":
+  pull_request:
+    branches:
+      - develop
+  push:
+    branches:
+      - develop
