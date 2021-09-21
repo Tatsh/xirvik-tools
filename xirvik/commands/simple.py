@@ -80,7 +80,7 @@ def start_torrents(host: str,
                 continue
             item = path_join(d, item)
             # Workaround for surrogates not allowed error, rename the file
-            prefix = '{n:s}-'.format(n=splitext(basename(item))[0])
+            prefix = f'{splitext(basename(item))[0]:s}-'
             fd, name = mkstemp(dir=cache_dir, prefix=prefix, suffix='.torrent')
             close_fd(fd)
             with open(name, 'wb') as w:

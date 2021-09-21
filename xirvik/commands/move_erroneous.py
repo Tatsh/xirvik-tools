@@ -37,7 +37,7 @@ def _should_process(x: TorrentDict) -> bool:
 
 
 def _make_move_to(prefix: str, label: str) -> str:
-    return '{}/{}'.format(prefix, label)
+    return f'{prefix}/{label}'
 
 
 @click.command()

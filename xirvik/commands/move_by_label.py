@@ -26,9 +26,9 @@ def _base_path_check(
 
     def bpc(hash_info: Tuple[Any, TorrentDict]) -> bool:
         _, info = hash_info
-        move_to = '{}/{}'.format(PREFIX.format(username, completed_dir),
-                                 maybe_lower(info['custom1'] or ''))
-        return not info['base_path'].startswith(move_to)
+        return not info['base_path'].startswith(
+            f'{PREFIX.format(username, completed_dir)}'
+            f'/{maybe_lower(info["custom1"] or "")}')
 
     return bpc
 
@@ -99,7 +99,7 @@ def main(  # pylint: disable=too-many-arguments
             continue
         if lower_label:
             label = label.lower()
-        move_to = '{}/{}'.format(PREFIX.format(username, completed_dir), label)
+        move_to = f'{PREFIX.format(username, completed_dir)}/{label}'
         logger.info(f'Moving {info["name"]} to {move_to}/')
         client.move_torrent(hash_, move_to)
         count += 1
