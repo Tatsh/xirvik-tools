@@ -18,7 +18,7 @@ with open('README.md') as f:
             'click>=8.0.0',
             'loguru>=0.5.3',
             'requests>=2.6.0',
-            'types-requests==2.25.6',
+            'types-requests==2.25.7',
             'typing-extensions>=3.7.4.1',
             'urllib3>=1.26.2',
         ],
