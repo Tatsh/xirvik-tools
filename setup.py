@@ -1,5 +1,6 @@
 """Module for Xirvik-specific tasks."""
 from distutils.cmd import Command
+import distutils
 import subprocess as sp
 
 from setuptools import setup
@@ -14,9 +15,13 @@ class BuildDocumentationCommand(Command):
     def initialize_options(self) -> None:
         self.type = 'help'
 
+    def finalize_options(self) -> None:
+        pass
+
     def run(self) -> None:
         command = ('sphinx-build', '-M', self.type, 'doc', 'build')
-        self.announce(f'Running: {" ".join(command)}')
+        self.announce(f'Running: {" ".join(command)}',
+                      level=distutils.log.INFO)
         sp.run(command, check=True)
 
 
