@@ -29,7 +29,7 @@ LOG_NAME: Final[str] = 'xirvik.rutorrent'
 TORRENT_FILE_DOWNLOAD_STRATEGY_LEADING_CHUNK_FIRST: Final[int] = 1
 TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL: Final[int] = 0
 TORRENT_FILE_DOWNLOAD_STRATEGY_TRAILING_CHUNK_FIRST: Final[int] = 2
-TORRENT_FILE_PRIORITY_DONT_DOWNLOAD: Final[int] = 0
+TORRENT_FILE_PRIORITY_DO_NOT_DOWNLOAD: Final[int] = 0
 TORRENT_FILE_PRIORITY_HIGH: Final[int] = 2
 TORRENT_FILE_PRIORITY_NORMAL: Final[int] = 1
 TORRENT_LABEL_INDEX = 14
@@ -230,11 +230,11 @@ class ruTorrentClient:
                         value = datetime.fromtimestamp(float(value))
                     elif fields[i] == 'creation_date':
                         try:
-                            fvalue: Optional[float] = float(value)
+                            f_value: Optional[float] = float(value)
                         except ValueError:
-                            fvalue = None
-                        if fvalue:
-                            value = datetime.fromtimestamp(float(fvalue))
+                            f_value = None
+                        if f_value:
+                            value = datetime.fromtimestamp(float(f_value))
                         else:
                             value = None
                     elif fields[i] == 'ratio':
@@ -395,21 +395,21 @@ class ruTorrentClient:
         Example use::
 
             for info in list_files():
-                for name, pieces, pieces_dl, size, dlstrat, _ in info:
+                for name, pieces, pieces_dl, size, dl_strategy, _ in info:
 
         Parameters
         ----------
         hash\\_ : str
             Hash of the torrent.
         """
-        cmds: Union[str, Tuple[str, ...]] = (
+        commands: Union[str, Tuple[str, ...]] = (
             quote('f.prioritize_first='),
             quote('f.prioritize_last='),
         )
         query = f'mode=fls&hash={hash_}'.encode()
-        cmds = '&'.join(f'cmd={x}' for x in cmds)
+        commands = '&'.join(f'cmd={x}' for x in commands)
         query += b'&'
-        query += cmds.encode()
+        query += commands.encode()
         r = self._session.post(self.multirpc_action_uri,
                                data=query,
                                auth=self.auth)
