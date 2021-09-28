@@ -21,6 +21,11 @@ jobs:
         run: |
           pip install pylint
           pylint xirvik setup.py
+      - if: matrix.python-version == 3.8
+        name: Check spelling
+        run: |
+          npm install -g cspell
+          cspell --no-progress './**/*'  './**/.*'
     strategy:
       matrix:
         python-version:
