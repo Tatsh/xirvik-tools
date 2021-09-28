@@ -57,13 +57,13 @@ def start_torrents(host: str,
         logger.level('INFO')
     if syslog:  # pragma: no cover
         try:
-            syslogh = SysLogHandler(address='/dev/log')
+            syslog_handle = SysLogHandler(address='/dev/log')
         except (OSError, socket.error):
-            syslogh = SysLogHandler(address='/var/run/syslog',
+            syslog_handle = SysLogHandler(address='/var/run/syslog',
                                     facility=SysLogHandler.LOG_USER)
-            syslogh.ident = 'xirvik-start-torrents'
+            syslog_handle.ident = 'xirvik-start-torrents'
             logging.INFO = logging.WARNING
-        logger.add(syslogh,
+        logger.add(syslog_handle,
                    level='INFO' if not debug else 'DEBUG',
                    format='{name}[{process}]: {message}')
     post_url = f'https://{host:s}:{port:d}/rtorrent/php/addtorrent.php?'
