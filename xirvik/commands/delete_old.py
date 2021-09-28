@@ -23,16 +23,16 @@ TestsDict = Dict[str, Tuple[bool, TestCallable]]
 
 def _test_date_cb(days: int = 14) -> TestCallable:
     def test_date(info: TorrentDict) -> Tuple[str, bool]:
-        cond1 = info.get('creation_date')
-        cond2 = info.get('state_changed')
+        condition1 = info.get('creation_date')
+        condition2 = info.get('state_changed')
         expect = datetime.now() - timedelta(days=days)
-        logger.debug(f'creation date: {cond1}')
-        logger.debug(f'state changed: {cond2}')
-        logger.debug(f'{cond1} <= {expect} or')
-        logger.debug(f'    {cond2} <= {expect}')
+        logger.debug(f'creation date: {condition1}')
+        logger.debug(f'state changed: {condition2}')
+        logger.debug(f'{condition1} <= {expect} or')
+        logger.debug(f'    {condition2} <= {expect}')
         return (
             'over 14 days seeded',
-            bool((cond1 and cond1 <= expect) or (cond2 and cond2 <= expect)),
+            bool((condition1 and condition1 <= expect) or (condition2 and condition2 <= expect)),
         )
 
     return test_date
