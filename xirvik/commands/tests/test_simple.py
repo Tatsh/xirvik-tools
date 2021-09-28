@@ -140,7 +140,7 @@ def test_delete_ftp_user(runner: CliRunner, requests_mock: req_mock.Mocker,
     os.environ['HOME'] = str(tmp_path)
     m = requests_mock.get(
         ('https://machine.com:443/userpanel/index.php/ftp_users/delete/'
-         'bmV3dXNlcg=='))
+         'bmV3dXNlcg=='))  # cspell: disable-line
     assert runner.invoke(
         xirvik,
         ('ftp', 'delete-user', 'machine.com', 'newuser')).exit_code == 0
@@ -155,7 +155,7 @@ def test_delete_ftp_user_error(runner: CliRunner,
     os.environ['HOME'] = str(tmp_path)
     m = requests_mock.get(
         ('https://machine.com:443/userpanel/index.php/ftp_users/delete/'
-         'bmV3dXNlcg=='),
+         'bmV3dXNlcg=='),  # cspell: disable-line
         status_code=500)
     assert runner.invoke(
         xirvik,
