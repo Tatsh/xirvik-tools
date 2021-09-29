@@ -144,10 +144,10 @@ def command_with_config_file(
     """
     home = pathlib.Path.home()
     default_config_file_path = xdg.xdg_config_home() / 'xirvik.yml'
-    if sys.platform == 'win32':
+    if sys.platform == 'win32':  # pragma: no cover
         default_config_file_path = (home /
                                     'AppData/Roaming/xirvik-tools/config.yml')
-    elif sys.platform == 'darwin':
+    elif sys.platform == 'darwin':  # pragma: no cover
         default_config_file_path = (
             home / 'Library/Application Support/xirvik-tools/config.yml')
 
