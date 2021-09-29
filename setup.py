@@ -41,6 +41,7 @@ with open('README.md') as f:
             'types-requests==2.25.9',
             'typing-extensions>=3.7.4.1',
             'urllib3>=1.26.2',
+            'xdg>=5.1.1',
         ],
         entry_points={'console_scripts': [
             'xirvik = xirvik.commands:xirvik',
