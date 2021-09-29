@@ -7,6 +7,7 @@ from os.path import expanduser
 from time import sleep
 from typing import Callable, Dict, Optional, Tuple, cast
 import xmlrpc.client as xmlrpc
+import sys
 
 from loguru import logger
 from requests.exceptions import HTTPError
@@ -32,7 +33,8 @@ def _test_date_cb(days: int = 14) -> TestCallable:
         logger.debug(f'    {condition2} <= {expect}')
         return (
             'over 14 days seeded',
-            bool((condition1 and condition1 <= expect) or (condition2 and condition2 <= expect)),
+            bool((condition1 and condition1 <= expect)
+                 or (condition2 and condition2 <= expect)),
         )
 
     return test_date
@@ -73,7 +75,7 @@ def main(  # pylint: disable=too-many-arguments
         setup_log_intercept_handler()
         logger.enable('')
     else:
-        logger.level('INFO')
+        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
     client = ruTorrentClient(host,
                              name=username,
                              password=password,
