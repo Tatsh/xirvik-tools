@@ -156,7 +156,7 @@ def command_with_config_file(
             config_file_path = (ctx.params.get(config_file_param_name,
                                                default_config_file_path)
                                 or default_config_file_path)
-            config_data = {}
+            config_data: Any = {}
             try:
                 with open(config_file_path) as f:
                     config_data = yaml.safe_load(f)
