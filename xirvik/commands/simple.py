@@ -54,13 +54,12 @@ def start_torrents(host: str,
         logger.enable('')
     else:
         logger.configure(handlers=[dict(sink=sys.stdout, format='{message}')])
-        logger.level('INFO')
     if syslog:  # pragma: no cover
         try:
             syslog_handle = SysLogHandler(address='/dev/log')
         except (OSError, socket.error):
             syslog_handle = SysLogHandler(address='/var/run/syslog',
-                                    facility=SysLogHandler.LOG_USER)
+                                          facility=SysLogHandler.LOG_USER)
             syslog_handle.ident = 'xirvik-start-torrents'
             logging.INFO = logging.WARNING
         logger.add(syslog_handle,
@@ -128,7 +127,7 @@ def add_ftp_user(host: str,
         setup_log_intercept_handler()
         logger.enable('')
     else:
-        logger.level('INFO')
+        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
     uri = (f'https://{host}:{port:d}/userpanel/index.php/'
            'ftp_users/add_user')
     rootdir = root_directory if root_directory.startswith(
@@ -163,7 +162,7 @@ def delete_ftp_user(host: str,
         setup_log_intercept_handler()
         logger.enable('')
     else:
-        logger.level('INFO')
+        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
     user = b64encode(username.encode()).decode()
     uri = (f'https://{host}:{port:d}/userpanel/index.php/ftp_users/'
            f'delete/{user}')
@@ -188,7 +187,7 @@ def authorize_ip(host: str, port: int = 443, debug: bool = False) -> None:
         setup_log_intercept_handler()
         logger.enable('')
     else:
-        logger.level('INFO')
+        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
     uri = (f'https://{host}:{port:d}/userpanel/index.php/virtual_machine/'
            'authorize_ip')
     r = requests.get(uri)
@@ -215,7 +214,7 @@ def fix_rtorrent(host: str, port: int, debug: bool = False) -> None:
         setup_log_intercept_handler()
         logger.enable('')
     else:
-        logger.level('INFO')
+        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
     logger.info('No guarantees this will work!')
     uri = (f'https://{host}:{port:d}/userpanel/index.php/services/'
            'restart/rtorrent')
