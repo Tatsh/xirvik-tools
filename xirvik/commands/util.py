@@ -1,14 +1,20 @@
 """Utility functions for CLI commands."""
 from os.path import expanduser
 from types import FrameType
-from typing import Any, Callable, Iterator, Optional, Sequence, Union
+from typing import Any, Callable, Iterator, Optional, Sequence, Type, Union
 import functools
 import itertools
 import logging
+import pathlib
 import re
+import sys
+import warnings
 
+from click.core import ParameterSource
 from loguru import logger
 import click
+import xdg
+import yaml
 
 __all__ = ('common_options_and_arguments', 'complete_hosts', 'complete_ports',
            'setup_log_intercept_handler')
@@ -40,7 +46,11 @@ def common_options_and_arguments(
     @click.option('--netrc',
                   default=expanduser('~/.netrc'),
                   help='netrc file path')
-    @click.argument('host', shell_complete=complete_hosts)
+    @click.option('-C', '--config', help='Configuration file')
+    @click.option('-H',
+                  '--host',
+                  help='Xirvik host (without protocol)',
+                  shell_complete=complete_hosts)
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> None:  # pragma: no cover
         return func(*args, **kwargs)
@@ -115,3 +125,58 @@ class InterceptHandler(logging.Handler):  # pragma: no cover
 def setup_log_intercept_handler() -> None:  # pragma: no cover
     """Sets up Loguru to intercept records from the logging module."""
     logging.basicConfig(handlers=(InterceptHandler(),), level=0)
+
+
+def command_with_config_file(
+        config_file_param_name: str = 'config',
+        default_section: Optional[str] = None) -> Type[click.Command]:
+    """
+    Returns a custom command class that can read from a configuration file
+    in place of missing arguments.
+
+    Parameters
+    ----------
+    config_file_param_name : str
+        The name of the parameter given to Click in ``click.option``.
+
+    spec : Optional[Dict[str, Literal['str', 'bool', 'float', 'int']]]
+        Specification of key to type strings.
+    """
+    home = pathlib.Path.home()
+    default_config_file_path = xdg.xdg_config_home() / 'xirvik.yml'
+    if sys.platform == 'win32':
+        default_config_file_path = (home /
+                                    'AppData/Roaming/xirvik-tools/config.yml')
+    elif sys.platform == 'darwin':
+        default_config_file_path = (
+            home / 'Library/Application Support/xirvik-tools/config.yml')
+
+    class _ConfigFileCommand(click.Command):
+        def invoke(self, ctx: click.Context) -> Any:
+            config_file_path = (ctx.params.get(config_file_param_name,
+                                               default_config_file_path)
+                                or default_config_file_path)
+            config_data = {}
+            try:
+                with open(config_file_path) as f:
+                    config_data = yaml.safe_load(f)
+            except FileNotFoundError:
+                pass
+            if isinstance(config_data, dict):
+                alt_data = (config_data.get(default_section, {})
+                            if default_section is not None else {})
+                for param in ctx.params.keys():
+                    if (ctx.get_parameter_source(param) ==
+                            ParameterSource.DEFAULT):
+                        yaml_param = param.replace('_', '-')
+                        if yaml_param in alt_data:
+                            ctx.params[param] = alt_data[yaml_param]
+                        elif yaml_param in config_data:
+                            ctx.params[param] = config_data[yaml_param]
+                ctx.params[config_file_param_name] = config_file_path
+            else:
+                warnings.warn(f'Unexpected type in {config_file_path}: ' +
+                              str(type(config_data)))
+            return super().invoke(ctx)
+
+    return _ConfigFileCommand

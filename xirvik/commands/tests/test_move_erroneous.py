@@ -40,7 +40,8 @@ def test_move_erroneous_normal(runner: CliRunner, mocker: MockerFixture,
         }
     }
     assert runner.invoke(
-        xirvik, ('rtorrent', 'move-erroneous', 'machine.com')).exit_code == 0
+        xirvik,
+        ('rtorrent', 'move-erroneous', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.move_torrent.call_count == 1
     assert client_mock.return_value.remove.call_count == 1
     assert client_mock.return_value.stop.call_count == 2
@@ -67,7 +68,8 @@ def test_move_erroneous_sleep(runner: CliRunner, mocker: MockerFixture,
         }
     client_mock.return_value.list_torrents_dict.return_value = ret
     assert runner.invoke(
-        xirvik, ('rtorrent', 'move-erroneous', 'machine.com')).exit_code == 0
+        xirvik,
+        ('rtorrent', 'move-erroneous', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.move_torrent.call_count == 12
     assert client_mock.return_value.remove.call_count == 12
     assert client_mock.return_value.stop.call_count == 24

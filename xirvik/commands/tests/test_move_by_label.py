@@ -33,10 +33,12 @@ def test_list_torrents_dict_fail(runner: CliRunner, mocker: MockerFixture,
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
     client_mock.return_value.list_torrents_dict.side_effect = _raise_http_error
     assert runner.invoke(
-        xirvik, ('rtorrent', 'move-by-label', 'machine.com')).exit_code != 0
+        xirvik,
+        ('rtorrent', 'move-by-label', '-H', 'machine.com')).exit_code != 0
     client_mock.return_value.list_torrents_dict.side_effect = _raise_value_error
     assert runner.invoke(
-        xirvik, ('rtorrent', 'move-by-label', 'machine.com')).exit_code != 0
+        xirvik,
+        ('rtorrent', 'move-by-label', '-H', 'machine.com')).exit_code != 0
 
 
 def test_move_torrent(runner: CliRunner, mocker: MockerFixture,
@@ -56,8 +58,9 @@ def test_move_torrent(runner: CliRunner, mocker: MockerFixture,
             f'/torrents/{client_mock.return_value.name}/_completed'
         }
     }
-    assert runner.invoke(
-        xirvik, ('rtorrent', 'move-by-label', 'machine.com')).exit_code == 0
+    assert runner.invoke(xirvik,
+                         ('rtorrent', 'move-by-label', '-C', '/dev/null', '-H',
+                          'machine.com')).exit_code == 0
     client_mock.return_value.move_torrent.assert_called_once_with(
         'hash1',
         f'/torrents/{client_mock.return_value.name}/_completed/The Label')
@@ -81,7 +84,8 @@ def test_move_torrent_no_label(runner: CliRunner, mocker: MockerFixture,
         }
     }
     assert runner.invoke(
-        xirvik, ('rtorrent', 'move-by-label', 'machine.com')).exit_code == 0
+        xirvik,
+        ('rtorrent', 'move-by-label', '-H', 'machine.com')).exit_code == 0
     client_mock.return_value.move_torrent.assert_not_called()
 
 
@@ -104,7 +108,7 @@ def test_move_torrent_ignored_label(runner: CliRunner, mocker: MockerFixture,
     }
     assert runner.invoke(xirvik,
                          ('rtorrent', 'move-by-label', '--ignore-labels',
-                          'Ignore-me', '--', 'machine.com')).exit_code == 0
+                          'Ignore-me', '-H', 'machine.com')).exit_code == 0
     client_mock.return_value.move_torrent.assert_not_called()
 
 
@@ -130,7 +134,8 @@ def test_move_torrent_already_moved(runner: CliRunner, mocker: MockerFixture,
         }
     }
     assert runner.invoke(
-        xirvik, ('rtorrent', 'move-by-label', 'machine.com')).exit_code == 0
+        xirvik,
+        ('rtorrent', 'move-by-label', '-H', 'machine.com')).exit_code == 0
     client_mock.return_value.move_torrent.assert_not_called()
 
 
@@ -151,9 +156,8 @@ def test_move_torrent_lower(runner: CliRunner, mocker: MockerFixture,
             f'/torrents/{client_mock.return_value.name}/_completed'
         }
     }
-    assert runner.invoke(
-        xirvik,
-        ('rtorrent', 'move-by-label', '-l', 'machine.com')).exit_code == 0
+    assert runner.invoke(xirvik, ('rtorrent', 'move-by-label', '-l', '-H',
+                                  'machine.com')).exit_code == 0
     client_mock.return_value.move_torrent.assert_called_once_with(
         'hash1',
         f'/torrents/{client_mock.return_value.name}/_completed/test me')
@@ -183,6 +187,6 @@ def test_move_torrent_sleep_after_10(runner: CliRunner, mocker: MockerFixture,
         }))
     client_mock.return_value.list_torrents_dict.return_value = dict(l)
     assert runner.invoke(xirvik, ('rtorrent', 'move-by-label', '-l', '-t',
-                                  '10', 'machine.com')).exit_code == 0
+                                  '10', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.move_torrent.call_count == 10
     sleep_mock.assert_called_once_with(10)

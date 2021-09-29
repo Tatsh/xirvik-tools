@@ -1,8 +1,8 @@
 """delete-old tests."""
 from datetime import datetime, timedelta
+from typing import Any, NoReturn
 import os
 import pathlib
-from typing import Any, NoReturn
 import xmlrpc.client as xmlrpc
 
 from click.testing import CliRunner
@@ -45,7 +45,7 @@ def test_delete_old_list_torrents_dict_fail(
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
     client_mock.return_value.list_torrents_dict.side_effect = _raise_http_error
     assert runner.invoke(
-        xirvik, ('rtorrent', 'delete-old', 'machine.com')).exit_code != 0
+        xirvik, ('rtorrent', 'delete-old', '-H', 'machine.com')).exit_code != 0
 
 
 def test_delete_old_list_torrents_dict_invalid_for_deletion(
@@ -61,8 +61,9 @@ def test_delete_old_list_torrents_dict_invalid_for_deletion(
             'left_bytes': 0,
         }
     }
-    assert runner.invoke(xirvik, ('rtorrent', 'delete-old', '--label',
-                                  'the-label', 'machine.com')).exit_code == 0
+    assert runner.invoke(xirvik,
+                         ('rtorrent', 'delete-old', '--label', 'the-label',
+                          '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.delete.call_count == 0
 
 
@@ -76,8 +77,9 @@ def test_delete_old_list_torrents_dict_invalid_for_deletion2(
             'left_bytes': 0,
         }
     }
-    assert runner.invoke(xirvik, ('rtorrent', 'delete-old', '--label',
-                                  'the-label', 'machine.com')).exit_code == 0
+    assert runner.invoke(xirvik,
+                         ('rtorrent', 'delete-old', '--label', 'the-label',
+                          '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.delete.call_count == 0
 
 
@@ -95,7 +97,7 @@ def test_delete_old_dry_run(runner: CliRunner, mocker: MockerFixture,
     }
     assert runner.invoke(xirvik,
                          ('rtorrent', 'delete-old', '--dry-run', '--label',
-                          'the-label', 'machine.com')).exit_code == 0
+                          'the-label', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.delete.call_count == 0
 
 
@@ -112,8 +114,9 @@ def test_delete_old_normal(runner: CliRunner, mocker: MockerFixture,
             'creation_date': datetime.now() - timedelta(days=14)
         }
     }
-    assert runner.invoke(xirvik, ('rtorrent', 'delete-old', '--label',
-                                  'the-label', 'machine.com')).exit_code == 0
+    assert runner.invoke(xirvik,
+                         ('rtorrent', 'delete-old', '--label', 'the-label',
+                          '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.delete.call_count == 1
     assert sleep_mock.call_count == 1
 
@@ -131,9 +134,9 @@ def test_delete_old_ignore_ratio(runner: CliRunner, mocker: MockerFixture,
             'creation_date': datetime.now() - timedelta(days=14)
         }
     }
-    assert runner.invoke(xirvik,
-                         ('rtorrent', 'delete-old', '--label', 'the-label',
-                          '--ignore-ratio', 'machine.com')).exit_code == 0
+    assert runner.invoke(
+        xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',
+                 '--ignore-ratio', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.delete.call_count == 1
     assert sleep_mock.call_count == 1
 
@@ -153,7 +156,7 @@ def test_delete_old_ignore_date(runner: CliRunner, mocker: MockerFixture,
     }
     assert runner.invoke(xirvik,
                          ('rtorrent', 'delete-old', '--label', 'the-label',
-                          '--ignore-date', 'machine.com')).exit_code == 0
+                          '--ignore-date', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.delete.call_count == 1
     assert sleep_mock.call_count == 1
 
@@ -172,9 +175,9 @@ def test_delete_old_xmlrpc_fault(runner: CliRunner, mocker: MockerFixture,
         }
     }
     client_mock.return_value.delete.side_effect = _raise_fault
-    assert runner.invoke(xirvik,
-                         ('rtorrent', 'delete-old', '--label', 'the-label',
-                          '--max-attempts', '3', 'machine.com')).exit_code == 0
+    assert runner.invoke(
+        xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',
+                 '--max-attempts', '3', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.delete.call_count == 3
     assert sleep_mock.call_count == 3
 
@@ -193,8 +196,8 @@ def test_delete_old_protocol_error(runner: CliRunner, mocker: MockerFixture,
         }
     }
     client_mock.return_value.delete.side_effect = _raise_protocol_error
-    assert runner.invoke(xirvik,
-                         ('rtorrent', 'delete-old', '--label', 'the-label',
-                          '--max-attempts', '3', 'machine.com')).exit_code == 0
+    assert runner.invoke(
+        xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',
+                 '--max-attempts', '3', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.delete.call_count == 3
     assert sleep_mock.call_count == 3

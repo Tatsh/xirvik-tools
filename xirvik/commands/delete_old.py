@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from os.path import expanduser
 from time import sleep
 from typing import Callable, Dict, Optional, Tuple, cast
-import xmlrpc.client as xmlrpc
 import sys
+import xmlrpc.client as xmlrpc
 
 from loguru import logger
 from requests.exceptions import HTTPError
@@ -16,7 +16,8 @@ import click
 from xirvik.typing import TorrentDict
 
 from ..client import ruTorrentClient
-from .util import common_options_and_arguments, setup_log_intercept_handler
+from .util import (command_with_config_file, common_options_and_arguments,
+                   setup_log_intercept_handler)
 
 TestCallable = Callable[[TorrentDict], Tuple[str, bool]]
 TestsDict = Dict[str, Tuple[bool, TestCallable]]
@@ -45,7 +46,7 @@ def _test_ratio(info: TorrentDict) -> Tuple[str, bool]:
     return 'ratio >= 1', info.get('ratio', 0.0) >= 1
 
 
-@click.command()
+@click.command(cls=command_with_config_file('config', 'delete-old'))
 @common_options_and_arguments
 @click.option('-D', '--ignore-date', is_flag=True)
 @click.option('-a', '--ignore-ratio', is_flag=True)
@@ -54,22 +55,22 @@ def _test_ratio(info: TorrentDict) -> Tuple[str, bool]:
 @click.option('--label', default=None)
 @click.option('--max-attempts', type=int, default=3)
 @click.option('--sleep-time', type=int, default=10)
-def main(  # pylint: disable=too-many-arguments
-    host: str,
-    debug: bool = False,
-    netrc: Optional[str] = None,
-    username: Optional[str] = None,
-    password: Optional[str] = None,
-    ignore_ratio: bool = False,
-    ignore_date: bool = False,
-    label: Optional[str] = None,
-    max_attempts: int = 3,
-    dry_run: bool = False,
-    max_retries: int = 10,
-    days: int = 14,
-    backoff_factor: int = 1,
-    sleep_time: int = 10,
-) -> None:
+def main(  # pylint: disable=too-many-arguments,unused-argument
+        host: str,
+        debug: bool = False,
+        netrc: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        ignore_ratio: bool = False,
+        ignore_date: bool = False,
+        label: Optional[str] = None,
+        max_attempts: int = 3,
+        dry_run: bool = False,
+        max_retries: int = 10,
+        days: int = 14,
+        backoff_factor: int = 1,
+        sleep_time: int = 10,
+        config: Optional[str] = None) -> None:
     """Delete torrents based on certain criteria."""
     if debug:  # pragma: no cover
         setup_log_intercept_handler()

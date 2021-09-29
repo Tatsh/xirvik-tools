@@ -1,13 +1,15 @@
 """Move torrents in error state to another location."""
 from time import sleep
 from typing import Any, Final, Iterable, List, Optional, Tuple, TypeVar
+import sys
 
 from loguru import logger
 import click
 
 from ..client import ruTorrentClient
 from ..typing import TorrentDict
-from .util import common_options_and_arguments, setup_log_intercept_handler
+from .util import (command_with_config_file, common_options_and_arguments,
+                   setup_log_intercept_handler)
 
 __all__ = ('main',)
 
@@ -40,10 +42,11 @@ def _make_move_to(prefix: str, label: str) -> str:
     return f'{prefix}/{label}'
 
 
-@click.command()
+# pylint: disable=unused-argument
+@click.command(cls=command_with_config_file('config', 'move-erroneous'))
 @common_options_and_arguments
 @click.option('--sleep-time', type=int, default=10)
-def main(  # pylint: disable=unused-argument
+def main(
     host: str,
     netrc: Optional[str] = None,
     username: Optional[str] = None,

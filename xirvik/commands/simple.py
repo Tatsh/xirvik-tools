@@ -5,7 +5,7 @@ from os import close as close_fd, listdir, makedirs, remove as rm
 from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
 from tempfile import mkstemp
-from typing import Any, NoReturn
+from typing import Any, NoReturn, Optional
 import logging
 import signal
 import socket
@@ -17,7 +17,8 @@ from unidecode import unidecode
 import click
 import requests
 
-from .util import complete_hosts, complete_ports, setup_log_intercept_handler
+from .util import (command_with_config_file, complete_hosts, complete_ports,
+                   setup_log_intercept_handler)
 
 
 def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
@@ -25,7 +26,10 @@ def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
     raise SystemExit('Signal raised')
 
 
-@click.command()
+# pylint: disable=unused-argument
+
+
+@click.command(cls=command_with_config_file('config', 'add-torrents'))
 @click.option('-p',
               '--port',
               type=int,
@@ -34,7 +38,11 @@ def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
 @click.option('-d', '--debug', is_flag=True)
 @click.option('--start-stopped', is_flag=True)
 @click.option('-s', '--syslog', is_flag=True)
-@click.argument('host', shell_complete=complete_hosts)
+@click.option('-H',
+              '--host',
+              help='Xirvik host (without protocol)',
+              shell_complete=complete_hosts)
+@click.option('-C', '--config', help='Configuration file')
 @click.argument('directories',
                 type=click.Path(exists=True, file_okay=False),
                 nargs=-1)
@@ -43,7 +51,8 @@ def start_torrents(host: str,
                    port: int = 443,
                    debug: bool = False,
                    start_stopped: bool = False,
-                   syslog: bool = False) -> None:
+                   syslog: bool = False,
+                   config: Optional[str] = None) -> None:
     """Uploads torrent files to the server."""
     signal.signal(signal.SIGINT, _ctrl_c_handler)
     cache_dir = realpath(expanduser('~/.cache/xirvik'))
@@ -105,7 +114,7 @@ def start_torrents(host: str,
                 rm(old)
 
 
-@click.command()
+@click.command(cls=command_with_config_file('config', 'add-ftp-user'))
 @click.option('-p',
               '--port',
               type=int,
@@ -113,7 +122,11 @@ def start_torrents(host: str,
               shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
 @click.option('-r', '--root-directory', default='/')
-@click.argument('host', shell_complete=complete_hosts)
+@click.option('-H',
+              '--host',
+              help='Xirvik host (without protocol)',
+              shell_complete=complete_hosts)
+@click.option('-C', '--config', help='Configuration file')
 @click.argument('username')
 @click.argument('password')
 def add_ftp_user(host: str,
@@ -121,7 +134,8 @@ def add_ftp_user(host: str,
                  password: str,
                  port: int = 443,
                  root_directory: str = '/',
-                 debug: bool = False) -> None:
+                 debug: bool = False,
+                 config: Optional[str] = None) -> None:
     """Adds an FTP user."""
     if debug:  # pragma: no cover
         setup_log_intercept_handler()
@@ -144,19 +158,24 @@ def add_ftp_user(host: str,
         raise click.Abort() from e
 
 
-@click.command()
+@click.command(cls=command_with_config_file('config', 'delete-ftp-user'))
 @click.option('-p',
               '--port',
               type=int,
               default=443,
               shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
-@click.argument('host', shell_complete=complete_hosts)
+@click.option('-H',
+              '--host',
+              help='Xirvik host (without protocol)',
+              shell_complete=complete_hosts)
+@click.option('-C', '--config', help='Configuration file')
 @click.argument('username')
 def delete_ftp_user(host: str,
                     username: str,
                     port: int = 443,
-                    debug: bool = False) -> None:
+                    debug: bool = False,
+                    config: Optional[str] = None) -> None:
     """Deletes an FTP user."""
     if debug:  # pragma: no cover
         setup_log_intercept_handler()
@@ -173,15 +192,22 @@ def delete_ftp_user(host: str,
         raise click.Abort() from e
 
 
-@click.command()
+@click.command(cls=command_with_config_file('config', 'authorize-ip'))
 @click.option('-p',
               '--port',
               type=int,
               default=443,
               shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
-@click.argument('host', shell_complete=complete_hosts)
-def authorize_ip(host: str, port: int = 443, debug: bool = False) -> None:
+@click.option('-H',
+              '--host',
+              help='Xirvik host (without protocol)',
+              shell_complete=complete_hosts)
+@click.option('-C', '--config', help='Configuration file')
+def authorize_ip(host: str,
+                 port: int = 443,
+                 debug: bool = False,
+                 config: Optional[str] = None) -> None:
     """Authorises the current IP for access to the VM via SSH/VNC/RDP."""
     if debug:  # pragma: no cover
         setup_log_intercept_handler()
@@ -197,15 +223,22 @@ def authorize_ip(host: str, port: int = 443, debug: bool = False) -> None:
         raise click.Abort() from e
 
 
-@click.command()
-@click.argument('host', shell_complete=complete_hosts)
+@click.command(cls=command_with_config_file('config', 'fix-rtorrent'))
+@click.option('-H',
+              '--host',
+              help='Xirvik host (without protocol)',
+              shell_complete=complete_hosts)
+@click.option('-C', '--config', help='Configuration file')
 @click.option('-p',
               '--port',
               type=int,
               default=443,
               shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
-def fix_rtorrent(host: str, port: int, debug: bool = False) -> None:
+def fix_rtorrent(host: str,
+                 port: int,
+                 debug: bool = False,
+                 config: Optional[str] = None) -> None:
     """
     Restarts the rtorrent service in case ruTorrent cannot connect to it. Not
     guaranteed to fix anything!
