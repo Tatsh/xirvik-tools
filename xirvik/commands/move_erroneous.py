@@ -58,7 +58,7 @@ def main(  # pylint: disable=unused-argument
         setup_log_intercept_handler()
         logger.enable('')
     else:
-        logger.level('INFO')
+        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
     client = ruTorrentClient(host,
                              name=username,
                              password=password,
