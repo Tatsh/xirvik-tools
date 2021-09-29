@@ -37,6 +37,7 @@ with open('README.md') as f:
             'cached-property>=1.0.0',
             'click>=8.0.0',
             'loguru>=0.5.3',
+            'PyYAML>=5.4.1',
             'requests>=2.6.0',
             'types-requests==2.25.9',
             'typing-extensions>=3.7.4.1',
