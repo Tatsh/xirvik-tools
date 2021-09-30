@@ -48,6 +48,7 @@ regexes
 ropeproject
 rtorrent
 rutorrent
+setenv
 setslice
 setuptools
 standarderror
