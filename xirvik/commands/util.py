@@ -139,8 +139,8 @@ def command_with_config_file(
     config_file_param_name : str
         The name of the parameter given to Click in ``click.option``.
 
-    spec : Optional[Dict[str, Literal['str', 'bool', 'float', 'int']]]
-        Specification of key to type strings.
+    default_section : Optional[str]
+        Default top key of YAML to read from.
     """
     home = pathlib.Path.home()
     default_config_file_path = xdg.xdg_config_home() / 'xirvik.yml'
