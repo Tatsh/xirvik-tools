@@ -1,5 +1,4 @@
 """move-by-label tests."""
-import os
 import pathlib
 
 from click.testing import CliRunner

@@ -1,6 +1,5 @@
 """Command line interface tests."""
 from os.path import expanduser
-import os
 import pathlib
 
 from click.testing import CliRunner

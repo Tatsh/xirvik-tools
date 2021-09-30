@@ -1,7 +1,6 @@
 """delete-old tests."""
 from datetime import datetime, timedelta
 from typing import Any, NoReturn
-import os
 import pathlib
 import xmlrpc.client as xmlrpc
 
