@@ -33,10 +33,11 @@ def _raise_protocol_error(*args: Any, **kwargs: Any) -> NoReturn:
 
 
 @pytest.fixture()
-def tmp_netrc(tmp_path: pathlib.Path) -> pathlib.Path:
+def tmp_netrc(tmp_path: pathlib.Path,
+              monkeypatch: pytest.MonkeyPatch) -> pathlib.Path:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
-    os.environ['HOME'] = str(tmp_path)
+    monkeypatch.setenv('HOME', str(tmp_path))
     return netrc
 
 

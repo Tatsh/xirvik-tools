@@ -17,10 +17,11 @@ def runner():
 
 
 def test_move_erroneous_normal(runner: CliRunner, mocker: MockerFixture,
-                               tmp_path: pathlib.Path):
+                               tmp_path: pathlib.Path,
+                               monkeypatch: pytest.MonkeyPatch):
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
-    os.environ['HOME'] = str(tmp_path)
+    monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch(
         'xirvik.commands.move_erroneous.ruTorrentClient')
     client_mock.return_value.list_torrents_dict.return_value = {
@@ -50,10 +51,11 @@ def test_move_erroneous_normal(runner: CliRunner, mocker: MockerFixture,
 
 
 def test_move_erroneous_sleep(runner: CliRunner, mocker: MockerFixture,
-                              tmp_path: pathlib.Path):
+                              tmp_path: pathlib.Path,
+                              monkeypatch: pytest.MonkeyPatch):
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
-    os.environ['HOME'] = str(tmp_path)
+    monkeypatch.setenv('HOME', str(tmp_path))
     sleep_mock = mocker.patch('xirvik.commands.move_erroneous.sleep')
     client_mock = mocker.patch(
         'xirvik.commands.move_erroneous.ruTorrentClient')
