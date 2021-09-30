@@ -28,6 +28,7 @@ def test_incorrect_type(mocker: MockerFixture):
 
 
 def test_get_value_from_default_yaml(mocker: MockerFixture):
+    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
     yaml_mock.safe_load.return_value = {'host': '123.com'}
@@ -38,6 +39,7 @@ def test_get_value_from_default_yaml(mocker: MockerFixture):
 
 
 def test_get_value_from_alt_yaml(mocker: MockerFixture):
+    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
     yaml_mock.safe_load.return_value = {
@@ -54,6 +56,7 @@ def test_get_value_from_alt_yaml(mocker: MockerFixture):
 
 
 def test_get_value_no_alt(mocker: MockerFixture):
+    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
     yaml_mock.safe_load.return_value = {'host': '121.com', 'cool-command': {}}
@@ -65,6 +68,7 @@ def test_get_value_no_alt(mocker: MockerFixture):
 
 
 def test_get_value_no_value(mocker: MockerFixture):
+    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
     yaml_mock.safe_load.return_value = {}
@@ -76,6 +80,7 @@ def test_get_value_no_value(mocker: MockerFixture):
 
 
 def test_get_value_override_from_cli(mocker: MockerFixture):
+    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
     yaml_mock.safe_load.return_value = {
