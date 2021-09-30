@@ -1,4 +1,4 @@
-"""Module for Xirvik-specific tasks."""
+'''Module for Xirvik-specific tasks.'''
 from distutils.cmd import Command
 import subprocess as sp
 
@@ -6,10 +6,10 @@ from setuptools import setup
 
 
 class BuildDocumentationCommand(Command):
-    """A custom command to generate documentation with Sphinx."""
+    '''A custom command to generate documentation with Sphinx.'''
 
-    description = "Generation documentation."
-    user_options = [("type=", "M", 'type of documentation')]
+    description = 'Generate documentation.'
+    user_options = [('type=', 'M', 'type of documentation')]
 
     def initialize_options(self) -> None:
         self.type = 'help'
@@ -44,9 +44,7 @@ with open('README.md') as f:
             'urllib3>=1.26.2',
             'xdg>=5.1.1',
         ],
-        entry_points={'console_scripts': [
-            'xirvik = xirvik.commands:xirvik',
-        ]},
+        entry_points={'console_scripts': ['xirvik = xirvik.commands:xirvik']},
         extras_require={
             'testing':
             ['mock', 'pytest', 'pytest-cov', 'pytest-mock', 'requests-mock']
