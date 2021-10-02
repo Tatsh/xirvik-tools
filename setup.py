@@ -23,15 +23,16 @@ class BuildDocumentationCommand(Command):
 
 with open('README.md') as f:
     setup(
-        name='xirvik-tools',
-        version='2.0.0',
         author='Fa An',
         author_email='2998784916@qq.com',
-        packages=['xirvik', 'xirvik.commands'],
-        url='https://github.com/Tatsh/xirvik-tools',
-        license='LICENSE.txt',
+        cmdclass={'build_docs': BuildDocumentationCommand},
         description='Command line utilities for interfacing with Xirvik.',
-        long_description=f.read(),
+        entry_points={'console_scripts': ['xirvik = xirvik.commands:xirvik']},
+        extras_require={
+            'dev': ['rope'],
+            'testing':
+            ['mock', 'pytest', 'pytest-cov', 'pytest-mock', 'requests-mock']
+        },
         install_requires=[
             'Unidecode>=0.4.19',
             'cached-property>=1.0.0',
@@ -44,9 +45,9 @@ with open('README.md') as f:
             'urllib3>=1.26.2',
             'xdg>=5.1.1',
         ],
-        entry_points={'console_scripts': ['xirvik = xirvik.commands:xirvik']},
-        extras_require={
-            'testing':
-            ['mock', 'pytest', 'pytest-cov', 'pytest-mock', 'requests-mock']
-        },
-        cmdclass={'build_docs': BuildDocumentationCommand})
+        license='LICENSE.txt',
+        long_description=f.read(),
+        name='xirvik-tools',
+        packages=['xirvik', 'xirvik.commands'],
+        url='https://github.com/Tatsh/xirvik-tools',
+        version='2.0.0')
