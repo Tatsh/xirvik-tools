@@ -24,5 +24,6 @@ class Mocker:
     def get(self,
             url: str,
             headers: Optional[Mapping[str, str]] = ...,
-            status_code: Optional[int] = ...) -> Matcher:
+            status_code: Optional[int] = ...,
+            text: Optional[str] = ...) -> Matcher:
         ...

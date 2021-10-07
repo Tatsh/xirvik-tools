@@ -29,19 +29,34 @@ with open('README.md') as f:
         description='Command line utilities for interfacing with Xirvik.',
         entry_points={'console_scripts': ['xirvik = xirvik.commands:xirvik']},
         extras_require={
-            'dev': ['rope'],
-            'testing':
-            ['mock', 'pytest', 'pytest-cov', 'pytest-mock', 'requests-mock']
+            'dev': [
+                'mypy',
+                'mypy-extensions',
+                'pylint',
+                'rope',
+                'types-beautifulsoup4>=4.10.1',
+                'types-requests>=2.25.9',
+                'types-tabulate>=0.8.2',
+            ],
+            'docs': ['sphinx'],
+            'testing': [
+                'mock',
+                'pytest',
+                'pytest-cov',
+                'pytest-mock',
+                'requests-mock',
+            ]
         },
         install_requires=[
             'Unidecode>=0.4.19',
+            'beautifulsoup4>=4.10.0',
             'cached-property>=1.0.0',
             'click>=8.0.0',
+            'html5lib>=1.1',
             'loguru>=0.5.3',
             'PyYAML>=5.4.1',
             'requests>=2.6.0',
-            'types-requests==2.25.9',
-            'typing-extensions>=3.7.4.1',
+            'tabulate>=0.8.9',
             'urllib3>=1.26.2',
             'xdg>=5.1.1',
         ],

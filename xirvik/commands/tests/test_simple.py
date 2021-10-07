@@ -162,6 +162,41 @@ def test_delete_ftp_user_error(
     assert m.called_once is True
 
 
+def test_list_ftp_users(runner: CliRunner, requests_mock: req_mock.Mocker,
+                        tmp_path: pathlib.Path,
+                        monkeypatch: pytest.MonkeyPatch):
+    netrc = tmp_path / '.netrc'
+    netrc.write_text('machine machine.com login somename password pass\n')
+    monkeypatch.setenv('HOME', str(tmp_path))
+    requests_mock.get('https://machine.com:443/userpanel/index.php/ftp_users',
+                      text='''<table>
+    <tbody>
+        <tr class="gradeX">
+            <td>someuser</td>
+            <td>Yes</td>
+            <td>/somedir</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>''')
+    run = runner.invoke(xirvik, ('ftp', 'list-users', '-H', 'machine.com'))
+    assert run.exit_code == 0
+    assert 'someuser' in run.output
+    assert '/somedir' in run.output
+
+
+def test_list_ftp_users_error(
+        runner: CliRunner, requests_mock: req_mock.Mocker,
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
+    netrc = tmp_path / '.netrc'
+    netrc.write_text('machine machine.com login somename password pass\n')
+    monkeypatch.setenv('HOME', str(tmp_path))
+    requests_mock.get('https://machine.com:443/userpanel/index.php/ftp_users',
+                      status_code=500)
+    assert runner.invoke(
+        xirvik, ('ftp', 'list-users', '-H', 'machine.com')).exit_code != 0
+
+
 def test_authorize_ip(runner: CliRunner, requests_mock: req_mock.Mocker,
                       tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
     netrc = tmp_path / '.netrc'

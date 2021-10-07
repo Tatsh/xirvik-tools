@@ -11,8 +11,10 @@ import signal
 import socket
 import sys
 
+from bs4 import BeautifulSoup as Soup
 from loguru import logger
 from requests.exceptions import HTTPError
+from tabulate import tabulate
 from unidecode import unidecode
 import click
 import requests
@@ -112,6 +114,41 @@ def start_torrents(host: str,
                 # Delete original only after successful upload
                 logger.debug(f'Deleting {old}')
                 rm(old)
+
+
+@click.command(cls=command_with_config_file('config', 'list-ftp-users'))
+@click.option('-p',
+              '--port',
+              type=int,
+              default=443,
+              shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+@click.option('-H',
+              '--host',
+              help='Xirvik host (without protocol)',
+              shell_complete=complete_hosts)
+@click.option('-C', '--config', help='Configuration file')
+def list_ftp_users(host: str,
+                   port: int = 443,
+                   debug: bool = False,
+                   config: Optional[str] = None) -> None:
+    """Lists FTP users."""
+    if debug:  # pragma: no cover
+        setup_log_intercept_handler()
+        logger.enable('')
+    else:
+        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    r = requests.get(f'https://{host}:{port:d}/userpanel/index.php/ftp_users')
+    try:
+        r.raise_for_status()
+    except HTTPError as e:
+        raise click.Abort() from e
+    content = Soup(r.text, 'html5lib').select('.gradeX td')
+    click.echo(
+        tabulate(((user.text, read_only.text == 'Yes', root_dir.text)
+                  for user, read_only, root_dir, _ in (
+                      content[i:i + 4] for i in range(0, len(content), 4))),
+                 headers=('Username', 'Read-only', 'Root directory')))
 
 
 @click.command(cls=command_with_config_file('config', 'add-ftp-user'))
