@@ -1,8 +1,6 @@
 """Typing helpers."""
 from datetime import datetime
-from typing import Callable, Optional, TypeVar
-
-from typing_extensions import TypedDict
+from typing import Callable, Optional, TypedDict, TypeVar
 
 __all__ = ('Method0', 'Method1', 'TorrentDict')
 
