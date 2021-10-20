@@ -1,6 +1,6 @@
 """Typing helpers."""
 from datetime import datetime
-from typing import Callable, Optional, TypedDict, TypeVar
+from typing import Callable, NamedTuple, Optional, TypedDict, TypeVar
 
 __all__ = ('Method0', 'Method1', 'TorrentDict')
 
@@ -80,3 +80,14 @@ class TorrentDict(TypedDict):
     up_rate: int
     #:
     up_total: int
+
+
+class TorrentTrackedFile(NamedTuple):
+    """Contains information about a single file within a torrent."""
+    #: File name without path.
+    name: str
+    number_of_pieces: int
+    downloaded_pieces: int
+    size_bytes: int
+    priority_id: int
+    download_strategy_id: int
