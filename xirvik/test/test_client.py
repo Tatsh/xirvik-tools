@@ -109,7 +109,6 @@ def test_list_files(requests_mock: req_mock.Mocker):
     assert files[0][0] == 'name of file'
     assert files[0][1] == 14
     assert files[0][2] == 13
-    assert files[0][3] != '8192'
     assert files[0][3] == 8192
     assert TORRENT_FILE_PRIORITY_NORMAL == files[0][4]
     assert TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL == files[0][5]
