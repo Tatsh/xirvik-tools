@@ -14,18 +14,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e '.[dev]'
           pip install -e '.[testing]'
+          npm install -g cspell
       - name: Lint with mypy
         run: mypy .
       - if: matrix.python-version == 3.8
         name: Lint with Pylint
-        run: |
-          pip install pylint
-          pylint xirvik setup.py
+        run: pylint xirvik setup.py
       - if: matrix.python-version == 3.8
         name: Check spelling
         run: |
-          npm install -g cspell
-          cspell --no-progress --config ./.vscode/cspell.json './**/*'  './**/.*'
+          cspell --no-progress './**/*'  './**/.*'
     strategy:
       matrix:
         python-version:
