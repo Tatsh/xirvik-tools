@@ -33,7 +33,7 @@ def _test_date_cb(days: int = 14) -> TestCallable:
         logger.debug(f'{condition1} <= {expect} or')
         logger.debug(f'    {condition2} <= {expect}')
         return (
-            'over 14 days seeded',
+            f'over {days} days seeded',
             bool((condition1 and condition1 <= expect)
                  or (condition2 and condition2 <= expect)),
         )
