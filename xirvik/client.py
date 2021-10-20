@@ -1,6 +1,7 @@
 """Client for ruTorrent."""
 from cgi import parse_header
 from datetime import datetime
+from enum import IntEnum
 from netrc import netrc
 from os.path import expanduser
 from typing import Any, Dict, Final, Iterator, Optional, Tuple, cast
@@ -13,7 +14,8 @@ from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 import requests
 
-from .typing import TorrentInfo, TorrentTrackedFile
+from .typing import (FileDownloadStrategy, FilePriority, TorrentInfo,
+                     TorrentTrackedFile)
 
 __all__ = (
     'LOG_NAME',
@@ -169,6 +171,8 @@ class ruTorrentClient:
                         x[i] = datetime.fromtimestamp(float(val))
                     except ValueError:  # pragma no cover
                         x[i] = None
+                elif issubclass(types[i][1], IntEnum):
+                    x[i] = types[i][1](int(val))
                 else:
                     x[i] = types[i][1](val)
             yield TorrentInfo(hash_, *x[:TORRENT_INFO_LAST_INDEX])
@@ -335,9 +339,9 @@ class ruTorrentClient:
             x[1] = int(x[1])  # total number of pieces
             x[2] = int(x[2])  # downloaded pieces
             x[3] = int(x[3])  # size in bytes
-            x[4] = int(x[4])  # priority ID
-            x[5] = int(x[5])  # download strategy ID
-            # x[6] = int(x[6])  # ??
+            x[4] = FilePriority(int(x[4]))  # priority ID
+            x[5] = FileDownloadStrategy(int(x[5]))  # download strategy ID
+            # x[6] = int(x[6])  # Not used
             yield TorrentTrackedFile(*x[:6])
 
     def delete(self, hash_: str) -> None:
