@@ -8,11 +8,10 @@
   "ignorePaths": [
     ".coverage",
     ".directory",
-    "build/**/*",
-    "dist/**/*",
-    "doc/_build/**/*",
-    "htmlcov/**/*",
-    "xirvik_tools.egg_info/**/*"
+    "build/**",
+    "dist/**",
+    "htmlcov/**",
+    "xirvik_tools.egg-info/**"
   ],
   "languageSettings": [
     {
