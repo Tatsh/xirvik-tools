@@ -1,6 +1,6 @@
 """delete-old tests."""
 from datetime import datetime, timedelta
-from typing import Any, NoReturn
+from typing import Any, NamedTuple, NoReturn, Optional
 import pathlib
 import xmlrpc.client as xmlrpc
 
@@ -40,27 +40,31 @@ def tmp_netrc(tmp_path: pathlib.Path,
     return netrc
 
 
-def test_delete_old_list_torrents_dict_fail(
+class MinimalTorrentDict(NamedTuple):
+    hash: str
+    custom1: str = ''
+    left_bytes: int = 0
+    name: str = ''
+    ratio: float = 0
+    creation_date: Optional[datetime] = None
+    state_changed: Optional[datetime] = None
+
+
+def test_delete_old_list_torrents_fail(
         runner: CliRunner, mocker: MockerFixture, tmp_netrc: pathlib.Path):
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
-    client_mock.return_value.list_torrents_dict.side_effect = _raise_http_error
+    client_mock.return_value.list_torrents.side_effect = _raise_http_error
     assert runner.invoke(
         xirvik, ('rtorrent', 'delete-old', '-H', 'machine.com')).exit_code != 0
 
 
-def test_delete_old_list_torrents_dict_invalid_for_deletion(
+def test_delete_old_list_torrents_invalid_for_deletion(
         runner: CliRunner, mocker: MockerFixture, tmp_netrc: pathlib.Path):
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
-    client_mock.return_value.list_torrents_dict.return_value = {
-        'hash1': {
-            'custom1': 'not the label',
-            'left_bytes': 100,
-        },
-        'hash2': {
-            'custom1': 'not the label',
-            'left_bytes': 0,
-        }
-    }
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1', custom1='not the label', left_bytes=100),
+        MinimalTorrentDict('hash2', custom1='not the label', left_bytes=0)
+    ]
     assert runner.invoke(xirvik,
                          ('rtorrent', 'delete-old', '--label', 'the-label',
                           '-H', 'machine.com')).exit_code == 0
@@ -70,13 +74,12 @@ def test_delete_old_list_torrents_dict_invalid_for_deletion(
 def test_delete_old_list_torrents_dict_invalid_for_deletion2(
         runner: CliRunner, mocker: MockerFixture, tmp_netrc: pathlib.Path):
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
-    client_mock.return_value.list_torrents_dict.return_value = {
-        'hash1': {
-            'name': 'Test #1',
-            'custom1': 'the-label',
-            'left_bytes': 0,
-        }
-    }
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           name='Test #1',
+                           custom1='the-label',
+                           left_bytes=0)
+    ]
     assert runner.invoke(xirvik,
                          ('rtorrent', 'delete-old', '--label', 'the-label',
                           '-H', 'machine.com')).exit_code == 0
@@ -86,15 +89,14 @@ def test_delete_old_list_torrents_dict_invalid_for_deletion2(
 def test_delete_old_dry_run(runner: CliRunner, mocker: MockerFixture,
                             tmp_netrc: pathlib.Path):
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
-    client_mock.return_value.list_torrents_dict.return_value = {
-        'hash1': {
-            'name': 'Test #1',
-            'custom1': 'the-label',
-            'left_bytes': 0,
-            'ratio': 2,
-            'creation_date': datetime.now() - timedelta(days=14)
-        }
-    }
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           name='Test #1',
+                           left_bytes=0,
+                           custom1='the-label',
+                           ratio=2,
+                           creation_date=datetime.now() - timedelta(days=14))
+    ]
     assert runner.invoke(xirvik,
                          ('rtorrent', 'delete-old', '--dry-run', '--label',
                           'the-label', '-H', 'machine.com')).exit_code == 0
@@ -103,17 +105,17 @@ def test_delete_old_dry_run(runner: CliRunner, mocker: MockerFixture,
 
 def test_delete_old_normal(runner: CliRunner, mocker: MockerFixture,
                            tmp_netrc: pathlib.Path):
+
     sleep_mock = mocker.patch('xirvik.commands.delete_old.sleep')
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
-    client_mock.return_value.list_torrents_dict.return_value = {
-        'hash1': {
-            'name': 'Test #1',
-            'custom1': 'the-label',
-            'left_bytes': 0,
-            'ratio': 2,
-            'creation_date': datetime.now() - timedelta(days=14)
-        }
-    }
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           name='Test #1',
+                           left_bytes=0,
+                           custom1='the-label',
+                           ratio=2,
+                           creation_date=datetime.now() - timedelta(days=14))
+    ]
     assert runner.invoke(xirvik,
                          ('rtorrent', 'delete-old', '--label', 'the-label',
                           '-H', 'machine.com')).exit_code == 0
@@ -125,15 +127,14 @@ def test_delete_old_ignore_ratio(runner: CliRunner, mocker: MockerFixture,
                                  tmp_netrc: pathlib.Path):
     sleep_mock = mocker.patch('xirvik.commands.delete_old.sleep')
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
-    client_mock.return_value.list_torrents_dict.return_value = {
-        'hash1': {
-            'name': 'Test #1',
-            'custom1': 'the-label',
-            'left_bytes': 0,
-            'ratio': 0.14,
-            'creation_date': datetime.now() - timedelta(days=14)
-        }
-    }
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           name='Test #1',
+                           left_bytes=0,
+                           custom1='the-label',
+                           ratio=0.14,
+                           creation_date=datetime.now() - timedelta(days=14))
+    ]
     assert runner.invoke(
         xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',
                  '--ignore-ratio', '-H', 'machine.com')).exit_code == 0
@@ -145,15 +146,14 @@ def test_delete_old_ignore_date(runner: CliRunner, mocker: MockerFixture,
                                 tmp_netrc: pathlib.Path):
     sleep_mock = mocker.patch('xirvik.commands.delete_old.sleep')
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
-    client_mock.return_value.list_torrents_dict.return_value = {
-        'hash1': {
-            'name': 'Test #1',
-            'custom1': 'the-label',
-            'left_bytes': 0,
-            'ratio': 2,
-            'creation_date': datetime.now()
-        }
-    }
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           name='Test #1',
+                           left_bytes=0,
+                           custom1='the-label',
+                           ratio=2,
+                           creation_date=datetime.now() - timedelta(days=14))
+    ]
     assert runner.invoke(xirvik,
                          ('rtorrent', 'delete-old', '--label', 'the-label',
                           '--ignore-date', '-H', 'machine.com')).exit_code == 0
@@ -165,15 +165,14 @@ def test_delete_old_xmlrpc_fault(runner: CliRunner, mocker: MockerFixture,
                                  tmp_netrc: pathlib.Path):
     sleep_mock = mocker.patch('xirvik.commands.delete_old.sleep')
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
-    client_mock.return_value.list_torrents_dict.return_value = {
-        'hash1': {
-            'name': 'Test #1',
-            'custom1': 'the-label',
-            'left_bytes': 0,
-            'ratio': 2,
-            'creation_date': datetime.now() - timedelta(days=14)
-        }
-    }
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           name='Test #1',
+                           left_bytes=0,
+                           custom1='the-label',
+                           ratio=2,
+                           creation_date=datetime.now() - timedelta(days=14))
+    ]
     client_mock.return_value.delete.side_effect = _raise_fault
     assert runner.invoke(
         xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',
@@ -186,15 +185,14 @@ def test_delete_old_protocol_error(runner: CliRunner, mocker: MockerFixture,
                                    tmp_netrc: pathlib.Path):
     sleep_mock = mocker.patch('xirvik.commands.delete_old.sleep')
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
-    client_mock.return_value.list_torrents_dict.return_value = {
-        'hash1': {
-            'name': 'Test #1',
-            'custom1': 'the-label',
-            'left_bytes': 0,
-            'ratio': 2,
-            'creation_date': datetime.now() - timedelta(days=14)
-        }
-    }
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           name='Test #1',
+                           left_bytes=0,
+                           custom1='the-label',
+                           ratio=2,
+                           creation_date=datetime.now() - timedelta(days=14))
+    ]
     client_mock.return_value.delete.side_effect = _raise_protocol_error
     assert runner.invoke(
         xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',

@@ -2,14 +2,14 @@
 """Organise torrents based on labels assigned in ruTorrent."""
 from os.path import expanduser
 from time import sleep
-from typing import Any, Callable, Optional, Sequence, Tuple
+from typing import Callable, Optional, Sequence
 import sys
 
 from loguru import logger
 from requests.exceptions import HTTPError
 import click
 
-from xirvik.typing import TorrentDict
+from xirvik.typing import TorrentInfo
 
 from ..client import ruTorrentClient
 from .util import (command_with_config_file, common_options_and_arguments,
@@ -18,26 +18,23 @@ from .util import (command_with_config_file, common_options_and_arguments,
 PREFIX = '/torrents/{}/{}'
 
 
-def _base_path_check(
-        username: str, completed_dir: str,
-        lower_label: bool) -> Callable[[Tuple[Any, TorrentDict]], bool]:
+def _base_path_check(username: str, completed_dir: str,
+                     lower_label: bool) -> Callable[[TorrentInfo], bool]:
     def maybe_lower(x: str) -> str:
         if lower_label:
             return str.lower(x)
         return x
 
-    def bpc(hash_info: Tuple[Any, TorrentDict]) -> bool:
-        _, info = hash_info
-        return not info['base_path'].startswith(
+    def bpc(info: TorrentInfo) -> bool:
+        return not info.base_path.startswith(
             f'{PREFIX.format(username, completed_dir)}'
-            f'/{maybe_lower(info["custom1"] or "")}')
+            f'/{maybe_lower(info.custom1 or "")}')
 
     return bpc
 
 
-def _key_check(hash_info: Tuple[Any, TorrentDict]) -> bool:
-    _, info = hash_info
-    return not info['is_hash_checking'] and info['left_bytes'] == 0
+def _key_check(info: TorrentInfo) -> bool:
+    return not info.is_hash_checking and info.left_bytes == 0
 
 
 # pylint: disable=unused-argument
@@ -93,23 +90,22 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
     username = client.name
     assert username is not None
     try:
-        torrents = client.list_torrents_dict()
+        torrents = client.list_torrents()
     except (ValueError, HTTPError) as e:
         logger.error('Connection failed on list_torrents() call')
         raise click.Abort() from e
     count = 0
-    for hash_, info in (y
-                        for y in (x for x in torrents.items() if _key_check(x))
-                        if _base_path_check(username, completed_dir,
-                                            lower_label or False)(y)):
-        label = info['custom1']
+    for info in (y for y in (x for x in torrents if _key_check(x))
+                 if _base_path_check(username, completed_dir, lower_label
+                                     or False)(y)):
+        label = info.custom1
         if not label or label in ignore_labels:
             continue
         if lower_label:
             label = label.lower()
         move_to = f'{PREFIX.format(username, completed_dir)}/{label}'
-        logger.info(f'Moving {info["name"]} to {move_to}/')
-        client.move_torrent(hash_, move_to)
+        logger.info(f'Moving {info.name} to {move_to}/')
+        client.move_torrent(info.hash, move_to)
         count += 1
         if count > 0 and (count % 10) == 0:
             sleep(sleep_time)

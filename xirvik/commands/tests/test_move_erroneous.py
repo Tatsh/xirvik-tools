@@ -1,5 +1,7 @@
 """move-erroneous tests."""
+from datetime import datetime
 import pathlib
+from typing import NamedTuple, Optional
 
 from click.testing import CliRunner
 from pytest_mock import MockerFixture
@@ -15,6 +17,19 @@ def runner():
     return CliRunner()
 
 
+class MinimalTorrentDict(NamedTuple):
+    hash: str
+    custom1: Optional[str] = None
+    left_bytes: int = 0
+    name: str = ''
+    ratio: float = 0
+    creation_date: Optional[datetime] = None
+    state_changed: Optional[datetime] = None
+    is_hash_checking: bool = False
+    base_path: Optional[str] = None
+    message: str = ''
+
+
 def test_move_erroneous_normal(runner: CliRunner, mocker: MockerFixture,
                                tmp_path: pathlib.Path,
                                monkeypatch: pytest.MonkeyPatch):
@@ -23,22 +38,13 @@ def test_move_erroneous_normal(runner: CliRunner, mocker: MockerFixture,
     monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch(
         'xirvik.commands.move_erroneous.ruTorrentClient')
-    client_mock.return_value.list_torrents_dict.return_value = {
-        'hash1': {
-            'message': 'unregistered torrent',
-            'is_hash_checking': False,
-            'left_bytes': 0,
-            'custom1': 'anything',
-            'name': 'Test #1',
-        },
-        'hash2': {
-            'message': '',
-            'is_hash_checking': False,
-            'left_bytes': 0,
-            'custom1': 'anything',
-            'name': 'Test #1',
-        }
-    }
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           message='unregistered torrent',
+                           custom1='anything',
+                           name='Test #1'),
+        MinimalTorrentDict('hash2', custom1='anything', name='Test #1'),
+    ]
     assert runner.invoke(
         xirvik,
         ('rtorrent', 'move-erroneous', '-H', 'machine.com')).exit_code == 0
@@ -58,16 +64,14 @@ def test_move_erroneous_sleep(runner: CliRunner, mocker: MockerFixture,
     sleep_mock = mocker.patch('xirvik.commands.move_erroneous.sleep')
     client_mock = mocker.patch(
         'xirvik.commands.move_erroneous.ruTorrentClient')
-    ret = {}
+    ret = []
     for i in range(12):
-        ret[f'hash{i}'] = {
-            'message': 'unregistered torrent',
-            'is_hash_checking': False,
-            'left_bytes': 0,
-            'custom1': 'anything',
-            'name': f'Test #{i}',
-        }
-    client_mock.return_value.list_torrents_dict.return_value = ret
+        ret.append(
+            MinimalTorrentDict(f'hash{i}',
+                               message='unregistered torrent',
+                               name=f'Test #{i}',
+                               custom1='anything'))
+    client_mock.return_value.list_torrents.return_value = ret
     assert runner.invoke(
         xirvik,
         ('rtorrent', 'move-erroneous', '-H', 'machine.com')).exit_code == 0

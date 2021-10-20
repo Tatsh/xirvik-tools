@@ -13,20 +13,20 @@ from loguru import logger
 from requests.exceptions import HTTPError
 import click
 
-from xirvik.typing import TorrentDict
+from xirvik.typing import TorrentInfo
 
 from ..client import ruTorrentClient
 from .util import (command_with_config_file, common_options_and_arguments,
                    setup_log_intercept_handler)
 
-TestCallable = Callable[[TorrentDict], Tuple[str, bool]]
+TestCallable = Callable[[TorrentInfo], Tuple[str, bool]]
 TestsDict = Dict[str, Tuple[bool, TestCallable]]
 
 
 def _test_date_cb(days: int = 14) -> TestCallable:
-    def test_date(info: TorrentDict) -> Tuple[str, bool]:
-        condition1 = info.get('creation_date')
-        condition2 = info.get('state_changed')
+    def test_date(info: TorrentInfo) -> Tuple[str, bool]:
+        condition1 = info.creation_date
+        condition2 = info.state_changed
         expect = datetime.now() - timedelta(days=days)
         logger.debug(f'creation date: {condition1}')
         logger.debug(f'state changed: {condition2}')
@@ -41,9 +41,9 @@ def _test_date_cb(days: int = 14) -> TestCallable:
     return test_date
 
 
-def _test_ratio(info: TorrentDict) -> Tuple[str, bool]:
-    logger.debug(f'ratio: {info.get("ratio", 0.0):.2f}')
-    return 'ratio >= 1', info.get('ratio', 0.0) >= 1
+def _test_ratio(info: TorrentInfo) -> Tuple[str, bool]:
+    logger.debug(f'ratio: {info.ratio:.2f}')
+    return 'ratio >= 1', info.ratio >= 1
 
 
 @click.command(cls=command_with_config_file('config', 'delete-old'))
@@ -83,7 +83,7 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
                              max_retries=max_retries,
                              netrc_path=netrc or expanduser('~/.netrc'))
     try:
-        torrents = client.list_torrents_dict()
+        torrents = client.list_torrents()
     except HTTPError as e:
         logger.error('Connection failed on list_torrents() call')
         raise click.Abort() from e
@@ -93,8 +93,8 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
             ratio=(ignore_ratio, _test_ratio),
             date=(ignore_date, _test_date_cb(days)),
         ))
-    for hash_, info in torrents.items():
-        if info['left_bytes'] != 0 or info['custom1'] != label:
+    for info in torrents:
+        if info.left_bytes != 0 or info.custom1 != label:
             continue
         reason: Optional[str] = None
         can_delete = False
@@ -107,17 +107,17 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
             if can_delete:
                 break
         if not can_delete:
-            logger.info(f'Cannot delete {info["name"]}')
+            logger.info(f'Cannot delete {info.name}')
             continue
         if dry_run:
-            logger.info(f'Would delete {info["name"]}, reason: {reason}')
+            logger.info(f'Would delete {info.name}, reason: {reason}')
             continue
-        logger.info(f'Deleting {info["name"]}, reason: {reason}')
+        logger.info(f'Deleting {info.name}, reason: {reason}')
         attempts = 0
         while attempts < max_attempts:
             attempts += 1
             try:
-                client.delete(hash_)
+                client.delete(info.hash)
             except (xmlrpc.Fault, xmlrpc.ProtocolError):
                 sleep_time = backoff_factor * (2 ** (attempts - 1))
                 sleep(sleep_time)
