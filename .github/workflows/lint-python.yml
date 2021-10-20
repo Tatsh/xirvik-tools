@@ -25,7 +25,7 @@ jobs:
         name: Check spelling
         run: |
           npm install -g cspell
-          cspell --no-progress './**/*'  './**/.*'
+          cspell --no-progress --config ./.vscode/cspell.json './**/*'  './**/.*'
     strategy:
       matrix:
         python-version:
