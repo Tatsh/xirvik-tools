@@ -1,14 +1,8 @@
 """Typing helpers."""
 from datetime import datetime
-from typing import Callable, NamedTuple, Optional, TypeVar
+from typing import NamedTuple, Optional
 
-__all__ = ('Method0', 'Method1', 'TorrentInfo', 'TorrentTrackedFile')
-
-T = TypeVar('T')
-U = TypeVar('U')
-V = TypeVar('V')
-Method0 = Callable[[T], V]
-Method1 = Callable[[T, U], V]
+__all__ = ('TorrentInfo', 'TorrentTrackedFile')
 
 
 class TorrentInfo(NamedTuple):
