@@ -9,7 +9,7 @@ import pytest
 # pylint: disable=missing-function-docstring,protected-access,no-self-use
 # pylint: disable=redefined-outer-name,unused-argument
 
-if os.getenv('_PYTEST_RAISE', '0') != '0':
+if os.getenv('_PYTEST_RAISE', '0') != '0':  # pragma no cover
 
     @pytest.hookimpl(tryfirst=True)  # type: ignore[misc]
     def pytest_exception_interact(call: Any) -> NoReturn:
