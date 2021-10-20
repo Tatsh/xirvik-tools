@@ -15,7 +15,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 import requests
 
-from .typing import TorrentDict
+from .typing import TorrentDict, TorrentTrackedFile
 
 __all__ = (
     'LOG_NAME',
@@ -379,39 +379,34 @@ class ruTorrentClient:
         """
         self.set_label_to_hashes(hashes=[hash_], label=label)
 
-    def list_files(self, hash_: str) -> Iterator[Sequence[Union[int, str]]]:
+    def list_files(self, hash_: str) -> Iterator[TorrentTrackedFile]:
         """
         List files for a given torrent hash.
 
-        Returns a generator of lists with fields in this order:
+        Returns a generator of named tuples with fields (in this order):
         - name
         - total number of pieces
         - number of pieces downloaded
         - size in bytes
         - priority
         - download strategy
-        - ??? (some integer)
 
         Example use::
 
             for info in list_files():
-                for name, pieces, pieces_dl, size, dl_strategy, _ in info:
+                for name, pieces, pieces_dl, size, dl_strategy in info:
 
         Parameters
         ----------
         hash\\_ : str
             Hash of the torrent.
         """
-        commands: Union[str, Tuple[str, ...]] = (
-            quote('f.prioritize_first='),
-            quote('f.prioritize_last='),
-        )
-        query = f'mode=fls&hash={hash_}'.encode()
-        commands = '&'.join(f'cmd={x}' for x in commands)
-        query += b'&'
-        query += commands.encode()
         r = self._session.post(self.multirpc_action_uri,
-                               data=query,
+                               data=(f'mode=fls&hash={hash_}'.encode() + b'&' +
+                                     '&'.join(f'cmd={x}' for x in (
+                                         quote('f.prioritize_first='),
+                                         quote('f.prioritize_last='),
+                                     )).encode()),
                                auth=self.auth)
         r.raise_for_status()
         for x in r.json():
@@ -421,8 +416,8 @@ class ruTorrentClient:
             x[3] = int(x[3])  # size in bytes
             x[4] = int(x[4])  # priority ID
             x[5] = int(x[5])  # download strategy ID
-            x[6] = int(x[6])  # ??
-            yield x
+            # x[6] = int(x[6])  # ??
+            yield TorrentTrackedFile(*x[:6])
 
     def delete(self, hash_: str) -> None:
         """
