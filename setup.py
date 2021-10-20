@@ -18,7 +18,7 @@ class BuildDocumentationCommand(Command):
         pass
 
     def run(self) -> None:
-        sp.run(('sphinx-build', '-M', self.type, 'doc', 'build'), check=True)
+        sp.run(('sphinx-build', '-M', self.type, 'docs', 'build'), check=True)
 
 
 with open('README.md') as f:
