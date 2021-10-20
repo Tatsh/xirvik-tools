@@ -3,11 +3,9 @@ from cgi import parse_header
 from datetime import datetime
 from netrc import netrc
 from os.path import expanduser
-from typing import (Any, Dict, Final, Iterator, Mapping, Optional, Sequence,
-                    Tuple, Union, cast)
+from typing import Any, Dict, Final, Iterator, Optional, Tuple, cast
 from urllib.parse import quote
 import logging
-import re
 import xmlrpc.client as xmlrpc
 
 from cached_property import cached_property
@@ -15,7 +13,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 import requests
 
-from .typing import TorrentDict, TorrentTrackedFile
+from .typing import TorrentInfo, TorrentTrackedFile
 
 __all__ = (
     'LOG_NAME',
@@ -36,6 +34,7 @@ TORRENT_LABEL_INDEX = 14
 #: Index of the torrent information list that has the path
 TORRENT_PATH_INDEX: Final[int] = 25
 TORRENT_PIECE_SIZE_INDEX: Final[int] = 13
+TORRENT_INFO_LAST_INDEX: Final[int] = 34
 
 
 class UnexpectedruTorrentError(Exception):
@@ -146,112 +145,33 @@ class ruTorrentClient:
                 auth=self.auth,
                 files=dict(torrent_file=f)).raise_for_status()
 
-    def list_torrents(self) -> Mapping[str, Sequence[Any]]:
+    def list_torrents(self) -> Iterator[TorrentInfo]:
         """
-        List torrents as they come from ruTorrent.
+        Get all torrents information.
 
         Returns
         -------
-        Mapping[str, Sequence[Any]]
-            A dictionary with torrent hashes as the key. The values are lists
-            similar to the columns in ruTorrent's main view.
-
-        See Also
-        ========
-        xirvik.client.ruTorrentClient.list_torrents_dict
+        Iterator[TorrentInfo]
+            Series of named tuples.
         """
         r = self._session.post(self.multirpc_action_uri,
                                data=dict(mode='list', cmd='d.custom=addtime'),
                                auth=self.auth)
         r.raise_for_status()
-        ret = r.json()['t']
-        if isinstance(ret, list):
-            raise ValueError('Unexpected type from API')
-        return cast(Mapping[str, Sequence[Any]], ret)
-
-    def list_torrents_dict(self) -> Mapping[str, TorrentDict]:
-        """
-        Get all torrent information.
-
-        Returns
-        -------
-        Mapping[str, TorrentDict]
-            Dictionary of dictionaries with the hash of the torrent as the key.
-
-        See Also
-        ========
-        xirvik.typing.TorrentDict
-        """
-        fields = (
-            'is_open',
-            'is_hash_checking',
-            'is_hash_checked',
-            'state',
-            'name',
-            'size_bytes',
-            'completed_chunks',
-            'size_chunks',
-            'bytes_done',
-            'up_total',
-            'ratio',
-            'up_rate',
-            'down_rate',
-            'chunk_size',
-            'custom1',
-            'peers_accounted',
-            'peers_not_connected',
-            'peers_connected',
-            'peers_complete',
-            'left_bytes',
-            'priority',
-            'state_changed',
-            'skip_total',
-            'hashing',
-            'chunks_hashed',
-            'base_path',
-            'creation_date',
-            'tracker_focus',
-            'is_active',
-            'message',
-            'custom2',
-            'free_diskspace',
-            'is_private',
-            'is_multi_file',
-        )
-        ret: Dict[str, Dict[str, Any]] = {}
-        for hash_, torrent in self.list_torrents().items():
-            ret[hash_] = {}
-            value: Any
-            for i, value in enumerate(torrent):
-                try:
-                    if fields[i].startswith('is_') or fields[i] == 'hashing':
-                        value = value == '1'
-                    elif fields[i] == 'state_changed':
-                        value = datetime.fromtimestamp(float(value))
-                    elif fields[i] == 'creation_date':
-                        try:
-                            f_value: Optional[float] = float(value)
-                        except ValueError:
-                            f_value = None
-                        if f_value:
-                            value = datetime.fromtimestamp(float(f_value))
-                        else:
-                            value = None
-                    elif fields[i] == 'ratio':
-                        value = int(value) / 1000.0
-                    elif i not in (TORRENT_LABEL_INDEX, TORRENT_PATH_INDEX):
-                        re1 = r'^[0-9]+(\.[0-9]+)?'
-                        re2 = r'^\.[0-9]+'
-                        if re.match(re1, value) or re.match(re2, value):
-                            cons = int if "." not in value else float
-                            try:
-                                value = cons(value)
-                            except ValueError:
-                                value = None
-                    ret[hash_][fields[i]] = value
-                except IndexError:
-                    continue
-        return cast(Mapping[str, TorrentDict], ret)
+        ret = cast(Dict[str, Any], r.json()['t'])
+        types = list(TorrentInfo.__annotations__.items())[1:]
+        for hash_, x in ret.items():
+            for i, val in enumerate(x[:TORRENT_INFO_LAST_INDEX]):
+                if types[i][1] == bool:
+                    x[i] = bool(int(val))
+                elif getattr(types[i][1], '__args__', [None])[0] == datetime:
+                    try:
+                        x[i] = datetime.fromtimestamp(float(val))
+                    except ValueError:  # pragma no cover
+                        x[i] = None
+                else:
+                    x[i] = types[i][1](val)
+            yield TorrentInfo(hash_, *x[:TORRENT_INFO_LAST_INDEX])
 
     def get_torrent(self, hash_: str) -> Tuple[requests.Response, str]:
         """
@@ -352,8 +272,9 @@ class ruTorrentClient:
                                recursion_limit)
                 data = b'mode=setlabel'
                 new_hashes = []
-                for hash_, v in self.list_torrents().items():
-                    if hash_ in hashes or not v[TORRENT_LABEL_INDEX].strip():
+                for v in self.list_torrents():
+                    hash_ = v.hash
+                    if hash_ in hashes or not (v.custom1 or '').strip():
                         data += f'&hash={hash_}'.encode()
                         new_hashes.append(hash_)
                 if not new_hashes:

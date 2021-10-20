@@ -1,8 +1,8 @@
 """Typing helpers."""
 from datetime import datetime
-from typing import Callable, NamedTuple, Optional, TypedDict, TypeVar
+from typing import Callable, NamedTuple, Optional, TypeVar
 
-__all__ = ('Method0', 'Method1', 'TorrentDict')
+__all__ = ('Method0', 'Method1', 'TorrentInfo', 'TorrentTrackedFile')
 
 T = TypeVar('T')
 U = TypeVar('U')
@@ -11,75 +11,49 @@ Method0 = Callable[[T], V]
 Method1 = Callable[[T, U], V]
 
 
-class TorrentDict(TypedDict):
+class TorrentInfo(NamedTuple):
     """Torrent information."""
-    #: Path before the torrent directory or file.
-    base_path: str
-    #:
+    hash: str
+    is_open: bool
+    is_hash_checking: bool
+    is_hash_checked: bool
+    state: int
+    name: str
+    size_bytes: int
+    completed_chunks: int
+    size_chunks: int
     bytes_done: int
+    up_total: int
+    ratio: float
+    up_rate: int
+    down_rate: int
     #: Chunk size (usually a power of 2).
     chunk_size: int
-    #:
+    #: Usually contains the assigned label.
+    custom1: str
+    peers_accounted: int
+    peers_not_connected: int
+    peers_connected: int
+    peers_complete: int
+    left_bytes: int
+    priority: int
+    state_changed: Optional[datetime]
+    skip_total: int
+    hashing: bool
     chunks_hashed: int
-    #:
-    completed_chunks: int
+    #: Path before the torrent directory or file.
+    base_path: str
     #: Date torrent was added to the client. Can be ``None`` if this was not
     #: captured, or possibly due to a crash.
     creation_date: Optional[datetime]
-    #: Usually contains the assigned label.
-    custom1: str
-    #:
-    custom2: str
-    #:
-    down_rate: int
-    #:
-    free_diskspace: int
-    #:
-    hashing: bool
-    #:
-    is_active: int
-    #:
-    is_hash_checked: bool
-    #:
-    is_hash_checking: bool
-    #:
-    is_multi_file: bool
-    #: Unknown.
-    is_open: bool
-    #:
-    is_private: bool
-    #:
-    left_bytes: int
+    tracker_focus: int
+    is_active: bool
     #: Message from the server.
     message: str
-    #:
-    name: str
-    #:
-    peers_accounted: int
-    #:
-    peers_connected: int
-    #:
-    peers_not_connected: int
-    #:
-    priority: int
-    #:
-    ratio: float
-    #:
-    size_bytes: int
-    #:
-    size_chunks: int
-    #:
-    skip_total: int
-    #:
-    state: int
-    #:
-    state_changed: datetime
-    #:
-    tracker_focus: int
-    #:
-    up_rate: int
-    #:
-    up_total: int
+    custom2: str
+    free_diskspace: int
+    is_private: bool
+    is_multi_file: bool
 
 
 class TorrentTrackedFile(NamedTuple):
