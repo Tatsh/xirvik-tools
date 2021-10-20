@@ -1,4 +1,6 @@
 """move-erroneous tests."""
+# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=redefined-outer-name,missing-class-docstring
 from datetime import datetime
 import pathlib
 from typing import NamedTuple, Optional
@@ -8,13 +10,6 @@ from pytest_mock import MockerFixture
 import pytest
 
 from ..root import xirvik
-
-# pylint: disable=missing-function-docstring,protected-access,no-self-use,redefined-outer-name
-
-
-@pytest.fixture()
-def runner():
-    return CliRunner()
 
 
 class MinimalTorrentDict(NamedTuple):

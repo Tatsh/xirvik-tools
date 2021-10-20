@@ -1,12 +1,12 @@
 """Tests for xirvik.commands.util.command_with_config_file."""
+# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=redefined-outer-name,unused-argument
 import warnings
 
 from click.core import ParameterSource
 from pytest_mock.plugin import MockerFixture
 
 from ..util import command_with_config_file
-
-# pylint: disable=missing-function-docstring,protected-access,no-self-use,redefined-outer-name,unused-argument
 
 
 def test_no_file(mocker: MockerFixture):

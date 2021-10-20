@@ -1,4 +1,6 @@
 """Command line interface tests."""
+# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=redefined-outer-name
 from os.path import expanduser
 import pathlib
 
@@ -7,13 +9,6 @@ import pytest
 import requests_mock as req_mock
 
 from ..root import xirvik
-
-# pylint: disable=missing-function-docstring,protected-access,no-self-use,redefined-outer-name
-
-
-@pytest.fixture()
-def runner():
-    return CliRunner()
 
 
 def test_fix_rtorrent(requests_mock: req_mock.Mocker, runner: CliRunner):

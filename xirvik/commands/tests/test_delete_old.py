@@ -1,43 +1,17 @@
 """delete-old tests."""
+# pylint: disable=missing-class-docstring,missing-function-docstring
+# pylint: disable=protected-access,no-self-use,redefined-outer-name
+# pylint: disable=unused-argument
 from datetime import datetime, timedelta
-from typing import Any, NamedTuple, NoReturn, Optional
+from typing import NamedTuple, Optional
 import pathlib
 import xmlrpc.client as xmlrpc
 
 from click.testing import CliRunner
 from pytest_mock import MockerFixture
 from requests.exceptions import HTTPError
-import pytest
 
 from ..root import xirvik
-
-# pylint: disable=missing-function-docstring,protected-access,no-self-use,redefined-outer-name,unused-argument
-
-
-@pytest.fixture()
-def runner() -> CliRunner:
-    return CliRunner()
-
-
-def _raise_http_error(*args: Any, **kwargs: Any) -> NoReturn:
-    raise HTTPError()
-
-
-def _raise_fault(*args: Any, **kwargs: Any) -> NoReturn:
-    raise xmlrpc.Fault(200, 'ss')
-
-
-def _raise_protocol_error(*args: Any, **kwargs: Any) -> NoReturn:
-    raise xmlrpc.ProtocolError('https://machine.com', 500, 'ss', {})
-
-
-@pytest.fixture()
-def tmp_netrc(tmp_path: pathlib.Path,
-              monkeypatch: pytest.MonkeyPatch) -> pathlib.Path:
-    netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
-    monkeypatch.setenv('HOME', str(tmp_path))
-    return netrc
 
 
 class MinimalTorrentDict(NamedTuple):
@@ -53,7 +27,7 @@ class MinimalTorrentDict(NamedTuple):
 def test_delete_old_list_torrents_fail(
         runner: CliRunner, mocker: MockerFixture, tmp_netrc: pathlib.Path):
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
-    client_mock.return_value.list_torrents.side_effect = _raise_http_error
+    client_mock.return_value.list_torrents.side_effect = HTTPError
     assert runner.invoke(
         xirvik, ('rtorrent', 'delete-old', '-H', 'machine.com')).exit_code != 0
 
@@ -173,7 +147,7 @@ def test_delete_old_xmlrpc_fault(runner: CliRunner, mocker: MockerFixture,
                            ratio=2,
                            creation_date=datetime.now() - timedelta(days=14))
     ]
-    client_mock.return_value.delete.side_effect = _raise_fault
+    client_mock.return_value.delete.side_effect = xmlrpc.Fault(200, 'ss')
     assert runner.invoke(
         xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',
                  '--max-attempts', '3', '-H', 'machine.com')).exit_code == 0
@@ -193,7 +167,8 @@ def test_delete_old_protocol_error(runner: CliRunner, mocker: MockerFixture,
                            ratio=2,
                            creation_date=datetime.now() - timedelta(days=14))
     ]
-    client_mock.return_value.delete.side_effect = _raise_protocol_error
+    client_mock.return_value.delete.side_effect = xmlrpc.ProtocolError(
+        'https://machine.com', 500, 'ss', {})
     assert runner.invoke(
         xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',
                  '--max-attempts', '3', '-H', 'machine.com')).exit_code == 0

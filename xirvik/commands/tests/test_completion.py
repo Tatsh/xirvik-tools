@@ -1,10 +1,10 @@
 """Command line completion tests."""
+# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=redefined-outer-name
 import pathlib
 import pytest
 
 from ..util import complete_hosts, complete_ports
-
-# pylint: disable=missing-function-docstring,protected-access,no-self-use,redefined-outer-name
 
 
 def test_complete_hosts_blank(tmp_path: pathlib.Path,

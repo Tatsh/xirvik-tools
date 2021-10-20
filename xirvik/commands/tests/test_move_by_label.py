@@ -1,4 +1,6 @@
 """move-by-label tests."""
+# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=redefined-outer-name,missing-class-docstring
 from datetime import datetime
 import pathlib
 from typing import NamedTuple, Optional
@@ -9,21 +11,6 @@ from requests.exceptions import HTTPError
 import pytest
 
 from ..root import xirvik
-
-# pylint: disable=missing-function-docstring,protected-access,no-self-use,redefined-outer-name
-
-
-@pytest.fixture()
-def runner():
-    return CliRunner()
-
-
-def _raise_http_error():
-    raise HTTPError()
-
-
-def _raise_value_error():
-    raise ValueError()
 
 
 class MinimalTorrentDict(NamedTuple):
@@ -45,11 +32,11 @@ def test_list_torrents_fail(runner: CliRunner, mocker: MockerFixture,
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
-    client_mock.return_value.list_torrents.side_effect = _raise_http_error
+    client_mock.return_value.list_torrents.side_effect = HTTPError
     assert runner.invoke(
         xirvik,
         ('rtorrent', 'move-by-label', '-H', 'machine.com')).exit_code != 0
-    client_mock.return_value.list_torrents.side_effect = _raise_value_error
+    client_mock.return_value.list_torrents.side_effect = ValueError()
     assert runner.invoke(
         xirvik,
         ('rtorrent', 'move-by-label', '-H', 'machine.com')).exit_code != 0
