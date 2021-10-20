@@ -1,10 +1,10 @@
 .coverage
+.directory
 /.pytest_cache/
 /.vscode/.ropeproject/objectdb
 /.vscode/settings.json
 /bin/
 /build/
 /dist/
-/doc/_build/
 /htmlcov/
 MANIFEST
