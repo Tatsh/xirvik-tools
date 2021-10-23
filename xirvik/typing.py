@@ -63,6 +63,8 @@ class TorrentInfo(NamedTuple):
     free_diskspace: int
     is_private: bool
     is_multi_file: bool
+    # unk1: str
+    finished: Optional[datetime]
 
 
 class FilePriority(IntEnum):
