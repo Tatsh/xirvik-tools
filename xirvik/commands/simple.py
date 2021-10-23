@@ -7,6 +7,7 @@ from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
 from tempfile import mkstemp
 from typing import Any, Iterator, NoReturn, Optional, Sequence, Union, cast
+import json
 import logging
 import signal
 import socket
@@ -21,7 +22,7 @@ import click
 import requests
 
 from xirvik.client import ruTorrentClient
-from xirvik.typing import TorrentInfo
+from xirvik.typing import TorrentInfo, TorrentTrackedFile
 
 from .util import (command_with_config_file, complete_hosts, complete_ports,
                    setup_log_intercept_handler)
@@ -314,7 +315,7 @@ def fix_rtorrent(host: str,
 @click.option('-I', '--no-headers', is_flag=True)
 @click.option('-F',
               '--table-format',
-              type=click.Choice(tabulate_formats),
+              type=click.Choice(tabulate_formats + ['json']),
               default='plain')
 @click.option('-S',
               '--sort',
@@ -350,8 +351,77 @@ def list_torrents(host: str,
         torrents = sorted(torrents, key=sorter)
     if reverse_order:
         torrents = reversed(list(torrents))
-    click.echo_via_pager(
-        tabulate(((t.hash, t.name, t.custom1, t.finished) for t in torrents),
-                 headers=() if no_headers else
-                 ('Hash', 'Name', 'Label', 'Finished'),
-                 tablefmt=table_format))
+    if table_format in tabulate_formats:
+        click.echo_via_pager(
+            tabulate(
+                ((t.hash, t.name, t.custom1, t.finished) for t in torrents),
+                headers=() if no_headers else
+                ('Hash', 'Name', 'Label', 'Finished'),
+                tablefmt=table_format))
+    elif table_format == 'json':
+        click.echo(
+            json.dumps([
+                dict(hash=x.hash,
+                     name=x.name,
+                     label=x.custom1,
+                     finished=x.finished.isoformat() if x.finished else None,
+                     base_path=x.base_path) for x in torrents
+            ]))
+
+
+@click.command(cls=command_with_config_file('config', 'list-files'))
+@click.option('-H',
+              '--host',
+              help='Xirvik host (without protocol)',
+              shell_complete=complete_hosts)
+@click.option('-C', '--config', help='Configuration file')
+@click.option('-p',
+              '--port',
+              type=int,
+              default=443,
+              shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+@click.option('-I', '--no-headers', is_flag=True)
+@click.option('-F',
+              '--table-format',
+              type=click.Choice(tabulate_formats + ['json']),
+              default='plain')
+@click.option('-S',
+              '--sort',
+              type=click.Choice(('name', 'size', 'priority')),
+              default='name')
+@click.option('-R', '--reverse-order', is_flag=True)
+@click.argument('hash')
+def list_files(
+        hash: str,  # pylint: disable=redefined-builtin
+        host: str,
+        port: int,
+        debug: bool = False,
+        config: Optional[str] = None,
+        no_headers: bool = False,
+        table_format: str = 'plain',
+        sort: Optional[str] = None,
+        reverse_order: Optional[bool] = None) -> None:
+    """List a torrent's files in a given format."""
+    if debug:  # pragma: no cover
+        setup_log_intercept_handler()
+        logger.enable('')
+    else:
+        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    files = cast(
+        Union[Iterator[TorrentTrackedFile], Sequence[TorrentTrackedFile]],
+        ruTorrentClient(host).list_files(hash))
+    if sort:
+        files = sorted(files, key=lambda x: getattr(x, sort))
+    if reverse_order:
+        files = reversed(list(files))
+    if table_format in tabulate_formats:
+        click.echo_via_pager(
+            tabulate(((f.name, f.size_bytes, f.downloaded_pieces,
+                       f.number_of_pieces, str(f.priority_id)) for f in files),
+                     headers=() if no_headers else
+                     ('Name', 'Size', 'Downloaded Pieces', 'Number of Pieces',
+                      'Priority ID'),
+                     tablefmt=table_format))
+    elif table_format == 'json':
+        click.echo(json.dumps([x._asdict() for x in files]))
