@@ -33,7 +33,7 @@ def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
     raise SystemExit('Signal raised')
 
 
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument,too-many-arguments
 
 
 @click.command(cls=command_with_config_file('config', 'add-torrents'))
