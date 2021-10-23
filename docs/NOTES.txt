@@ -1,2 +1,0 @@
-hard power off - https://HOST/userpanel/index.php/virtual_machine/poweroff
-start - https://HOST/userpanel/index.php/services/start/plex_vm
