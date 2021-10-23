@@ -19,24 +19,12 @@ from .typing import (FileDownloadStrategy, FilePriority, TorrentInfo,
 
 __all__ = (
     'LOG_NAME',
-    'TORRENT_PATH_INDEX',
     'UnexpectedruTorrentError',
     'ruTorrentClient',
 )
 
 #: Name used in logger.
 LOG_NAME: Final[str] = 'xirvik.rutorrent'
-TORRENT_FILE_DOWNLOAD_STRATEGY_LEADING_CHUNK_FIRST: Final[int] = 1
-TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL: Final[int] = 0
-TORRENT_FILE_DOWNLOAD_STRATEGY_TRAILING_CHUNK_FIRST: Final[int] = 2
-TORRENT_FILE_PRIORITY_DO_NOT_DOWNLOAD: Final[int] = 0
-TORRENT_FILE_PRIORITY_HIGH: Final[int] = 2
-TORRENT_FILE_PRIORITY_NORMAL: Final[int] = 1
-TORRENT_LABEL_INDEX = 14
-#: Index of the torrent information list that has the path
-TORRENT_PATH_INDEX: Final[int] = 25
-TORRENT_PIECE_SIZE_INDEX: Final[int] = 13
-TORRENT_INFO_LAST_INDEX: Final[int] = 34
 
 
 class UnexpectedruTorrentError(Exception):
@@ -157,24 +145,29 @@ class ruTorrentClient:
             Series of named tuples.
         """
         r = self._session.post(self.multirpc_action_uri,
-                               data=dict(mode='list', cmd='d.custom=addtime'),
+                               data=dict(mode='list',
+                                         cmd='d.custom=seedingtime'),
                                auth=self.auth)
         r.raise_for_status()
         for hash_, x in cast(Dict[str, List[Any]], r.json()['t']).items():
+            del x[34]  # Delete unknown field
             for i, (type_cls, val) in enumerate(
                     zip((t[1]
                          for t in list(TorrentInfo.__annotations__.items())[1:]
-                         ), x[:TORRENT_INFO_LAST_INDEX])):
+                         ), (y.strip() for y in x))):
                 if getattr(type_cls, '__args__', [None])[0] == datetime:
                     try:
-                        x[i] = datetime.fromtimestamp(float(val))
+                        x[i] = datetime.fromtimestamp(float(val or '0'))
+                        # First year xirvik.com existed
+                        if x[i].year < 2009:
+                            x[i] = None
                     except ValueError:  # pragma no cover
                         x[i] = None
                 elif type_cls == bool or issubclass(type_cls, IntEnum):
                     x[i] = type_cls(int(val))
                 else:
                     x[i] = type_cls(val)
-            yield TorrentInfo(hash_, *x[:TORRENT_INFO_LAST_INDEX])
+            yield TorrentInfo(hash_, *x)
 
     def get_torrent(self, hash_: str) -> Tuple[requests.Response, str]:
         """
