@@ -1,11 +1,12 @@
 """Mirror (copy data from remote to local) helper."""
 from base64 import b64encode
+from datetime import datetime
 from logging.handlers import SysLogHandler
 from os import close as close_fd, listdir, makedirs, remove as rm
 from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
 from tempfile import mkstemp
-from typing import Any, NoReturn, Optional
+from typing import Any, Iterator, NoReturn, Optional, Sequence, Union, cast
 import logging
 import signal
 import socket
@@ -14,10 +15,13 @@ import sys
 from bs4 import BeautifulSoup as Soup
 from loguru import logger
 from requests.exceptions import HTTPError
-from tabulate import tabulate
+from tabulate import tabulate, tabulate_formats
 from unidecode import unidecode
 import click
 import requests
+
+from xirvik.client import ruTorrentClient
+from xirvik.typing import TorrentInfo
 
 from .util import (command_with_config_file, complete_hosts, complete_ports,
                    setup_log_intercept_handler)
@@ -293,3 +297,61 @@ def fix_rtorrent(host: str,
         r.raise_for_status()
     except HTTPError as e:
         raise click.Abort() from e
+
+
+@click.command(cls=command_with_config_file('config', 'list-torrents'))
+@click.option('-H',
+              '--host',
+              help='Xirvik host (without protocol)',
+              shell_complete=complete_hosts)
+@click.option('-C', '--config', help='Configuration file')
+@click.option('-p',
+              '--port',
+              type=int,
+              default=443,
+              shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+@click.option('-I', '--no-headers', is_flag=True)
+@click.option('-F',
+              '--table-format',
+              type=click.Choice(tabulate_formats),
+              default='plain')
+@click.option('-S',
+              '--sort',
+              type=click.Choice(('name', 'hash', 'label', 'creation_date',
+                                 'state_changed', 'finished')))
+@click.option('-R', '--reverse-order', is_flag=True)
+def list_torrents(host: str,
+                  port: int,
+                  debug: bool = False,
+                  config: Optional[str] = None,
+                  no_headers: bool = False,
+                  table_format: str = 'plain',
+                  sort: Optional[str] = None,
+                  reverse_order: Optional[bool] = None) -> None:
+    """List torrents in a given format."""
+    def sorter(x: TorrentInfo) -> Any:
+        assert sort is not None
+        val = getattr(x, sort)
+        if val is None:
+            if sort in ('finished', 'creation_date', 'state_changed'):
+                return datetime.min
+            return ''
+        return val
+
+    if debug:  # pragma: no cover
+        setup_log_intercept_handler()
+        logger.enable('')
+    else:
+        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    torrents = cast(Union[Iterator[TorrentInfo], Sequence[TorrentInfo]],
+                    ruTorrentClient(host).list_torrents())
+    if sort:
+        torrents = sorted(torrents, key=sorter)
+    if reverse_order:
+        torrents = reversed(list(torrents))
+    click.echo_via_pager(
+        tabulate(((t.hash, t.name, t.custom1, t.finished) for t in torrents),
+                 headers=() if no_headers else
+                 ('Hash', 'Name', 'Label', 'Finished'),
+                 tablefmt=table_format))
