@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import IntEnum
 from netrc import netrc
 from os.path import expanduser
-from typing import Any, Dict, Final, Iterator, Optional, Tuple, cast
+from typing import Any, Dict, Final, Iterator, List, Optional, Tuple, cast
 from urllib.parse import quote
 import logging
 import xmlrpc.client as xmlrpc
@@ -160,21 +160,20 @@ class ruTorrentClient:
                                data=dict(mode='list', cmd='d.custom=addtime'),
                                auth=self.auth)
         r.raise_for_status()
-        ret = cast(Dict[str, Any], r.json()['t'])
-        types = list(TorrentInfo.__annotations__.items())[1:]
-        for hash_, x in ret.items():
-            for i, val in enumerate(x[:TORRENT_INFO_LAST_INDEX]):
-                if types[i][1] == bool:
-                    x[i] = bool(int(val))
-                elif getattr(types[i][1], '__args__', [None])[0] == datetime:
+        for hash_, x in cast(Dict[str, List[Any]], r.json()['t']).items():
+            for i, (type_cls, val) in enumerate(
+                    zip((t[1]
+                         for t in list(TorrentInfo.__annotations__.items())[1:]
+                         ), x[:TORRENT_INFO_LAST_INDEX])):
+                if getattr(type_cls, '__args__', [None])[0] == datetime:
                     try:
                         x[i] = datetime.fromtimestamp(float(val))
                     except ValueError:  # pragma no cover
                         x[i] = None
-                elif issubclass(types[i][1], IntEnum):
-                    x[i] = types[i][1](int(val))
+                elif type_cls == bool or issubclass(type_cls, IntEnum):
+                    x[i] = type_cls(int(val))
                 else:
-                    x[i] = types[i][1](val)
+                    x[i] = type_cls(val)
             yield TorrentInfo(hash_, *x[:TORRENT_INFO_LAST_INDEX])
 
     def get_torrent(self, hash_: str) -> Tuple[requests.Response, str]:
