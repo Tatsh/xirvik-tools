@@ -54,6 +54,7 @@ setslice
 setuptools
 standarderror
 subclassing
+tablefmt
 tadd
 tatsh
 tbody
