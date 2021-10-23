@@ -10,9 +10,8 @@ from requests.exceptions import HTTPError
 import pytest
 import requests_mock as req_mock
 
-from xirvik.client import (TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL,
-                           TORRENT_FILE_PRIORITY_NORMAL,
-                           UnexpectedruTorrentError, ruTorrentClient)
+from xirvik.client import UnexpectedruTorrentError, ruTorrentClient
+from xirvik.typing import FileDownloadStrategy, FilePriority
 
 # pylint: disable=missing-function-docstring,protected-access,no-self-use
 
@@ -74,7 +73,7 @@ def test_list_torrents(requests_mock: req_mock.Mocker):
                 'hash here': [
                     '1', '0', '1', '1', 'name of torrent?', '1000', '1',
                     '1024', '1000', '0', '0.14', '0', '0', '512', 'label'
-                ] + (19 * ['0']),
+                ] + (20 * ['0']) + ['1633423132\n'],
             },
             cid=92385,
         ))
@@ -110,8 +109,8 @@ def test_list_files(requests_mock: req_mock.Mocker):
     assert files[0][1] == 14
     assert files[0][2] == 13
     assert files[0][3] == 8192
-    assert TORRENT_FILE_PRIORITY_NORMAL == files[0][4]
-    assert TORRENT_FILE_DOWNLOAD_STRATEGY_NORMAL == files[0][5]
+    assert FilePriority.NORMAL == files[0][4]
+    assert FileDownloadStrategy.NORMAL == files[0][5]
 
 
 def test_set_label_to_hashes_bad_args():
@@ -140,15 +139,15 @@ def test_set_label_to_hashes_recursion_limit_5(requests_mock: req_mock.Mocker):
             'hash1': [
                 '1', '0', '1', '1', 'torrent name', '250952849', '958', '958',
                 '250952849', '357999402', '1426', '0', '0', '262144', ''
-            ] + (19 * ['0']),
+            ] + (20 * ['0']) + ['1633423132\n'],
             'hash2': [
                 '1', '0', '1', '1', 'torrent name2', '250952849', '958', '958',
                 '250952849', '357999402', '1426', '0', '0', '262144', ''
-            ] + (19 * ['0']),
+            ] + (20 * ['0']) + ['1633423132\n'],
             'hash3': [
                 '1', '0', '1', '1', 'torrent name2', '250952849', '958', '958',
                 '250952849', '357999402', '1426', '0', '0', '262144', ''
-            ] + (19 * ['0']),
+            ] + (20 * ['0']) + ['1633423132\n'],
         },
         cid=92983,
     )
@@ -175,7 +174,7 @@ def test_set_label(requests_mock: req_mock.Mocker):
         t=dict(hash1=[
             '1', '0', '1', '1', 'torrent name', '250952849', '958', '958',
             '250952849', '357999402', '1426', '0', '0', '262144', 'a label'
-        ] + (19 * ['0'])),
+        ] + (20 * ['0']) + ['1633423132\n']),
         cid=92983,
     )
     responses = cast(List[Dict[str, Any]], [
