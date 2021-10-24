@@ -225,7 +225,8 @@ class ruTorrentClient:
 
         Example use::
 
-            client.set_labels(hashes=[hash_1, hash_2], label='my new label')
+            client.set_labels(hashes=[hash_1, hash_2],
+                              label='my new label')
         """
         # The way to set a label to multiple torrents is to specify the hashes
         # using hash=, then the v parameter as many times as there are hashes,
