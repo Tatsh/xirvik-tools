@@ -101,5 +101,7 @@ class TorrentTrackedFile(NamedTuple):
     number_of_pieces: int
     downloaded_pieces: int
     size_bytes: int
+    #: Download priority.
     priority_id: FilePriority
+    #: Download strategy.
     download_strategy_id: FileDownloadStrategy
