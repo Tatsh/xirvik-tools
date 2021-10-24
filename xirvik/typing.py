@@ -8,15 +8,21 @@ __all__ = ('HashingState', 'State', 'TorrentInfo', 'TorrentTrackedFile')
 
 class HashingState(IntEnum):
     """Hashing state of the torrent."""
+    #:
     NOT_HASHING = 0
+    #:
     FIRST_HASH_CHECK = 1
+    #:
     HASHING = 2
+    #:
     REHASHING = 3
 
 
 class State(IntEnum):
     """State of the torrent."""
+    #:
     STOPPED = 0
+    #:
     STARTED_OR_PAUSED = 1
 
 
@@ -72,8 +78,11 @@ class FilePriority(IntEnum):
     Single file priority. These are based on ruTorrent's code, not
     rTorrent's.
     """
+    #:
     DO_NOT_DOWNLOAD = 0
+    #:
     NORMAL = 1
+    #:
     HIGH = 2
 
 
@@ -81,6 +90,7 @@ class FileDownloadStrategy(IntEnum):
     """Single file download strategy."""
     #: Also known as 'trailing chunk first'.
     NORMAL = 0
+    #:
     LEADING_CHUNK_FIRST = 1
 
 
