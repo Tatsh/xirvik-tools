@@ -310,8 +310,8 @@ class ruTorrentClient:
 
         Example use::
 
-            for info in list_files():
-                for name, pieces, pieces_dl, size, dl_strategy in info:
+            for name, pieces, pieces_dl, size, priority, dl_strat in \\
+                client.list_files():
 
         Parameters
         ----------
