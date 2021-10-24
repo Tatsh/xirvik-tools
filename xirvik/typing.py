@@ -3,7 +3,8 @@ from enum import IntEnum
 from datetime import datetime
 from typing import NamedTuple, Optional
 
-__all__ = ('HashingState', 'State', 'TorrentInfo', 'TorrentTrackedFile')
+__all__ = ('FilePriority', 'FileDownloadStrategy', 'HashingState', 'State',
+           'TorrentInfo', 'TorrentTrackedFile')
 
 
 class HashingState(IntEnum):
