@@ -3,7 +3,6 @@
 from os.path import expanduser
 from time import sleep
 from typing import Callable, Optional, Sequence
-import sys
 
 from loguru import logger
 from requests.exceptions import HTTPError
@@ -13,7 +12,7 @@ from xirvik.typing import TorrentInfo
 
 from ..client import ruTorrentClient
 from .util import (command_with_config_file, common_options_and_arguments,
-                   setup_log_intercept_handler)
+                   setup_logging)
 
 PREFIX = '/torrents/{}/{}'
 
@@ -72,11 +71,7 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
         backoff_factor: int = 1,
         config: Optional[str] = None) -> None:
     """Move torrents according to labels assigned."""
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    setup_logging()
     logger.debug(f'Host: {host}')
     logger.debug(f'Configuration file: {config}')
     logger.debug(f'Use lowercase labels: {lower_label}')

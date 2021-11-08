@@ -11,7 +11,6 @@ import json
 import logging
 import signal
 import socket
-import sys
 
 from bs4 import BeautifulSoup as Soup
 from loguru import logger
@@ -25,7 +24,7 @@ from xirvik.client import ruTorrentClient
 from xirvik.typing import TorrentInfo, TorrentTrackedFile
 
 from .util import (command_with_config_file, complete_hosts, complete_ports,
-                   setup_log_intercept_handler)
+                   setup_logging)
 
 
 def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
@@ -62,14 +61,10 @@ def start_torrents(host: str,
                    config: Optional[str] = None) -> None:
     """Uploads torrent files to the server."""
     signal.signal(signal.SIGINT, _ctrl_c_handler)
+    setup_logging()
     cache_dir = realpath(expanduser('~/.cache/xirvik'))
     if not isdir(cache_dir):
         makedirs(cache_dir)
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(sink=sys.stdout, format='{message}')])
     if syslog:  # pragma: no cover
         try:
             syslog_handle = SysLogHandler(address='/dev/log')
@@ -138,11 +133,7 @@ def list_ftp_users(host: str,
                    debug: bool = False,
                    config: Optional[str] = None) -> None:
     """Lists FTP users."""
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    setup_logging(debug)
     r = requests.get(f'https://{host}:{port:d}/userpanel/index.php/ftp_users')
     try:
         r.raise_for_status()
@@ -179,11 +170,7 @@ def add_ftp_user(host: str,
                  debug: bool = False,
                  config: Optional[str] = None) -> None:
     """Adds an FTP user."""
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    setup_logging(debug)
     uri = (f'https://{host}:{port:d}/userpanel/index.php/'
            'ftp_users/add_user')
     rootdir = root_directory if root_directory.startswith(
@@ -219,11 +206,7 @@ def delete_ftp_user(host: str,
                     debug: bool = False,
                     config: Optional[str] = None) -> None:
     """Deletes an FTP user."""
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    setup_logging(debug)
     user = b64encode(username.encode()).decode()
     uri = (f'https://{host}:{port:d}/userpanel/index.php/ftp_users/'
            f'delete/{user}')
@@ -251,11 +234,7 @@ def authorize_ip(host: str,
                  debug: bool = False,
                  config: Optional[str] = None) -> None:
     """Authorises the current IP for access to the VM via SSH/VNC/RDP."""
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    setup_logging(debug)
     uri = (f'https://{host}:{port:d}/userpanel/index.php/virtual_machine/'
            'authorize_ip')
     r = requests.get(uri)
@@ -285,11 +264,7 @@ def fix_rtorrent(host: str,
     Restarts the rtorrent service in case ruTorrent cannot connect to it. Not
     guaranteed to fix anything!
     """
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    setup_logging(debug)
     logger.info('No guarantees this will work!')
     uri = (f'https://{host}:{port:d}/userpanel/index.php/services/'
            'restart/rtorrent')
@@ -340,11 +315,7 @@ def list_torrents(host: str,
             return ''
         return val
 
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    setup_logging(debug)
     torrents = cast(Union[Iterator[TorrentInfo], Sequence[TorrentInfo]],
                     ruTorrentClient(host).list_torrents())
     if sort:
@@ -403,11 +374,7 @@ def list_files(
         sort: Optional[str] = None,
         reverse_order: Optional[bool] = None) -> None:
     """List a torrent's files in a given format."""
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    setup_logging(debug)
     files = cast(
         Union[Iterator[TorrentTrackedFile], Sequence[TorrentTrackedFile]],
         ruTorrentClient(host).list_files(hash))

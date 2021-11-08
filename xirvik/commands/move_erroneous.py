@@ -1,7 +1,6 @@
 """Move torrents in error state to another location."""
 from time import sleep
 from typing import Any, Final, Iterable, List, Optional, Tuple, TypeVar
-import sys
 
 from loguru import logger
 import click
@@ -9,7 +8,7 @@ import click
 from ..client import ruTorrentClient
 from ..typing import TorrentInfo
 from .util import (command_with_config_file, common_options_and_arguments,
-                   setup_log_intercept_handler)
+                   setup_logging)
 
 __all__ = ('main',)
 
@@ -57,11 +56,7 @@ def main(
     **kwargs: Any,
 ) -> None:
     """Move torrents in error state to another location."""
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    setup_logging()
     client = ruTorrentClient(host,
                              name=username,
                              password=password,

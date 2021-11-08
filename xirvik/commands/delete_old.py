@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from os.path import expanduser
 from time import sleep
 from typing import Callable, Dict, Optional, Tuple, cast
-import sys
 import xmlrpc.client as xmlrpc
 
 from loguru import logger
@@ -17,7 +16,7 @@ from xirvik.typing import TorrentInfo
 
 from ..client import ruTorrentClient
 from .util import (command_with_config_file, common_options_and_arguments,
-                   setup_log_intercept_handler)
+                   setup_logging)
 
 TestCallable = Callable[[TorrentInfo], Tuple[str, bool]]
 TestsDict = Dict[str, Tuple[bool, TestCallable]]
@@ -72,11 +71,7 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
         sleep_time: int = 10,
         config: Optional[str] = None) -> None:
     """Delete torrents based on certain criteria."""
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=[dict(level='INFO', sink=sys.stderr)])
+    setup_logging()
     client = ruTorrentClient(host,
                              name=username,
                              password=password,
