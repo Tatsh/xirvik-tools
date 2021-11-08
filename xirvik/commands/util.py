@@ -17,7 +17,20 @@ import xdg
 import yaml
 
 __all__ = ('common_options_and_arguments', 'complete_hosts', 'complete_ports',
-           'setup_log_intercept_handler')
+           'setup_log_intercept_handler', 'setup_logging')
+
+
+def setup_logging(debug: Optional[bool] = False) -> None:
+    """Shared function to enable logging."""
+    if debug:  # pragma: no cover
+        setup_log_intercept_handler()
+        logger.enable('')
+    else:
+        logger.configure(handlers=(dict(
+            format='<level>{message}</level>',
+            level='INFO',
+            sink=sys.stderr,
+        ),))
 
 
 def common_options_and_arguments(
