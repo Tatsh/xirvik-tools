@@ -173,7 +173,7 @@ def command_with_config_file(
             try:
                 with open(config_file_path) as f:
                     config_data = yaml.safe_load(f)
-            except FileNotFoundError:
+            except FileNotFoundError:  # pragma no cover
                 pass
             if isinstance(config_data, dict):
                 alt_data = (config_data.get(default_section, {})
@@ -187,7 +187,7 @@ def command_with_config_file(
                         elif yaml_param in config_data:
                             ctx.params[param] = config_data[yaml_param]
                 ctx.params[config_file_param_name] = config_file_path
-            else:
+            else:  # pragma no cover
                 warnings.warn(f'Unexpected type in {config_file_path}: ' +
                               str(type(config_data)))
             return super().invoke(ctx)
