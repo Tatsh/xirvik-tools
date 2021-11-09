@@ -19,6 +19,7 @@ def test_no_file(mocker: MockerFixture):
 
 
 def test_incorrect_type(mocker: MockerFixture):
+    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
     yaml_mock.safe_load.return_value = None
