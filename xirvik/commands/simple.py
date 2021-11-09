@@ -308,12 +308,11 @@ def list_torrents(host: str,
     """List torrents in a given format."""
     def sorter(x: TorrentInfo) -> Any:
         assert sort is not None
-        val = getattr(x, sort)
-        if val is None:
-            if sort in ('finished', 'creation_date', 'state_changed'):
-                return datetime.min
-            return ''
-        return val
+        if ((val := getattr(x, sort if sort != 'label' else 'custom1',
+                            None)) is None
+                and sort in ('finished', 'creation_date', 'state_changed')):
+            return datetime.min
+        return val or ''
 
     setup_logging(debug)
     torrents = cast(Union[Iterator[TorrentInfo], Sequence[TorrentInfo]],
@@ -338,6 +337,8 @@ def list_torrents(host: str,
                      finished=x.finished.isoformat() if x.finished else None,
                      base_path=x.base_path) for x in torrents
             ]))
+    else:  # pragma no cover
+        raise click.Abort('Invalid table format specified')
 
 
 @click.command(cls=command_with_config_file('config', 'list-files'))
@@ -359,7 +360,7 @@ def list_torrents(host: str,
               default='plain')
 @click.option('-S',
               '--sort',
-              type=click.Choice(('name', 'size', 'priority')),
+              type=click.Choice(('name', 'size_bytes', 'priority')),
               default='name')
 @click.option('-R', '--reverse-order', is_flag=True)
 @click.argument('hash')
@@ -371,15 +372,14 @@ def list_files(
         config: Optional[str] = None,
         no_headers: bool = False,
         table_format: str = 'plain',
-        sort: Optional[str] = None,
+        sort: str = 'name',
         reverse_order: Optional[bool] = None) -> None:
     """List a torrent's files in a given format."""
     setup_logging(debug)
-    files = cast(
+    files = sorted(cast(
         Union[Iterator[TorrentTrackedFile], Sequence[TorrentTrackedFile]],
-        ruTorrentClient(host).list_files(hash))
-    if sort:
-        files = sorted(files, key=lambda x: getattr(x, sort))
+        ruTorrentClient(host).list_files(hash)),
+                   key=lambda x: getattr(x, sort))
     if reverse_order:
         files = reversed(list(files))
     if table_format in tabulate_formats:
@@ -392,3 +392,5 @@ def list_files(
                      tablefmt=table_format))
     elif table_format == 'json':
         click.echo(json.dumps([x._asdict() for x in files]))
+    else:  # pragma no cover
+        raise click.Abort('Invalid table format specified')
