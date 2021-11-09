@@ -381,7 +381,7 @@ def list_files(
         ruTorrentClient(host).list_files(hash)),
                    key=lambda x: getattr(x, sort))
     if reverse_order:
-        files = reversed(list(files))
+        files = list(reversed(list(files)))
     if table_format in tabulate_formats:
         click.echo_via_pager(
             tabulate(((f.name, f.size_bytes, f.downloaded_pieces,
