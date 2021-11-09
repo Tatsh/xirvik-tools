@@ -65,4 +65,4 @@ with open('README.md') as f:
         name='xirvik-tools',
         packages=['xirvik', 'xirvik.commands'],
         url='https://github.com/Tatsh/xirvik-tools',
-        version='2.0.0')
+        version='1.0.0')
