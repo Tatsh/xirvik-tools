@@ -71,7 +71,7 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
         sleep_time: int = 10,
         config: Optional[str] = None) -> None:
     """Delete torrents based on certain criteria."""
-    setup_logging()
+    setup_logging(debug)
     client = ruTorrentClient(host,
                              name=username,
                              password=password,

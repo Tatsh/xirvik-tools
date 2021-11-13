@@ -61,7 +61,7 @@ def start_torrents(host: str,
                    config: Optional[str] = None) -> None:
     """Uploads torrent files to the server."""
     signal.signal(signal.SIGINT, _ctrl_c_handler)
-    setup_logging()
+    setup_logging(debug)
     cache_dir = realpath(expanduser('~/.cache/xirvik'))
     if not isdir(cache_dir):
         makedirs(cache_dir)

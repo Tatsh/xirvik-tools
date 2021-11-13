@@ -56,7 +56,7 @@ def main(
     **kwargs: Any,
 ) -> None:
     """Move torrents in error state to another location."""
-    setup_logging()
+    setup_logging(debug)
     client = ruTorrentClient(host,
                              name=username,
                              password=password,
