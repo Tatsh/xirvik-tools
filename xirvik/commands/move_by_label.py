@@ -71,7 +71,7 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
         backoff_factor: int = 1,
         config: Optional[str] = None) -> None:
     """Move torrents according to labels assigned."""
-    setup_logging()
+    setup_logging(debug)
     logger.debug(f'Host: {host}')
     logger.debug(f'Configuration file: {config}')
     logger.debug(f'Use lowercase labels: {lower_label}')
