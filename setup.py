@@ -60,7 +60,7 @@ with open('README.md') as f:
             'urllib3>=1.26.2',
             'xdg>=5.1.1',
         ],
-        license='LICENSE.txt',
+        license='MIT',
         long_description=f.read(),
         name='xirvik-tools',
         packages=['xirvik', 'xirvik.commands'],
