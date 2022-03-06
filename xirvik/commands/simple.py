@@ -422,7 +422,10 @@ def list_all_files(host: str,
         for x in bar:
             files = list(client.list_files(x.hash))
             if len(files) == 1:
-                click.echo(x.base_path)
+                if not x.base_path.endswith(files[0].name):
+                    click.echo(f'{x.base_path}/{files[0].name}')
+                else:
+                    click.echo(x.base_path)
             else:
                 for z in (f'{x.base_path}/{y.name}' for y in files):
                     click.echo(z)
