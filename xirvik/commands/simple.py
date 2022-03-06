@@ -394,3 +394,28 @@ def list_files(
         click.echo(json.dumps([x._asdict() for x in files]))
     else:  # pragma no cover
         raise click.Abort('Invalid table format specified')
+
+
+@click.command(cls=command_with_config_file('config', 'list-all-files'),
+               help='List all tracked file paths.')
+@click.option('-H',
+              '--host',
+              help='Xirvik host (without protocol)',
+              shell_complete=complete_hosts)
+@click.option('-C', '--config', help='Configuration file')
+@click.option('-p',
+              '--port',
+              type=int,
+              default=443,
+              shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+def list_all_files(host: str,
+                   port: int,
+                   debug: bool = False,
+                   config: Optional[str] = None) -> None:
+    setup_logging(debug)
+    client = ruTorrentClient(host)
+    for x in client.list_torrents():
+        for z in (f'{x.base_path}/{y.name}'
+                  for y in client.list_files(x.hash)):
+            click.echo(z)
