@@ -416,6 +416,9 @@ def list_all_files(host: str,
     setup_logging(debug)
     client = ruTorrentClient(host)
     for x in client.list_torrents():
-        for z in (f'{x.base_path}/{y.name}'
-                  for y in client.list_files(x.hash)):
-            click.echo(z)
+        files = list(client.list_files(x.hash))
+        if len(files) == 1:
+            click.echo(x.base_path)
+        else:
+            for z in (f'{x.base_path}/{y.name}' for y in files):
+                click.echo(z)
