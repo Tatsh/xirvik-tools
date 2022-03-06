@@ -11,6 +11,7 @@ import json
 import logging
 import signal
 import socket
+import sys
 
 from bs4 import BeautifulSoup as Soup
 from loguru import logger
@@ -415,10 +416,13 @@ def list_all_files(host: str,
                    config: Optional[str] = None) -> None:
     setup_logging(debug)
     client = ruTorrentClient(host)
-    for x in client.list_torrents():
-        files = list(client.list_files(x.hash))
-        if len(files) == 1:
-            click.echo(x.base_path)
-        else:
-            for z in (f'{x.base_path}/{y.name}' for y in files):
-                click.echo(z)
+    click.echo('Listing torrents ...', file=sys.stderr)
+    torrents = list(client.list_torrents())
+    with click.progressbar(torrents, file=sys.stderr, label='Getting file list') as bar:
+        for x in bar:
+            files = list(client.list_files(x.hash))
+            if len(files) == 1:
+                click.echo(x.base_path)
+            else:
+                for z in (f'{x.base_path}/{y.name}' for y in files):
+                    click.echo(z)
