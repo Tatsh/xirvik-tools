@@ -417,17 +417,17 @@ def list_all_files(host: str,
     setup_logging(debug)
     client = ruTorrentClient(host)
     click.echo('Listing torrents ...', file=sys.stderr)
-    torrents = list(client.list_torrents())
-    with click.progressbar(torrents,
+    with click.progressbar(list(client.list_torrents()),
                            file=sys.stderr,
                            label='Getting file list') as bar:
-        for x in bar:
-            files = list(client.list_files(x.hash))
+        info: TorrentInfo
+        for info in bar:
+            files = list(client.list_files(info.hash))
             if len(files) == 1:
-                if not x.base_path.endswith(files[0].name):
-                    click.echo(f'{x.base_path}/{files[0].name}')
+                if not info.base_path.endswith(files[0].name):
+                    click.echo(f'{info.base_path}/{files[0].name}')
                 else:
-                    click.echo(x.base_path)
+                    click.echo(info.base_path)
             else:
-                for z in (f'{x.base_path}/{y.name}' for y in files):
-                    click.echo(z)
+                for file in (f'{info.base_path}/{y.name}' for y in files):
+                    click.echo(file)
