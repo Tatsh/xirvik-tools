@@ -8,7 +8,7 @@ from .move_by_label import main as move_by_label
 from .move_erroneous import main as move_erroneous
 from .simple import (add_ftp_user, authorize_ip, delete_ftp_user, fix_rtorrent,
                      list_all_files, list_files, list_ftp_users, list_torrents,
-                     start_torrents)
+                     list_untracked_files, start_torrents)
 from .util import complete_hosts
 
 __all__ = ('xirvik',)
@@ -49,6 +49,7 @@ rtorrent.add_command(fix_rtorrent, 'fix')
 rtorrent.add_command(list_all_files, 'list-all-files')
 rtorrent.add_command(list_files, 'list-files')
 rtorrent.add_command(list_torrents, 'list-torrents')
+rtorrent.add_command(list_untracked_files, 'list-untracked-files')
 rtorrent.add_command(move_by_label, 'move-by-label')
 rtorrent.add_command(move_erroneous, 'move-erroneous')
 rtorrent.add_command(start_torrents, 'add')

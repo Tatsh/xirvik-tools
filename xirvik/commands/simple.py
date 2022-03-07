@@ -6,11 +6,13 @@ from os import close as close_fd, listdir, makedirs, remove as rm
 from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
 from tempfile import mkstemp
-from typing import Any, Iterator, NoReturn, Optional, Sequence, Union, cast
+from typing import (Any, Iterator, List, NoReturn, Optional, Sequence, Set,
+                    Union, cast)
 import json
 import logging
 import signal
 import socket
+import subprocess as sp
 import sys
 
 from bs4 import BeautifulSoup as Soup
@@ -419,9 +421,9 @@ def list_all_files(host: str,
     click.echo('Listing torrents ...', file=sys.stderr)
     with click.progressbar(list(client.list_torrents()),
                            file=sys.stderr,
-                           label='Getting file list') as bar:
+                           label='Getting file list') as pb:
         info: TorrentInfo
-        for info in bar:
+        for info in pb:
             files = list(client.list_files(info.hash))
             if len(files) == 1:
                 if not info.base_path.endswith(files[0].name):
@@ -431,3 +433,49 @@ def list_all_files(host: str,
             else:
                 for file in (f'{info.base_path}/{y.name}' for y in files):
                     click.echo(file)
+
+
+@click.command(cls=command_with_config_file('config', 'list-untracked-files'),
+               help='List untracked file paths.')
+@click.option('-H',
+              '--host',
+              help='Xirvik host (without protocol)',
+              shell_complete=complete_hosts)
+@click.option('-C', '--config', help='Configuration file')
+@click.option('-L', '--server-list-command')
+@click.option('-p',
+              '--port',
+              type=int,
+              default=443,
+              shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+def list_untracked_files(host: str,
+                         port: int,
+                         server_list_command: str,
+                         debug: bool = False,
+                         config: Optional[str] = None) -> None:
+    """List all files on the server that are not tracked."""
+    setup_logging(debug)
+    client = ruTorrentClient(host)
+    click.echo('Listing torrents ...', file=sys.stderr)
+    tracked_files = cast(Set[str], set())
+    with click.progressbar(list(client.list_torrents()),
+                           file=sys.stderr,
+                           label='Getting ruTorrent file list') as pb:
+        info: TorrentInfo
+        for info in pb:
+            files = list(client.list_files(info.hash))
+            if len(files) == 1:
+                if not info.base_path.endswith(files[0].name):
+                    tracked_files.add(f'{info.base_path}/{files[0].name}')
+                else:
+                    tracked_files.add(info.base_path)
+            else:
+                for file in (f'{info.base_path}/{y.name}' for y in files):
+                    tracked_files.add(file)
+    click.echo('Getting server-side file list', file=sys.stderr)
+    p = sp.Popen(server_list_command, shell=True, text=True, stdout=sp.PIPE)
+    assert p.stdout is not None
+    while (line := p.stdout.readline().strip()):
+        if line not in tracked_files:
+            click.echo(line)
