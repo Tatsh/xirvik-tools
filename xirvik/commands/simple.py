@@ -6,8 +6,8 @@ from os import close as close_fd, listdir, makedirs, remove as rm
 from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
 from tempfile import mkstemp
-from typing import (Any, Iterator, List, NoReturn, Optional, Sequence, Set,
-                    Union, cast)
+from typing import (Any, Iterator, NoReturn, Optional, Sequence, Set, Union,
+                    cast)
 import json
 import logging
 import signal
@@ -416,14 +416,15 @@ def list_all_files(host: str,
                    port: int,
                    debug: bool = False,
                    config: Optional[str] = None) -> None:
+    """List every tracked file."""
     setup_logging(debug)
     client = ruTorrentClient(host)
     click.echo('Listing torrents ...', file=sys.stderr)
     with click.progressbar(list(client.list_torrents()),
                            file=sys.stderr,
-                           label='Getting file list') as pb:
+                           label='Getting file list') as progress_bar:
         info: TorrentInfo
-        for info in pb:
+        for info in progress_bar:
             files = list(client.list_files(info.hash))
             if len(files) == 1:
                 if not info.base_path.endswith(files[0].name):
@@ -459,11 +460,12 @@ def list_untracked_files(host: str,
     client = ruTorrentClient(host)
     click.echo('Listing torrents ...', file=sys.stderr)
     tracked_files = cast(Set[str], set())
-    with click.progressbar(list(client.list_torrents()),
-                           file=sys.stderr,
-                           label='Getting ruTorrent file list') as pb:
+    with click.progressbar(
+            list(client.list_torrents()),
+            file=sys.stderr,
+            label='Getting ruTorrent file list') as progress_bar:
         info: TorrentInfo
-        for info in pb:
+        for info in progress_bar:
             files = list(client.list_files(info.hash))
             if len(files) == 1:
                 if not info.base_path.endswith(files[0].name):
@@ -474,8 +476,9 @@ def list_untracked_files(host: str,
                 for file in (f'{info.base_path}/{y.name}' for y in files):
                     tracked_files.add(file)
     click.echo('Getting server-side file list', file=sys.stderr)
-    p = sp.Popen(server_list_command, shell=True, text=True, stdout=sp.PIPE)
-    assert p.stdout is not None
-    while (line := p.stdout.readline().strip()):
-        if line not in tracked_files:
-            click.echo(line)
+    with sp.Popen(server_list_command, shell=True, text=True,
+                  stdout=sp.PIPE) as process:
+        assert process.stdout is not None
+        while (line := process.stdout.readline().strip()):
+            if line not in tracked_files:
+                click.echo(line)
