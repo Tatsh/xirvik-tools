@@ -337,6 +337,17 @@ class ruTorrentClient:
             # x[6] = int(x[6])  # Not used
             yield TorrentTrackedFile(*x[:6])
 
+    def list_all_files(self) -> Iterator[TorrentTrackedFile]:
+        """
+        List all files tracked by rTorrent.
+
+        If there are thousands of torrents, this may take well over 10 minutes.
+
+        Returns a generator of tracked files.
+        """
+        for info in self.list_torrents():
+            yield from self.list_files(info.hash)
+
     def delete(self, hash_: str) -> None:
         """
         Delete a torrent and its files by hash. Use the remove() method to
