@@ -399,6 +399,12 @@ def list_files(
         raise click.Abort('Invalid table format specified')
 
 
+def _resolve_single_file_torrent_path(info: TorrentInfo, filename: str) -> str:
+    if not info.base_path.endswith(filename):
+        return f'{info.base_path}/{filename}'
+    return info.base_path
+
+
 @click.command(cls=command_with_config_file('config', 'list-all-files'),
                help='List all tracked file paths.')
 @click.option('-H',
@@ -427,10 +433,8 @@ def list_all_files(host: str,
         for info in progress_bar:
             files = list(client.list_files(info.hash))
             if len(files) == 1:
-                if not info.base_path.endswith(files[0].name):
-                    click.echo(f'{info.base_path}/{files[0].name}')
-                else:
-                    click.echo(info.base_path)
+                click.echo(
+                    _resolve_single_file_torrent_path(info, files[0].name))
             else:
                 for file in (f'{info.base_path}/{y.name}' for y in files):
                     click.echo(file)
@@ -443,7 +447,15 @@ def list_all_files(host: str,
               help='Xirvik host (without protocol)',
               shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
-@click.option('-L', '--server-list-command')
+@click.option(
+    '-L',
+    '--server-list-command',
+    help=(
+        'This should be a command that outputs lines where each line is a '
+        'complete file path that matches the "torrents/<username>/..." output '
+        'from ruTorrent\'s API. An example using SSH:\n\n    '
+        "ssh name-of-server 'find /media/sf_hostshare -type f' | "
+        "sed -re 's|^/media/sf_hostshare|/torrents/username|g'"))
 @click.option('-p',
               '--port',
               type=int,
@@ -455,23 +467,31 @@ def list_untracked_files(host: str,
                          server_list_command: str,
                          debug: bool = False,
                          config: Optional[str] = None) -> None:
-    """List all files on the server that are not tracked."""
+    """
+    List all files on the server that are not tracked.
+
+    Parameters
+    ==========
+    server_list_command : str
+        This should be a command that outputs lines where each line is a
+        complete file path that matches the ``torrents/<username>/...`` output
+        from ruTorrent's API. An example using SSH would be:
+
+            ``ssh name-of-server 'find /media/sf_hostshare -type f' | sed -re 's|^/media/sf_hostshare|/torrents/username|g'``
+    """
     setup_logging(debug)
     client = ruTorrentClient(host)
     click.echo('Listing torrents ...', file=sys.stderr)
     tracked_files = cast(Set[str], set())
-    with click.progressbar(
-            list(client.list_torrents()),
-            file=sys.stderr,
-            label='Getting ruTorrent file list') as progress_bar:
+    with click.progressbar(list(client.list_torrents()),
+                           file=sys.stderr,
+                           label='Getting file list') as progress_bar:
         info: TorrentInfo
         for info in progress_bar:
             files = list(client.list_files(info.hash))
             if len(files) == 1:
-                if not info.base_path.endswith(files[0].name):
-                    tracked_files.add(f'{info.base_path}/{files[0].name}')
-                else:
-                    tracked_files.add(info.base_path)
+                tracked_files.add(
+                    _resolve_single_file_torrent_path(info, files[0].name))
             else:
                 for file in (f'{info.base_path}/{y.name}' for y in files):
                     tracked_files.add(file)
