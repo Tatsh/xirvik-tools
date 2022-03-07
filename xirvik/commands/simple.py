@@ -418,7 +418,9 @@ def list_all_files(host: str,
     client = ruTorrentClient(host)
     click.echo('Listing torrents ...', file=sys.stderr)
     torrents = list(client.list_torrents())
-    with click.progressbar(torrents, file=sys.stderr, label='Getting file list') as bar:
+    with click.progressbar(torrents,
+                           file=sys.stderr,
+                           label='Getting file list') as bar:
         for x in bar:
             files = list(client.list_files(x.hash))
             if len(files) == 1:
