@@ -94,7 +94,10 @@ def start_torrents(host: str,
             item = path_join(d, item)
             # Workaround for surrogates not allowed error, rename the file
             prefix = f'{splitext(basename(item))[0]:s}-'
-            with NamedTemporaryFile(prefix=prefix, suffix='.torrent', dir=cache_dir) as w:
+            with NamedTemporaryFile(prefix=prefix,
+                                    suffix='.torrent',
+                                    dir=cache_dir,
+                                    delete=False) as w:
                 with open(item, 'rb') as r:
                     w.write(r.read())
                 old = item
