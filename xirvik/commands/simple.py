@@ -2,10 +2,10 @@
 from base64 import b64encode
 from datetime import datetime
 from logging.handlers import SysLogHandler
-from os import close as close_fd, listdir, makedirs, remove as rm
+from os import listdir, makedirs, remove as rm
 from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
-from tempfile import mkstemp
+from tempfile import NamedTemporaryFile
 from typing import (Any, Iterator, NoReturn, Optional, Sequence, Set, Union,
                     cast)
 import json
@@ -94,23 +94,23 @@ def start_torrents(host: str,
             item = path_join(d, item)
             # Workaround for surrogates not allowed error, rename the file
             prefix = f'{splitext(basename(item))[0]:s}-'
-            fd, name = mkstemp(dir=cache_dir, prefix=prefix, suffix='.torrent')
-            close_fd(fd)
-            with open(name, 'wb') as w:
+            with NamedTemporaryFile(prefix=prefix, suffix='.torrent', dir=cache_dir) as w:
                 with open(item, 'rb') as r:
                     w.write(r.read())
-            old = item
-            item = name
+                old = item
+                item = w.name
             with open(item, 'rb') as torrent_file:
                 # Because the server does not understand filename*=UTF8 syntax
                 # https://github.com/kennethreitz/requests/issues/2117
-                # This is not a huge concern, as the API's "Get .torrent" does
-                # not return the file with its original name either
+                # This is not a huge concern, as the API's "Get .torrent"
+                # does not return the file with its original name either
                 filename = unidecode(torrent_file.name)
-                files = dict(torrent_file=(filename, torrent_file))
                 logger.info(f'Uploading torrent {basename(item)} (actual '
                             f'name: "{basename(filename)}")')
-                resp = requests.post(post_url, data=form_data, files=files)
+                resp = requests.post(
+                    post_url,
+                    data=form_data,
+                    files=dict(torrent_file=(filename, torrent_file)))
                 if not resp.ok:
                     logger.error(f'Error uploading {old}')
                     continue
@@ -477,7 +477,8 @@ def list_untracked_files(host: str,
         complete file path that matches the ``torrents/<username>/...`` output
         from ruTorrent's API. An example using SSH would be:
 
-            ``ssh name-of-server 'find /media/sf_hostshare -type f' | sed -re 's|^/media/sf_hostshare|/torrents/username|g'``
+            ``ssh name-of-server 'find /media/sf_hostshare -type f' |
+              sed -re 's|^/media/sf_hostshare|/torrents/username|g'``
     """
     setup_logging(debug)
     client = ruTorrentClient(host)
