@@ -52,6 +52,10 @@ def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
               help='Xirvik host (without protocol)',
               shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
+@click.option('--no-verify',
+              default=False,
+              is_flag=True,
+              help='Disable TLS verification (not recommended)')
 @click.argument('directories',
                 type=click.Path(exists=True, file_okay=False),
                 nargs=-1)
@@ -61,7 +65,8 @@ def start_torrents(host: str,
                    debug: bool = False,
                    start_stopped: bool = False,
                    syslog: bool = False,
-                   config: Optional[str] = None) -> None:
+                   config: Optional[str] = None,
+                   no_verify: bool = False) -> None:
     """Uploads torrent files to the server."""
     signal.signal(signal.SIGINT, _ctrl_c_handler)
     setup_logging(debug)
@@ -113,7 +118,8 @@ def start_torrents(host: str,
                 resp = requests.post(
                     post_url,
                     data=form_data,
-                    files=dict(torrent_file=(filename, torrent_file)))
+                    files=dict(torrent_file=(filename, torrent_file)),
+                    verify=not no_verify)
                 if not resp.ok:
                     logger.error(f'Error uploading {old}')
                     continue
