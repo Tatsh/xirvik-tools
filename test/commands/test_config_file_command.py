@@ -1,15 +1,15 @@
 """Tests for xirvik.commands.util.command_with_config_file."""
-# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=missing-function-docstring,protected-access
 # pylint: disable=redefined-outer-name,unused-argument
 import warnings
 
 from click.core import ParameterSource
 from pytest_mock.plugin import MockerFixture
 
-from ..util import command_with_config_file
+from xirvik.commands.util import command_with_config_file
 
 
-def test_no_file(mocker: MockerFixture):
+def test_no_file(mocker: MockerFixture) -> None:
     ctx = mocker.MagicMock()
     open_mock = mocker.patch('builtins.open')
     open_mock.side_effect = FileNotFoundError()
@@ -18,7 +18,7 @@ def test_no_file(mocker: MockerFixture):
         assert len(w) == 0
 
 
-def test_incorrect_type(mocker: MockerFixture):
+def test_incorrect_type(mocker: MockerFixture) -> None:
     mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
@@ -28,7 +28,7 @@ def test_incorrect_type(mocker: MockerFixture):
         assert len(w) == 1
 
 
-def test_get_value_from_default_yaml(mocker: MockerFixture):
+def test_get_value_from_default_yaml(mocker: MockerFixture) -> None:
     mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
@@ -39,7 +39,7 @@ def test_get_value_from_default_yaml(mocker: MockerFixture):
     assert ctx.params['host'] == '123.com'
 
 
-def test_get_value_from_alt_yaml(mocker: MockerFixture):
+def test_get_value_from_alt_yaml(mocker: MockerFixture) -> None:
     mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
@@ -56,7 +56,7 @@ def test_get_value_from_alt_yaml(mocker: MockerFixture):
     assert ctx.params['host'] == '124.com'
 
 
-def test_get_value_no_alt(mocker: MockerFixture):
+def test_get_value_no_alt(mocker: MockerFixture) -> None:
     mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
@@ -68,7 +68,7 @@ def test_get_value_no_alt(mocker: MockerFixture):
     assert ctx.params['host'] == '121.com'
 
 
-def test_get_value_no_value(mocker: MockerFixture):
+def test_get_value_no_value(mocker: MockerFixture) -> None:
     mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
@@ -80,7 +80,7 @@ def test_get_value_no_value(mocker: MockerFixture):
     assert ctx.params['host'] is None
 
 
-def test_get_value_override_from_cli(mocker: MockerFixture):
+def test_get_value_override_from_cli(mocker: MockerFixture) -> None:
     mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')

@@ -1,8 +1,8 @@
+.directory
 /.coverage
-/.directory
 /.pytest_cache/
-/.vscode/settings.json
+/MANIFEST
 /build/
 /dist/
+/docs/_build/
 /htmlcov/
-/MANIFEST

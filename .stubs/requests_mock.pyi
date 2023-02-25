@@ -1,13 +1,13 @@
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable, Mapping
 
 
 class Request:
-    text: Optional[str]
+    text: str | None
 
 
 class Matcher:
     called_once: bool
-    last_request: Optional[Request]
+    last_request: Request | None
 
 
 class Mocker:
@@ -16,14 +16,14 @@ class Mocker:
 
     def post(self,
              url: str,
-             json: Optional[Any] = ...,
-             status_code: Optional[int] = ...,
-             headers: Optional[Mapping[str, str]] = ...) -> Matcher:
+             json: Any = ...,
+             status_code: int | None = ...,
+             headers: Mapping[str, str] | None = ...) -> Matcher:
         ...
 
     def get(self,
             url: str,
-            headers: Optional[Mapping[str, str]] = ...,
-            status_code: Optional[int] = ...,
-            text: Optional[str] = ...) -> Matcher:
+            headers: Mapping[str, str] | None = ...,
+            status_code: int | None = ...,
+            text: str | None = ...) -> Matcher:
         ...

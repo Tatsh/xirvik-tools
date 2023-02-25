@@ -1,5 +1,5 @@
 """move-by-label tests."""
-# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=missing-function-docstring,protected-access
 # pylint: disable=redefined-outer-name,missing-class-docstring
 from datetime import datetime
 import pathlib
@@ -10,7 +10,7 @@ from pytest_mock import MockerFixture
 from requests.exceptions import HTTPError
 import pytest
 
-from ..root import xirvik
+from xirvik.commands.root import xirvik
 
 
 class MinimalTorrentDict(NamedTuple):
@@ -27,7 +27,7 @@ class MinimalTorrentDict(NamedTuple):
 
 def test_list_torrents_fail(runner: CliRunner, mocker: MockerFixture,
                             tmp_path: pathlib.Path,
-                            monkeypatch: pytest.MonkeyPatch):
+                            monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -43,7 +43,8 @@ def test_list_torrents_fail(runner: CliRunner, mocker: MockerFixture,
 
 
 def test_move_torrent(runner: CliRunner, mocker: MockerFixture,
-                      tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
+                      tmp_path: pathlib.Path,
+                      monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -69,7 +70,7 @@ def test_move_torrent(runner: CliRunner, mocker: MockerFixture,
 
 def test_move_torrent_no_label(runner: CliRunner, mocker: MockerFixture,
                                tmp_path: pathlib.Path,
-                               monkeypatch: pytest.MonkeyPatch):
+                               monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -91,7 +92,7 @@ def test_move_torrent_no_label(runner: CliRunner, mocker: MockerFixture,
 
 def test_move_torrent_ignored_label(runner: CliRunner, mocker: MockerFixture,
                                     tmp_path: pathlib.Path,
-                                    monkeypatch: pytest.MonkeyPatch):
+                                    monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -113,7 +114,7 @@ def test_move_torrent_ignored_label(runner: CliRunner, mocker: MockerFixture,
 
 def test_move_torrent_already_moved(runner: CliRunner, mocker: MockerFixture,
                                     tmp_path: pathlib.Path,
-                                    monkeypatch: pytest.MonkeyPatch):
+                                    monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -136,7 +137,7 @@ def test_move_torrent_already_moved(runner: CliRunner, mocker: MockerFixture,
 
 def test_move_torrent_lower(runner: CliRunner, mocker: MockerFixture,
                             tmp_path: pathlib.Path,
-                            monkeypatch: pytest.MonkeyPatch):
+                            monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -159,7 +160,7 @@ def test_move_torrent_lower(runner: CliRunner, mocker: MockerFixture,
 
 def test_move_torrent_sleep_after_10(runner: CliRunner, mocker: MockerFixture,
                                      tmp_path: pathlib.Path,
-                                     monkeypatch: pytest.MonkeyPatch):
+                                     monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))

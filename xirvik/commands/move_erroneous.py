@@ -1,6 +1,6 @@
 """Move torrents in error state to another location."""
 from time import sleep
-from typing import Any, Final, Iterable, List, Optional, Tuple, TypeVar
+from typing import Any, Final, Iterable, TypeVar
 
 from loguru import logger
 import click
@@ -13,9 +13,9 @@ from .util import (command_with_config_file, common_options_and_arguments,
 __all__ = ('main',)
 
 PREFIX: Final[str] = '/torrents/{}/_completed-not-active'
-BAD_MESSAGES: Final[Tuple[str, ...]] = (
+BAD_MESSAGES: Final[tuple[str, ...]] = (
     'unregistered torrent',
-    "couldn't connect to server",
+    "couldn't connect to server",  # pylint: disable=invalid-string-quote
     'server returned nothing',
 )
 T = TypeVar('T')
@@ -47,9 +47,9 @@ def _make_move_to(prefix: str, label: str) -> str:
 @click.option('--sleep-time', type=int, default=10)
 def main(
     host: str,
-    netrc: Optional[str] = None,
-    username: Optional[str] = None,
-    password: Optional[str] = None,
+    netrc: str | None = None,
+    username: str | None = None,
+    password: str | None = None,
     sleep_time: int = 10,
     debug: bool = False,
     max_retries: int = 10,
@@ -63,7 +63,7 @@ def main(
                              max_retries=max_retries,
                              netrc_path=netrc)
     prefix = PREFIX.format(client.name)
-    to_delete: List[Tuple[str, str]] = []
+    to_delete: list[tuple[str, str]] = []
     items = [info for info in client.list_torrents() if _should_process(info)]
     count = 0
     for info in items:

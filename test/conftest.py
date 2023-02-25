@@ -1,22 +1,24 @@
 """Configuration for Pytest."""
-from typing import Any, NoReturn
+from typing import NoReturn
 import os
 import pathlib
 
 from click.testing import CliRunner
 import pytest
 
-# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=missing-function-docstring,protected-access
 # pylint: disable=redefined-outer-name,unused-argument
 
 if os.getenv('_PYTEST_RAISE', '0') != '0':  # pragma no cover
 
     @pytest.hookimpl(tryfirst=True)  # type: ignore[misc]
-    def pytest_exception_interact(call: Any) -> NoReturn:
+    def pytest_exception_interact(call: pytest.CallInfo[None]) -> NoReturn:
+        assert call.excinfo is not None
         raise call.excinfo.value
 
     @pytest.hookimpl(tryfirst=True)  # type: ignore[misc]
-    def pytest_internalerror(excinfo: Any) -> NoReturn:
+    def pytest_internalerror(
+            excinfo: pytest.ExceptionInfo[Exception]) -> NoReturn:
         raise excinfo.value
 
 

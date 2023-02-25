@@ -1,7 +1,7 @@
 """Typing helpers."""
 from enum import IntEnum
 from datetime import datetime
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 __all__ = ('FilePriority', 'FileDownloadStrategy', 'HashingState', 'State',
            'TorrentInfo', 'TorrentTrackedFile')
@@ -53,7 +53,7 @@ class TorrentInfo(NamedTuple):
     peers_complete: int
     left_bytes: int
     priority: int
-    state_changed: Optional[datetime]
+    state_changed: datetime | None
     skip_total: int
     hashing: HashingState
     chunks_hashed: int
@@ -61,7 +61,7 @@ class TorrentInfo(NamedTuple):
     base_path: str
     #: Date torrent was added to the client. Can be ``None`` if this was not
     #: captured, or possibly due to a crash.
-    creation_date: Optional[datetime]
+    creation_date: datetime | None
     tracker_focus: int
     is_active: bool
     #: Message from the server.
@@ -71,7 +71,7 @@ class TorrentInfo(NamedTuple):
     is_private: bool
     is_multi_file: bool
     # unk1: str
-    finished: Optional[datetime]
+    finished: datetime | None
 
 
 class FilePriority(IntEnum):

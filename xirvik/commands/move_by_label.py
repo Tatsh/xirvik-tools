@@ -2,7 +2,7 @@
 """Organise torrents based on labels assigned in ruTorrent."""
 from os.path import expanduser
 from time import sleep
-from typing import Callable, Optional, Sequence
+from typing import Callable, Sequence
 
 from loguru import logger
 from requests.exceptions import HTTPError
@@ -56,20 +56,20 @@ def _key_check(info: TorrentInfo) -> bool:
               help='Call lower() on labels used to make directory names')
 @click.option('--ignore-labels',
               multiple=True,
-              help='List of labels to ignore (case-sensitive)')
+              help='list of labels to ignore (case-sensitive)')
 def main(  # pylint: disable=too-many-arguments,unused-argument
         host: str,
         ignore_labels: Sequence[str],
-        netrc: Optional[str] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        netrc: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
         completed_dir: str = '_completed',
         sleep_time: int = 10,
-        lower_label: Optional[bool] = None,
+        lower_label: bool | None = None,
         max_retries: int = 10,
         debug: bool = False,
         backoff_factor: int = 1,
-        config: Optional[str] = None) -> None:
+        config: str | None = None) -> None:
     """Move torrents according to labels assigned."""
     setup_logging(debug)
     logger.debug(f'Host: {host}')

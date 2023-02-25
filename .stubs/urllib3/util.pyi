@@ -1,10 +1,7 @@
-from typing import Optional
-
-
 class Retry:
     def __init__(self,
-                 connect: Optional[int] = ...,
-                 read: Optional[int] = ...,
-                 redirect: Optional[bool] = ...,
-                 backoff_factor: Optional[int] = ...):
+                 connect: int | None = ...,
+                 read: int | None = ...,
+                 redirect: bool | None = ...,
+                 backoff_factor: int | None = ...) -> None:
         pass

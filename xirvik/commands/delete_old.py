@@ -5,7 +5,7 @@ Deletes old torrents based on specified criteria.
 from datetime import datetime, timedelta
 from os.path import expanduser
 from time import sleep
-from typing import Callable, Dict, Optional, Tuple, cast
+from typing import Callable
 import xmlrpc.client as xmlrpc
 
 from loguru import logger
@@ -18,12 +18,12 @@ from ..client import ruTorrentClient
 from .util import (command_with_config_file, common_options_and_arguments,
                    setup_logging)
 
-TestCallable = Callable[[TorrentInfo], Tuple[str, bool]]
-TestsDict = Dict[str, Tuple[bool, TestCallable]]
+TestCallable = Callable[[TorrentInfo], tuple[str, bool]]
+TestsDict = dict[str, tuple[bool, TestCallable]]
 
 
 def _test_date_cb(days: int = 14) -> TestCallable:
-    def test_date(info: TorrentInfo) -> Tuple[str, bool]:
+    def test_date(info: TorrentInfo) -> tuple[str, bool]:
         condition1 = info.creation_date
         condition2 = info.state_changed
         expect = datetime.now() - timedelta(days=days)
@@ -40,7 +40,7 @@ def _test_date_cb(days: int = 14) -> TestCallable:
     return test_date
 
 
-def _test_ratio(info: TorrentInfo) -> Tuple[str, bool]:
+def _test_ratio(info: TorrentInfo) -> tuple[str, bool]:
     logger.debug(f'ratio: {info.ratio:.2f}')
     return 'ratio >= 1', info.ratio >= 1
 
@@ -57,19 +57,19 @@ def _test_ratio(info: TorrentInfo) -> Tuple[str, bool]:
 def main(  # pylint: disable=too-many-arguments,unused-argument
         host: str,
         debug: bool = False,
-        netrc: Optional[str] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        netrc: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
         ignore_ratio: bool = False,
         ignore_date: bool = False,
-        label: Optional[str] = None,
+        label: str | None = None,
         max_attempts: int = 3,
         dry_run: bool = False,
         max_retries: int = 10,
         days: int = 14,
         backoff_factor: int = 1,
         sleep_time: int = 10,
-        config: Optional[str] = None) -> None:
+        config: str | None = None) -> None:
     """Delete torrents based on certain criteria."""
     setup_logging(debug)
     client = ruTorrentClient(host,
@@ -82,16 +82,14 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
     except HTTPError as e:
         logger.error('Connection failed on list_torrents() call')
         raise click.Abort() from e
-    tests = cast(
-        TestsDict,
-        dict(
+    tests = dict(
             ratio=(ignore_ratio, _test_ratio),
             date=(ignore_date, _test_date_cb(days)),
-        ))
+        )
     for info in torrents:
         if info.left_bytes != 0 or info.custom1 != label:
             continue
-        reason: Optional[str] = None
+        reason: str | None = None
         can_delete = False
         for key, (can_ignore, test) in tests.items():
             if can_ignore:

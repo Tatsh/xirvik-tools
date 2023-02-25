@@ -1,5 +1,5 @@
 """Command line interface tests."""
-# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=missing-function-docstring,protected-access
 # pylint: disable=redefined-outer-name,missing-class-docstring
 from datetime import datetime, timedelta
 from os.path import expanduser
@@ -16,17 +16,19 @@ import requests_mock as req_mock
 from xirvik.typing import (FileDownloadStrategy, FilePriority,
                            TorrentTrackedFile)
 
-from ..root import xirvik
+from xirvik.commands.root import xirvik
 
 
-def test_fix_rtorrent(requests_mock: req_mock.Mocker, runner: CliRunner):
+def test_fix_rtorrent(requests_mock: req_mock.Mocker,
+                      runner: CliRunner) -> None:
     requests_mock.get('https://somehost.com:443/userpanel/index.php/services/'
                       'restart/rtorrent')
     assert runner.invoke(
         xirvik, ('rtorrent', 'fix', '-H', 'somehost.com')).exit_code == 0
 
 
-def test_fix_rtorrent_fail(requests_mock: req_mock.Mocker, runner: CliRunner):
+def test_fix_rtorrent_fail(requests_mock: req_mock.Mocker,
+                           runner: CliRunner) -> None:
     requests_mock.get(
         'https://somehost.com:443/userpanel/index.php/services/'
         'restart/rtorrent',
@@ -36,7 +38,7 @@ def test_fix_rtorrent_fail(requests_mock: req_mock.Mocker, runner: CliRunner):
 
 
 def test_start_torrents_zero_files(runner: CliRunner, tmp_path: pathlib.Path,
-                                   monkeypatch: pytest.MonkeyPatch):
+                                   monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -44,9 +46,9 @@ def test_start_torrents_zero_files(runner: CliRunner, tmp_path: pathlib.Path,
                                   expanduser('~'))).exit_code == 0
 
 
-def test_start_torrents_zero_torrent_files(runner: CliRunner,
-                                           tmp_path: pathlib.Path,
-                                           monkeypatch: pytest.MonkeyPatch):
+def test_start_torrents_zero_torrent_files(
+        runner: CliRunner, tmp_path: pathlib.Path,
+        monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -56,9 +58,10 @@ def test_start_torrents_zero_torrent_files(runner: CliRunner,
                                   expanduser('~'))).exit_code == 0
 
 
-def test_start_torrents_normal(
-        runner: CliRunner, requests_mock: req_mock.Mocker,
-        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
+def test_start_torrents_normal(runner: CliRunner,
+                               requests_mock: req_mock.Mocker,
+                               tmp_path: pathlib.Path,
+                               monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -74,7 +77,7 @@ def test_start_torrents_normal(
 
 def test_start_torrents_error_uploading(
         runner: CliRunner, requests_mock: req_mock.Mocker,
-        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -89,9 +92,10 @@ def test_start_torrents_error_uploading(
     assert m.called_once is True
 
 
-def test_start_torrents_start_stopped(
-        runner: CliRunner, requests_mock: req_mock.Mocker,
-        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
+def test_start_torrents_start_stopped(runner: CliRunner,
+                                      requests_mock: req_mock.Mocker,
+                                      tmp_path: pathlib.Path,
+                                      monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -109,7 +113,8 @@ def test_start_torrents_start_stopped(
 
 
 def test_add_ftp_user(runner: CliRunner, requests_mock: req_mock.Mocker,
-                      tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
+                      tmp_path: pathlib.Path,
+                      monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -122,7 +127,7 @@ def test_add_ftp_user(runner: CliRunner, requests_mock: req_mock.Mocker,
 
 def test_add_ftp_user_error(runner: CliRunner, requests_mock: req_mock.Mocker,
                             tmp_path: pathlib.Path,
-                            monkeypatch: pytest.MonkeyPatch):
+                            monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -136,7 +141,7 @@ def test_add_ftp_user_error(runner: CliRunner, requests_mock: req_mock.Mocker,
 
 def test_delete_ftp_user(runner: CliRunner, requests_mock: req_mock.Mocker,
                          tmp_path: pathlib.Path,
-                         monkeypatch: pytest.MonkeyPatch):
+                         monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -149,9 +154,10 @@ def test_delete_ftp_user(runner: CliRunner, requests_mock: req_mock.Mocker,
     assert m.called_once is True
 
 
-def test_delete_ftp_user_error(
-        runner: CliRunner, requests_mock: req_mock.Mocker,
-        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
+def test_delete_ftp_user_error(runner: CliRunner,
+                               requests_mock: req_mock.Mocker,
+                               tmp_path: pathlib.Path,
+                               monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -167,7 +173,7 @@ def test_delete_ftp_user_error(
 
 def test_list_ftp_users(runner: CliRunner, requests_mock: req_mock.Mocker,
                         tmp_path: pathlib.Path,
-                        monkeypatch: pytest.MonkeyPatch):
+                        monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -188,9 +194,10 @@ def test_list_ftp_users(runner: CliRunner, requests_mock: req_mock.Mocker,
     assert '/somedir' in run.output
 
 
-def test_list_ftp_users_error(
-        runner: CliRunner, requests_mock: req_mock.Mocker,
-        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
+def test_list_ftp_users_error(runner: CliRunner,
+                              requests_mock: req_mock.Mocker,
+                              tmp_path: pathlib.Path,
+                              monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -201,7 +208,8 @@ def test_list_ftp_users_error(
 
 
 def test_authorize_ip(runner: CliRunner, requests_mock: req_mock.Mocker,
-                      tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
+                      tmp_path: pathlib.Path,
+                      monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -215,7 +223,7 @@ def test_authorize_ip(runner: CliRunner, requests_mock: req_mock.Mocker,
 
 def test_authorize_ip_error(runner: CliRunner, requests_mock: req_mock.Mocker,
                             tmp_path: pathlib.Path,
-                            monkeypatch: pytest.MonkeyPatch):
+                            monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -243,7 +251,7 @@ class MinimalTorrentDict(NamedTuple):
 
 def test_list_torrents(runner: CliRunner, mocker: MockerFixture,
                        tmp_path: pathlib.Path,
-                       monkeypatch: pytest.MonkeyPatch):
+                       monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -264,7 +272,7 @@ def test_list_torrents(runner: CliRunner, mocker: MockerFixture,
 
 def test_list_torrents_json(runner: CliRunner, mocker: MockerFixture,
                             tmp_path: pathlib.Path,
-                            monkeypatch: pytest.MonkeyPatch):
+                            monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -287,7 +295,7 @@ def test_list_torrents_json(runner: CliRunner, mocker: MockerFixture,
 
 def test_list_torrents_json_reversed(runner: CliRunner, mocker: MockerFixture,
                                      tmp_path: pathlib.Path,
-                                     monkeypatch: pytest.MonkeyPatch):
+                                     monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -316,7 +324,7 @@ def test_list_torrents_json_reversed(runner: CliRunner, mocker: MockerFixture,
 
 def test_list_torrents_json_sort_finished(
         runner: CliRunner, mocker: MockerFixture, tmp_path: pathlib.Path,
-        monkeypatch: pytest.MonkeyPatch):
+        monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -348,7 +356,7 @@ def test_list_torrents_json_sort_finished(
 
 def test_list_torrents_json_sort_finished_missing(
         runner: CliRunner, mocker: MockerFixture, tmp_path: pathlib.Path,
-        monkeypatch: pytest.MonkeyPatch):
+        monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -379,7 +387,7 @@ def test_list_torrents_json_sort_finished_missing(
 
 def test_list_torrents_json_sort_missing_attr(
         runner: CliRunner, mocker: MockerFixture, tmp_path: pathlib.Path,
-        monkeypatch: pytest.MonkeyPatch):
+        monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -408,7 +416,7 @@ def test_list_torrents_json_sort_missing_attr(
 
 def test_list_torrents_json_sort_other_criteria(
         runner: CliRunner, mocker: MockerFixture, tmp_path: pathlib.Path,
-        monkeypatch: pytest.MonkeyPatch):
+        monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -435,7 +443,8 @@ def test_list_torrents_json_sort_other_criteria(
 
 
 def test_list_files(runner: CliRunner, mocker: MockerFixture,
-                    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
+                    tmp_path: pathlib.Path,
+                    monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -456,7 +465,7 @@ def test_list_files(runner: CliRunner, mocker: MockerFixture,
 
 def test_list_files_reversed(runner: CliRunner, mocker: MockerFixture,
                              tmp_path: pathlib.Path,
-                             monkeypatch: pytest.MonkeyPatch):
+                             monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -478,7 +487,7 @@ def test_list_files_reversed(runner: CliRunner, mocker: MockerFixture,
 
 def test_list_files_sort_size(runner: CliRunner, mocker: MockerFixture,
                               tmp_path: pathlib.Path,
-                              monkeypatch: pytest.MonkeyPatch):
+                              monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -501,7 +510,7 @@ def test_list_files_sort_size(runner: CliRunner, mocker: MockerFixture,
 
 def test_list_files_normal(runner: CliRunner, mocker: MockerFixture,
                            tmp_path: pathlib.Path,
-                           monkeypatch: pytest.MonkeyPatch):
+                           monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))

@@ -1,6 +1,3 @@
-"""The 'xirvik' command."""
-from typing import Optional
-
 import click
 
 from .delete_old import main as delete_old
@@ -22,7 +19,7 @@ __all__ = ('xirvik',)
               '--host',
               help='Xirvik host (without protocol)',
               shell_complete=complete_hosts)
-def xirvik(config: Optional[str] = None, host: Optional[str] = None) -> None:
+def xirvik(config: str | None = None, host: str | None = None) -> None:
     """Root command."""
 
 

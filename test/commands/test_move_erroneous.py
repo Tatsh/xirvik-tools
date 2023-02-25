@@ -1,5 +1,5 @@
 """move-erroneous tests."""
-# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=missing-function-docstring,protected-access
 # pylint: disable=redefined-outer-name,missing-class-docstring
 from datetime import datetime
 import pathlib
@@ -9,7 +9,7 @@ from click.testing import CliRunner
 from pytest_mock import MockerFixture
 import pytest
 
-from ..root import xirvik
+from xirvik.commands.root import xirvik
 
 
 class MinimalTorrentDict(NamedTuple):
@@ -27,7 +27,7 @@ class MinimalTorrentDict(NamedTuple):
 
 def test_move_erroneous_normal(runner: CliRunner, mocker: MockerFixture,
                                tmp_path: pathlib.Path,
-                               monkeypatch: pytest.MonkeyPatch):
+                               monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -52,7 +52,7 @@ def test_move_erroneous_normal(runner: CliRunner, mocker: MockerFixture,
 
 def test_move_erroneous_sleep(runner: CliRunner, mocker: MockerFixture,
                               tmp_path: pathlib.Path,
-                              monkeypatch: pytest.MonkeyPatch):
+                              monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))

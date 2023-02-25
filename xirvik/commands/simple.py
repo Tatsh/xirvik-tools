@@ -6,8 +6,7 @@ from os import listdir, makedirs, remove as rm
 from os.path import (basename, expanduser, isdir, join as path_join, realpath,
                      splitext)
 from tempfile import NamedTemporaryFile
-from typing import (Any, Iterator, NoReturn, Optional, Sequence, Set, Union,
-                    cast)
+from typing import Any, Iterator, NoReturn, Sequence, cast
 import json
 import logging
 import signal
@@ -65,7 +64,7 @@ def start_torrents(host: str,
                    debug: bool = False,
                    start_stopped: bool = False,
                    syslog: bool = False,
-                   config: Optional[str] = None,
+                   config: str | None = None,
                    no_verify: bool = False) -> None:
     """Uploads torrent files to the server."""
     signal.signal(signal.SIGINT, _ctrl_c_handler)
@@ -119,7 +118,8 @@ def start_torrents(host: str,
                     post_url,
                     data=form_data,
                     files=dict(torrent_file=(filename, torrent_file)),
-                    verify=not no_verify)
+                    verify=not no_verify,
+                    timeout=30)
                 if not resp.ok:
                     logger.error(f'Error uploading {old}')
                     continue
@@ -143,10 +143,10 @@ def start_torrents(host: str,
 def list_ftp_users(host: str,
                    port: int = 443,
                    debug: bool = False,
-                   config: Optional[str] = None) -> None:
+                   config: str | None = None) -> None:
     """Lists FTP users."""
     setup_logging(debug)
-    r = requests.get(f'https://{host}:{port:d}/userpanel/index.php/ftp_users')
+    r = requests.get(f'https://{host}:{port:d}/userpanel/index.php/ftp_users', timeout=30)
     try:
         r.raise_for_status()
     except HTTPError as e:
@@ -180,7 +180,7 @@ def add_ftp_user(host: str,
                  port: int = 443,
                  root_directory: str = '/',
                  debug: bool = False,
-                 config: Optional[str] = None) -> None:
+                 config: str | None = None) -> None:
     """Adds an FTP user."""
     setup_logging(debug)
     uri = (f'https://{host}:{port:d}/userpanel/index.php/'
@@ -192,7 +192,7 @@ def add_ftp_user(host: str,
                       data=dict(username=username,
                                 password_1=password,
                                 root_folder=rootdir,
-                                read_only='no'))
+                                read_only='no'), timeout=30)
     try:
         r.raise_for_status()
     except HTTPError as e:
@@ -216,13 +216,13 @@ def delete_ftp_user(host: str,
                     username: str,
                     port: int = 443,
                     debug: bool = False,
-                    config: Optional[str] = None) -> None:
+                    config: str | None = None) -> None:
     """Deletes an FTP user."""
     setup_logging(debug)
     user = b64encode(username.encode()).decode()
     uri = (f'https://{host}:{port:d}/userpanel/index.php/ftp_users/'
            f'delete/{user}')
-    r = requests.get(uri)
+    r = requests.get(uri, timeout=30)
     try:
         r.raise_for_status()
     except HTTPError as e:
@@ -244,12 +244,12 @@ def delete_ftp_user(host: str,
 def authorize_ip(host: str,
                  port: int = 443,
                  debug: bool = False,
-                 config: Optional[str] = None) -> None:
+                 config: str | None = None) -> None:
     """Authorises the current IP for access to the VM via SSH/VNC/RDP."""
     setup_logging(debug)
     uri = (f'https://{host}:{port:d}/userpanel/index.php/virtual_machine/'
            'authorize_ip')
-    r = requests.get(uri)
+    r = requests.get(uri, timeout=30)
     try:
         r.raise_for_status()
     except HTTPError as e:
@@ -271,7 +271,7 @@ def authorize_ip(host: str,
 def fix_rtorrent(host: str,
                  port: int,
                  debug: bool = False,
-                 config: Optional[str] = None) -> None:
+                 config: str | None = None) -> None:
     """
     Restarts the rtorrent service in case ruTorrent cannot connect to it. Not
     guaranteed to fix anything!
@@ -280,7 +280,7 @@ def fix_rtorrent(host: str,
     logger.info('No guarantees this will work!')
     uri = (f'https://{host}:{port:d}/userpanel/index.php/services/'
            'restart/rtorrent')
-    r = requests.get(uri)
+    r = requests.get(uri, timeout=30)
     try:
         r.raise_for_status()
     except HTTPError as e:
@@ -312,12 +312,12 @@ def fix_rtorrent(host: str,
 def list_torrents(host: str,
                   port: int,
                   debug: bool = False,
-                  config: Optional[str] = None,
+                  config: str | None = None,
                   no_headers: bool = False,
                   table_format: str = 'plain',
-                  sort: Optional[str] = None,
-                  reverse_order: Optional[bool] = None) -> None:
-    """List torrents in a given format."""
+                  sort: str | None = None,
+                  reverse_order: bool | None = None) -> None:
+    """list torrents in a given format."""
     def sorter(x: TorrentInfo) -> Any:
         assert sort is not None
         if ((val := getattr(x, sort if sort != 'label' else 'custom1',
@@ -327,7 +327,7 @@ def list_torrents(host: str,
         return val or ''
 
     setup_logging(debug)
-    torrents = cast(Union[Iterator[TorrentInfo], Sequence[TorrentInfo]],
+    torrents = cast(Iterator[TorrentInfo] | Sequence[TorrentInfo],
                     ruTorrentClient(host).list_torrents())
     if sort:
         torrents = sorted(torrents, key=sorter)
@@ -381,15 +381,15 @@ def list_files(
         host: str,
         port: int,
         debug: bool = False,
-        config: Optional[str] = None,
+        config: str | None = None,
         no_headers: bool = False,
         table_format: str = 'plain',
         sort: str = 'name',
-        reverse_order: Optional[bool] = None) -> None:
-    """List a torrent's files in a given format."""
+        reverse_order: bool | None = None) -> None:
+    """list a torrent's files in a given format."""
     setup_logging(debug)
     files = sorted(cast(
-        Union[Iterator[TorrentTrackedFile], Sequence[TorrentTrackedFile]],
+        Iterator[TorrentTrackedFile] | Sequence[TorrentTrackedFile],
         ruTorrentClient(host).list_files(hash)),
                    key=lambda x: getattr(x, sort))
     if reverse_order:
@@ -415,7 +415,7 @@ def _resolve_single_file_torrent_path(info: TorrentInfo, filename: str) -> str:
 
 
 @click.command(cls=command_with_config_file('config', 'list-all-files'),
-               help='List all tracked file paths.')
+               help='list all tracked file paths.')
 @click.option('-H',
               '--host',
               help='Xirvik host (without protocol)',
@@ -430,8 +430,8 @@ def _resolve_single_file_torrent_path(info: TorrentInfo, filename: str) -> str:
 def list_all_files(host: str,
                    port: int,
                    debug: bool = False,
-                   config: Optional[str] = None) -> None:
-    """List every tracked file."""
+                   config: str | None = None) -> None:
+    """list every tracked file."""
     setup_logging(debug)
     client = ruTorrentClient(host)
     click.echo('Listing torrents ...', file=sys.stderr)
@@ -450,7 +450,7 @@ def list_all_files(host: str,
 
 
 @click.command(cls=command_with_config_file('config', 'list-untracked-files'),
-               help='List untracked file paths.')
+               help='list untracked file paths.')
 @click.option('-H',
               '--host',
               help='Xirvik host (without protocol)',
@@ -463,8 +463,10 @@ def list_all_files(host: str,
         'This should be a command that outputs lines where each line is a '
         'complete file path that matches the "torrents/<username>/..." output '
         'from ruTorrent\'s API. An example using SSH:\n\n    '
+        # pylint: disable=invalid-string-quote
         "ssh name-of-server 'find /media/sf_hostshare -type f' | "
         "sed -re 's|^/media/sf_hostshare|/torrents/username|g'"))
+         # pylint: enable=invalid-string-quote
 @click.option('-p',
               '--port',
               type=int,
@@ -475,9 +477,9 @@ def list_untracked_files(host: str,
                          port: int,
                          server_list_command: str,
                          debug: bool = False,
-                         config: Optional[str] = None) -> None:
+                         config: str | None = None) -> None:
     """
-    List all files on the server that are not tracked.
+    list all files on the server that are not tracked.
 
     Parameters
     ==========
@@ -492,7 +494,7 @@ def list_untracked_files(host: str,
     setup_logging(debug)
     client = ruTorrentClient(host)
     click.echo('Listing torrents ...', file=sys.stderr)
-    tracked_files = cast(Set[str], set())
+    tracked_files = cast(set[str], set())
     with click.progressbar(list(client.list_torrents()),
                            file=sys.stderr,
                            label='Getting file list') as progress_bar:

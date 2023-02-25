@@ -1,14 +1,14 @@
 """Command line completion tests."""
-# pylint: disable=missing-function-docstring,protected-access,no-self-use
+# pylint: disable=missing-function-docstring,protected-access
 # pylint: disable=redefined-outer-name
 import pathlib
 import pytest
 
-from ..util import complete_hosts, complete_ports
+from xirvik.commands.util import complete_hosts, complete_ports
 
 
 def test_complete_hosts_blank(tmp_path: pathlib.Path,
-                              monkeypatch: pytest.MonkeyPatch):
+                              monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     ssh = tmp_path / '.ssh'
@@ -29,7 +29,7 @@ def test_complete_hosts_blank(tmp_path: pathlib.Path,
 
 
 def test_complete_hosts_local(tmp_path: pathlib.Path,
-                              monkeypatch: pytest.MonkeyPatch):
+                              monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     ssh = tmp_path / '.ssh'
@@ -45,7 +45,7 @@ def test_complete_hosts_local(tmp_path: pathlib.Path,
 
 
 def test_complete_hosts_no_netrc(tmp_path: pathlib.Path,
-                                 monkeypatch: pytest.MonkeyPatch):
+                                 monkeypatch: pytest.MonkeyPatch) -> None:
     ssh = tmp_path / '.ssh'
     ssh.mkdir()
     known_hosts = ssh / 'known_hosts'
@@ -57,8 +57,8 @@ def test_complete_hosts_no_netrc(tmp_path: pathlib.Path,
     assert len(hosts) == 0
 
 
-def test_complete_hosts_no_known_hosts(tmp_path: pathlib.Path,
-                                       monkeypatch: pytest.MonkeyPatch):
+def test_complete_hosts_no_known_hosts(
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login somename password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
@@ -66,13 +66,13 @@ def test_complete_hosts_no_known_hosts(tmp_path: pathlib.Path,
     assert len(hosts) == 0
 
 
-def test_complete_ports():
+def test_complete_ports() -> None:
     ports = complete_ports(None, None, '8')
     assert len(ports) == 2
     assert '80' in ports
 
 
-def test_complete_ports_empty():
+def test_complete_ports_empty() -> None:
     ports = complete_ports(None, None, '')
     assert len(ports) == 3
     assert '80' in ports

@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import IntEnum
 from netrc import netrc
 from os.path import expanduser
-from typing import Any, Dict, Final, Iterator, List, Optional, Tuple, cast
+from typing import Any, Final, Iterator, cast
 from urllib.parse import quote
 import logging
 import xmlrpc.client as xmlrpc
@@ -44,20 +44,20 @@ class ruTorrentClient:
     host : str
         Hostname with no protocol.
 
-    name : Optional[str]
+    name : str | None
         Username.
 
         If no name and no password are passed, ``~/.netrc`` will be searched
         with the host provided. The path can be overridden with the netrc_path
         argument.
 
-    password : Optional[str]
+    password : str | None
         Password.
 
     max_retries : int
         Number of tries to retry any request.
 
-    netrc_path : Optional[str]
+    netrc_path : str | None
         netrc file path.
 
     backoff_factor : int
@@ -65,16 +65,19 @@ class ruTorrentClient:
     """
     def __init__(self,
                  host: str,
-                 name: Optional[str] = None,
-                 password: Optional[str] = None,
+                 name: str | None = None,
+                 password: str | None = None,
                  max_retries: int = 10,
-                 netrc_path: Optional[str] = None,
+                 netrc_path: str | None = None,
                  backoff_factor: int = 1):
         if not name and not password:
             if not netrc_path:
                 netrc_path = expanduser('~/.netrc')
-            name, _, password = cast(Tuple[str, ...],
-                                     netrc(netrc_path).authenticators(host))
+            netrc_data = netrc(netrc_path).authenticators(host)
+            assert netrc_data is not None
+            name, _, password = netrc_data
+        assert name is not None
+        assert password is not None
         self.name = name
         self.password = password
         self.host = host
@@ -112,7 +115,7 @@ class ruTorrentClient:
         return f'{self.http_prefix}/rtorrent/php/addtorrent.php?'
 
     @cached_property
-    def auth(self) -> Tuple[Optional[str], Optional[str]]:
+    def auth(self) -> tuple[str, str]:
         """Basic authentication credentials."""
         return (self.name, self.password)
 
@@ -149,7 +152,7 @@ class ruTorrentClient:
                                          cmd='d.custom=seedingtime'),
                                auth=self.auth)
         r.raise_for_status()
-        for hash_, x in cast(Dict[str, List[Any]], r.json()['t']).items():
+        for hash_, x in cast(dict[str, list[Any]], r.json()['t']).items():
             del x[34]  # Delete unknown field
             for i, (type_cls, val) in enumerate(
                     zip((t[1]
@@ -169,7 +172,7 @@ class ruTorrentClient:
                     x[i] = type_cls(val)
             yield TorrentInfo(hash_, *x)
 
-    def get_torrent(self, hash_: str) -> Tuple[requests.Response, str]:
+    def get_torrent(self, hash_: str) -> tuple[requests.Response, str]:
         """
         Prepare to get a torrent file given a hash.
 
@@ -218,7 +221,7 @@ class ruTorrentClient:
 
     def set_label_to_hashes(self, **kwargs: Any) -> None:
         """
-        Set a label to a list of info hashes. The label can be a new label.
+        set a label to a list of info hashes. The label can be a new label.
 
         To remove a label, pass an empty string as the `label` keyword
         argument.
@@ -286,7 +289,7 @@ class ruTorrentClient:
 
     def set_label(self, label: str, hash_: str) -> None:
         """
-        Set a label to a torrent.
+        set a label to a torrent.
 
         Parameters
         ----------
@@ -299,7 +302,7 @@ class ruTorrentClient:
 
     def list_files(self, hash_: str) -> Iterator[TorrentTrackedFile]:
         """
-        List files for a given torrent hash.
+        list files for a given torrent hash.
 
         Returns a generator of named tuples with fields (in this order):
         - name
@@ -339,7 +342,7 @@ class ruTorrentClient:
 
     def list_all_files(self) -> Iterator[TorrentTrackedFile]:
         """
-        List all files tracked by rTorrent.
+        list all files tracked by rTorrent.
 
         If there are thousands of torrents, this may take well over 10 minutes.
 
@@ -368,8 +371,8 @@ class ruTorrentClient:
         for x in mc().results:
             try:
                 raise xmlrpc.Fault(
-                    cast(Dict[str, Any], x)['faultCode'],
-                    cast(Dict[str, Any], x)['faultString'])
+                    cast(dict[str, Any], x)['faultCode'],
+                    cast(dict[str, Any], x)['faultString'])
             except (TypeError, KeyError):
                 pass
 

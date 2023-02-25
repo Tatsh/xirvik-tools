@@ -158,7 +158,7 @@ split_all_comma_separated_values=False
 # comma.
 split_arguments_when_comma_terminated=False
 
-# Set to True to prefer splitting before '&', '|' or '^' rather than
+# set to True to prefer splitting before '&', '|' or '^' rather than
 # after.
 split_before_bitwise_operator=True
 
@@ -193,14 +193,14 @@ split_before_expression_after_opening_paren=False
 # the first argument.
 split_before_first_argument=False
 
-# Set to True to prefer splitting before 'and' or 'or' rather than
+# set to True to prefer splitting before 'and' or 'or' rather than
 # after.
 split_before_logical_operator=True
 
 # Split named assignments onto individual lines.
 split_before_named_assigns=True
 
-# Set to True to split list comprehensions and generators that have
+# set to True to split list comprehensions and generators that have
 # non-trivial expressions and multiple clauses before each of these
 # clauses. For example:
 #

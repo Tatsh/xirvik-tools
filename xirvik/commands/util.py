@@ -1,7 +1,7 @@
 """Utility functions for CLI commands."""
 from os.path import expanduser
 from types import FrameType
-from typing import Any, Callable, Iterator, Optional, Sequence, Type, Union
+from typing import Any, Callable, Iterator, Sequence, Type
 import functools
 import itertools
 import logging
@@ -20,7 +20,7 @@ __all__ = ('common_options_and_arguments', 'complete_hosts', 'complete_ports',
            'setup_log_intercept_handler', 'setup_logging')
 
 
-def setup_logging(debug: Optional[bool] = False) -> None:
+def setup_logging(debug: bool | None = False) -> None:
     """Shared function to enable logging."""
     if debug:  # pragma: no cover
         setup_log_intercept_handler()
@@ -71,12 +71,12 @@ def common_options_and_arguments(
     return wrapper
 
 
-def _clean_host(s: str) -> str:
+def _clean_host(host: str) -> str:
     # Attempt to not break IPv6 addresses
-    if '[' not in s and (re.search(r'[0-9]+\:[0-9]+', s) or s == '::1'):
-        return s
+    if '[' not in host and (re.search(r'[0-9]+\:[0-9]+', host) or host == '::1'):
+        return host
     # Remove brackets and remove port at end
-    return re.sub(r'[\[\]]', '', re.sub(r'\:[0-9]+$', '', s))
+    return re.sub(r'[\[\]]', '', re.sub(r'\:[0-9]+$', '', host))
 
 
 def _read_ssh_known_hosts() -> Iterator[str]:
@@ -119,17 +119,17 @@ def complete_ports(_: Any, __: Any, incomplete: str) -> Sequence[str]:
 class InterceptHandler(logging.Handler):  # pragma: no cover
     """Intercept handler taken from Loguru's documentation."""
     def emit(self, record: logging.LogRecord) -> None:
-        level: Union[str, int]
+        level: str | int
         # Get corresponding Loguru level if it exists
         try:
             level = logger.level(record.levelname).name
         except ValueError:
             level = record.levelno
         # Find caller from where originated the logged message
-        frame: Optional[FrameType] = logging.currentframe()
+        frame: FrameType | None = logging.currentframe()
         depth = 2
         while frame and frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
+            frame= frame.f_back
             depth += 1
         logger.opt(depth=depth, exception=record.exc_info).log(
             level, record.getMessage())
@@ -142,7 +142,7 @@ def setup_log_intercept_handler() -> None:  # pragma: no cover
 
 def command_with_config_file(
         config_file_param_name: str = 'config',
-        default_section: Optional[str] = None) -> Type[click.Command]:
+        default_section: str | None = None) -> Type[click.Command]:
     """
     Returns a custom command class that can read from a configuration file
     in place of missing arguments.
