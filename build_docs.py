@@ -8,7 +8,7 @@ import click
 @click.option('-b',
               default='html',
               required=True,
-              help='Buiilder to use (default: html)')
+              help='Builder to use (default: html)')
 def build_docs(b: str) -> None:
     try:
         sp.run(('sphinx-build', '-b', b, 'docs', 'build'), check=True)

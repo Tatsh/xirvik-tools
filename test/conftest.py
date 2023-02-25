@@ -31,6 +31,6 @@ def runner() -> CliRunner:
 def tmp_netrc(tmp_path: pathlib.Path,
               monkeypatch: pytest.MonkeyPatch) -> pathlib.Path:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     return netrc

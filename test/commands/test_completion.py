@@ -10,7 +10,7 @@ from xirvik.commands.util import complete_hosts, complete_ports
 def test_complete_hosts_blank(tmp_path: pathlib.Path,
                               monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     ssh = tmp_path / '.ssh'
     ssh.mkdir()
     known_hosts = ssh / 'known_hosts'
@@ -31,7 +31,7 @@ def test_complete_hosts_blank(tmp_path: pathlib.Path,
 def test_complete_hosts_local(tmp_path: pathlib.Path,
                               monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     ssh = tmp_path / '.ssh'
     ssh.mkdir()
     known_hosts = ssh / 'known_hosts'
@@ -60,7 +60,7 @@ def test_complete_hosts_no_netrc(tmp_path: pathlib.Path,
 def test_complete_hosts_no_known_hosts(
         tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     hosts = complete_hosts(None, None, 'bitbucket.org')
     assert len(hosts) == 0

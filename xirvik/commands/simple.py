@@ -146,7 +146,8 @@ def list_ftp_users(host: str,
                    config: str | None = None) -> None:
     """Lists FTP users."""
     setup_logging(debug)
-    r = requests.get(f'https://{host}:{port:d}/userpanel/index.php/ftp_users', timeout=30)
+    r = requests.get(f'https://{host}:{port:d}/userpanel/index.php/ftp_users',
+                     timeout=30)
     try:
         r.raise_for_status()
     except HTTPError as e:
@@ -185,14 +186,15 @@ def add_ftp_user(host: str,
     setup_logging(debug)
     uri = (f'https://{host}:{port:d}/userpanel/index.php/'
            'ftp_users/add_user')
-    rootdir = root_directory if root_directory.startswith(
+    root_dir = root_directory if root_directory.startswith(
         '/') else f'/{root_directory}'
     # Setting read_only=yes does not appear to work
     r = requests.post(uri,
                       data=dict(username=username,
                                 password_1=password,
-                                root_folder=rootdir,
-                                read_only='no'), timeout=30)
+                                root_folder=root_dir,
+                                read_only='no'),
+                      timeout=30)
     try:
         r.raise_for_status()
     except HTTPError as e:
@@ -466,7 +468,7 @@ def list_all_files(host: str,
         # pylint: disable=invalid-string-quote
         "ssh name-of-server 'find /media/sf_hostshare -type f' | "
         "sed -re 's|^/media/sf_hostshare|/torrents/username|g'"))
-         # pylint: enable=invalid-string-quote
+# pylint: enable=invalid-string-quote
 @click.option('-p',
               '--port',
               type=int,

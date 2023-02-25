@@ -104,7 +104,7 @@ def test_list_files(requests_mock: req_mock.Mocker) -> None:
             ['name of file', '14', '13', '8192', '1', '0', '0'] + (19 * ['0']),
         ])
 
-    files = list(client.list_files('testhash'))
+    files = list(client.list_files('test_hash'))
     assert files[0][0] == 'name of file'
     assert files[0][1] == 14
     assert files[0][2] == 13
@@ -192,19 +192,19 @@ def test_move_torrent(requests_mock: req_mock.Mocker) -> None:
 
     requests_mock.post(client.datadir_action_uri, json=[], status_code=400)
     with pytest.raises(HTTPError):
-        client.move_torrent('hash1', 'newplace')
+        client.move_torrent('hash1', 'new_place')
 
     requests_mock.post(client.datadir_action_uri,
                        json={'errors': ['some error']})
     with pytest.raises(UnexpectedruTorrentError):
-        client.move_torrent('hash1', 'newplace')
+        client.move_torrent('hash1', 'new_place')
 
 
 def test_move_torrent_no_errors(requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     requests_mock.post(client.datadir_action_uri, json=[])
     try:
-        client.move_torrent('hash1', 'newplace')
+        client.move_torrent('hash1', 'new_place')
     except UnexpectedruTorrentError:  # pragma no cover
         pytest.fail('Unexpected ruTorrent error exception')
 

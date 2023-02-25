@@ -11,7 +11,10 @@
     "build/**",
     "dist/**",
     "htmlcov/**",
-    "xirvik_tools.egg-info/**"
+    "node_modules/**",
+    "xirvik_tools.egg-info/**",
+    "__pycache__",
+    "docs/_build/**"
   ],
   "languageSettings": [
     {

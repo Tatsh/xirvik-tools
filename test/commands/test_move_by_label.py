@@ -29,7 +29,7 @@ def test_list_torrents_fail(runner: CliRunner, mocker: MockerFixture,
                             tmp_path: pathlib.Path,
                             monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
     client_mock.return_value.list_torrents.side_effect = HTTPError
@@ -46,10 +46,10 @@ def test_move_torrent(runner: CliRunner, mocker: MockerFixture,
                       tmp_path: pathlib.Path,
                       monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
-    client_mock.return_value.name = 'somename'
+    client_mock.return_value.name = 'some_name'
     client_mock.return_value.list_torrents.return_value = [
         MinimalTorrentDict(
             'hash1',
@@ -72,10 +72,10 @@ def test_move_torrent_no_label(runner: CliRunner, mocker: MockerFixture,
                                tmp_path: pathlib.Path,
                                monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
-    client_mock.return_value.name = 'somename'
+    client_mock.return_value.name = 'some_name'
     client_mock.return_value.list_torrents.return_value = [
         MinimalTorrentDict(
             'hash1',
@@ -94,10 +94,10 @@ def test_move_torrent_ignored_label(runner: CliRunner, mocker: MockerFixture,
                                     tmp_path: pathlib.Path,
                                     monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
-    client_mock.return_value.name = 'somename'
+    client_mock.return_value.name = 'some_name'
     client_mock.return_value.list_torrents.return_value = [
         MinimalTorrentDict(
             'hash1',
@@ -116,18 +116,18 @@ def test_move_torrent_already_moved(runner: CliRunner, mocker: MockerFixture,
                                     tmp_path: pathlib.Path,
                                     monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
-    client_mock.return_value.name = 'somename'
+    client_mock.return_value.name = 'some_name'
     client_mock.return_value.list_torrents.return_value = [
         MinimalTorrentDict(
             'hash1',
-            custom1='somelabel',
+            custom1='some_label',
             name='The Name',
             is_hash_checking=False,
             base_path=
-            f'/torrents/{client_mock.return_value.name}/_completed/somelabel')
+            f'/torrents/{client_mock.return_value.name}/_completed/some_label')
     ]
     assert runner.invoke(
         xirvik,
@@ -139,10 +139,10 @@ def test_move_torrent_lower(runner: CliRunner, mocker: MockerFixture,
                             tmp_path: pathlib.Path,
                             monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
-    client_mock.return_value.name = 'somename'
+    client_mock.return_value.name = 'some_name'
     client_mock.return_value.list_torrents.return_value = [
         MinimalTorrentDict(
             'hash1',
@@ -162,10 +162,10 @@ def test_move_torrent_sleep_after_10(runner: CliRunner, mocker: MockerFixture,
                                      tmp_path: pathlib.Path,
                                      monkeypatch: pytest.MonkeyPatch) -> None:
     netrc = tmp_path / '.netrc'
-    netrc.write_text('machine machine.com login somename password pass\n')
+    netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
-    client_mock.return_value.name = 'somename'
+    client_mock.return_value.name = 'some_name'
     sleep_mock = mocker.patch('xirvik.commands.move_by_label.sleep')
     l = []
     for i in range(10):
