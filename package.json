@@ -1,0 +1,13 @@
+{
+  "author": "Fa An <2998784916@qq.com>",
+  "description": "File only used in CI.",
+  "devDependencies": {
+    "cspell": "^6.26.3"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "name": "xirvik-tools",
+  "private": false,
+  "repository": "https://github.com/Tatsh/xirvik-tools",
+  "version": "1.0.0"
+}
