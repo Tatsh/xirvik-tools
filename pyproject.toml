@@ -4,10 +4,11 @@ classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
 description = "Command line utilities for interfacing with Xirvik."
 documentation = "https://xirvik-tools.readthedocs.io/"
 homepage = "https://github.com/Tatsh/xirvik-tools"
+include = ["LaunchAgents", "systemd"]
 keywords = ["command line", "utilities", "xirvik"]
 license = "MIT"
 name = "xirvik-tools"
-packages = [{include = "xirvik"}]
+packages = [{ include = "xirvik" }]
 readme = "README.md"
 version = "1.0.0"
 
