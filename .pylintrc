@@ -20,9 +20,6 @@ logging-format-style=old
 logging-modules=logging,
                 loguru
 
-[VARIABLES]
-allow-global-unused-variables=no
-
 [FORMAT]
 expected-line-ending-format=LF
 
@@ -42,7 +39,7 @@ good-names=_,
            id,
            j,
            k,
-           l
+           l,
            m,
            mc,
            n,
