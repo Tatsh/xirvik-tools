@@ -1,4 +1,4 @@
-# pylint: disable=redefined-builtin,invalid-name
+# pylint: disable=redefined-builtin,invalid-name,unused-variable
 """
 Configuration file for the Sphinx documentation builder.
 https://www.sphinx-doc.org/en/master/usage/configuration.html
@@ -25,9 +25,7 @@ release: Final[str] = f'v{version}'
 Add any Sphinx extension module names here, as strings. They can be extensions
 coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 """
-extensions: Final[Sequence[str]] = [
-    'sphinx.ext.autodoc', 'sphinx.ext.napoleon'
-]
+extensions: Final[Sequence[str]] = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
 """Add any paths that contain templates here, relative to this directory."""
 templates_path: Final[Sequence[str]] = ['_templates']
 """

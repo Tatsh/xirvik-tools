@@ -5,10 +5,7 @@ import click
 
 
 @click.command('build_docs')
-@click.option('-b',
-              default='html',
-              required=True,
-              help='Builder to use (default: html)')
+@click.option('-b', default='html', required=True, help='Builder to use (default: html)')
 def build_docs(b: str) -> None:
     try:
         sp.run(('sphinx-build', '-b', b, 'docs', 'build'), check=True)

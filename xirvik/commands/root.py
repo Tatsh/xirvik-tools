@@ -3,9 +3,9 @@ import click
 from .delete_old import main as delete_old
 from .move_by_label import main as move_by_label
 from .move_erroneous import main as move_erroneous
-from .simple import (add_ftp_user, authorize_ip, delete_ftp_user, fix_rtorrent,
-                     list_all_files, list_files, list_ftp_users, list_torrents,
-                     list_untracked_files, start_torrents)
+from .simple import (add_ftp_user, authorize_ip, delete_ftp_user, fix_rtorrent, list_all_files,
+                     list_files, list_ftp_users, list_torrents, list_untracked_files,
+                     start_torrents)
 from .util import complete_hosts
 
 __all__ = ('xirvik',)
@@ -15,10 +15,7 @@ __all__ = ('xirvik',)
 
 @click.group()
 @click.option('-C', '--config', help='Configuration file')
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 def xirvik(config: str | None = None, host: str | None = None) -> None:
     """Root command."""
 

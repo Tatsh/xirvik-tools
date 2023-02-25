@@ -33,8 +33,7 @@ def setup_logging(debug: bool | None = False) -> None:
         ),))
 
 
-def common_options_and_arguments(
-        func: Callable[..., None]) -> Callable[..., None]:
+def common_options_and_arguments(func: Callable[..., None]) -> Callable[..., None]:
     """
     Shared options and arguments, to be used as a decorator with
     click.command().
@@ -46,19 +45,13 @@ def common_options_and_arguments(
                   type=int,
                   default=10,
                   help='Number of retries for each request (passed to client)')
-    @click.option('-d',
-                  '--debug',
-                  is_flag=True,
-                  help='Enable debug level logging')
-    @click.option(
-        '--backoff-factor',
-        default=5,
-        type=int,
-        help=('Back-off factor used when calculating time to wait to retry '
-              'a failed request'))
-    @click.option('--netrc',
-                  default=expanduser('~/.netrc'),
-                  help='netrc file path')
+    @click.option('-d', '--debug', is_flag=True, help='Enable debug level logging')
+    @click.option('--backoff-factor',
+                  default=5,
+                  type=int,
+                  help=('Back-off factor used when calculating time to wait to retry '
+                        'a failed request'))
+    @click.option('--netrc', default=expanduser('~/.netrc'), help='netrc file path')
     @click.option('-C', '--config', help='Configuration file')
     @click.option('-H',
                   '--host',
@@ -73,8 +66,7 @@ def common_options_and_arguments(
 
 def _clean_host(host: str) -> str:
     # Attempt to not break IPv6 addresses
-    if '[' not in host and (re.search(r'[0-9]+\:[0-9]+', host)
-                            or host == '::1'):
+    if '[' not in host and (re.search(r'[0-9]+\:[0-9]+', host) or host == '::1'):
         return host
     # Remove brackets and remove port at end
     return re.sub(r'[\[\]]', '', re.sub(r'\:[0-9]+$', '', host))
@@ -106,8 +98,7 @@ def complete_hosts(_: Any, __: Any, incomplete: str) -> Sequence[str]:
     Returns a list of hosts from SSH known_hosts and ~/.netrc for completion.
     """
     return [
-        k
-        for k in itertools.chain(_read_ssh_known_hosts(), _read_netrc_hosts())
+        k for k in itertools.chain(_read_ssh_known_hosts(), _read_netrc_hosts())
         if k.startswith(incomplete)
     ]
 
@@ -132,8 +123,7 @@ class InterceptHandler(logging.Handler):  # pragma: no cover
         while frame and frame.f_code.co_filename == logging.__file__:
             frame = frame.f_back
             depth += 1
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage())
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
 def setup_log_intercept_handler() -> None:  # pragma: no cover
@@ -141,9 +131,8 @@ def setup_log_intercept_handler() -> None:  # pragma: no cover
     logging.basicConfig(handlers=(InterceptHandler(),), level=0)
 
 
-def command_with_config_file(
-        config_file_param_name: str = 'config',
-        default_section: str | None = None) -> Type[click.Command]:
+def command_with_config_file(config_file_param_name: str = 'config',
+                             default_section: str | None = None) -> Type[click.Command]:
     """
     Returns a custom command class that can read from a configuration file
     in place of missing arguments.
@@ -159,16 +148,13 @@ def command_with_config_file(
     home = pathlib.Path.home()
     default_config_file_path = xdg.xdg_config_home() / 'xirvik.yml'
     if sys.platform == 'win32':  # pragma: no cover
-        default_config_file_path = (home /
-                                    'AppData/Roaming/xirvik-tools/config.yml')
+        default_config_file_path = home / 'AppData/Roaming/xirvik-tools/config.yml'
     elif sys.platform == 'darwin':  # pragma: no cover
-        default_config_file_path = (
-            home / 'Library/Application Support/xirvik-tools/config.yml')
+        default_config_file_path = home / 'Library/Application Support/xirvik-tools/config.yml'
 
     class _ConfigFileCommand(click.Command):
         def invoke(self, ctx: click.Context) -> Any:
-            config_file_path = (ctx.params.get(config_file_param_name,
-                                               default_config_file_path)
+            config_file_path = (ctx.params.get(config_file_param_name, default_config_file_path)
                                 or default_config_file_path)
             config_data: Any = {}
             try:
@@ -180,8 +166,7 @@ def command_with_config_file(
                 alt_data = (config_data.get(default_section, {})
                             if default_section is not None else {})
                 for param in ctx.params.keys():
-                    if (ctx.get_parameter_source(param) ==
-                            ParameterSource.DEFAULT):
+                    if ctx.get_parameter_source(param) == ParameterSource.DEFAULT:
                         yaml_param = param.replace('_', '-')
                         if yaml_param in alt_data:
                             ctx.params[param] = alt_data[yaml_param]
@@ -189,8 +174,7 @@ def command_with_config_file(
                             ctx.params[param] = config_data[yaml_param]
                 ctx.params[config_file_param_name] = config_file_path
             else:  # pragma no cover
-                warnings.warn(f'Unexpected type in {config_file_path}: ' +
-                              str(type(config_data)))
+                warnings.warn(f'Unexpected type in {config_file_path}: ' + str(type(config_data)))
             return super().invoke(ctx)
 
     return _ConfigFileCommand

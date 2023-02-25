@@ -7,7 +7,7 @@ from click.testing import CliRunner
 import pytest
 
 # pylint: disable=missing-function-docstring,protected-access
-# pylint: disable=redefined-outer-name,unused-argument
+# pylint: disable=redefined-outer-name,unused-argument,unused-variable
 
 if os.getenv('_PYTEST_RAISE', '0') != '0':  # pragma no cover
 
@@ -17,8 +17,7 @@ if os.getenv('_PYTEST_RAISE', '0') != '0':  # pragma no cover
         raise call.excinfo.value
 
     @pytest.hookimpl(tryfirst=True)  # type: ignore[misc]
-    def pytest_internalerror(
-            excinfo: pytest.ExceptionInfo[Exception]) -> NoReturn:
+    def pytest_internalerror(excinfo: pytest.ExceptionInfo[Exception]) -> NoReturn:
         raise excinfo.value
 
 
@@ -28,8 +27,7 @@ def runner() -> CliRunner:
 
 
 @pytest.fixture()
-def tmp_netrc(tmp_path: pathlib.Path,
-              monkeypatch: pytest.MonkeyPatch) -> pathlib.Path:
+def tmp_netrc(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> pathlib.Path:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))

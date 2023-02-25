@@ -13,7 +13,7 @@ import requests_mock as req_mock
 from xirvik.client import UnexpectedruTorrentError, ruTorrentClient
 from xirvik.typing import FileDownloadStrategy, FilePriority
 
-# pylint: disable=missing-function-docstring,protected-access
+# pylint: disable=missing-function-docstring,protected-access,unused-variable
 
 
 def test_netrc() -> None:
@@ -66,17 +66,16 @@ def test_list_torrents_bad_type(requests_mock: req_mock.Mocker) -> None:
 
 def test_list_torrents(requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.post(
-        client.multirpc_action_uri,
-        json=dict(
-            t={
-                'hash here': [
-                    '1', '0', '1', '1', 'name of torrent?', '1000', '1',
-                    '1024', '1000', '0', '0.14', '0', '0', '512', 'label'
-                ] + (20 * ['0']) + ['1633423132\n'],
-            },
-            cid=92385,
-        ))
+    requests_mock.post(client.multirpc_action_uri,
+                       json=dict(
+                           t={
+                               'hash here': [
+                                   '1', '0', '1', '1', 'name of torrent?', '1000', '1', '1024',
+                                   '1000', '0', '0.14', '0', '0', '512', 'label'
+                               ] + (20 * ['0']) + ['1633423132\n'],
+                           },
+                           cid=92385,
+                       ))
     assert list(client.list_torrents())[0].name == 'name of torrent?'
 
 
@@ -84,12 +83,8 @@ def test_get_torrent(requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     uri = (f'{client.http_prefix}/rtorrent/plugins/source/action.php'
            '?hash=hash_of_torrent')
-    requests_mock.get(uri,
-                      headers={
-                          'content-disposition':
-                          'attachment; '
-                          'filename=test.torrent'
-                      })
+    requests_mock.get(uri, headers={'content-disposition': 'attachment; '
+                                    'filename=test.torrent'})
     _, fn = client.get_torrent('hash_of_torrent')
 
     assert fn == 'test.torrent'
@@ -98,11 +93,10 @@ def test_get_torrent(requests_mock: req_mock.Mocker) -> None:
 def test_list_files(requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
 
-    requests_mock.post(
-        client.multirpc_action_uri,
-        json=[
-            ['name of file', '14', '13', '8192', '1', '0', '0'] + (19 * ['0']),
-        ])
+    requests_mock.post(client.multirpc_action_uri,
+                       json=[
+                           ['name of file', '14', '13', '8192', '1', '0', '0'] + (19 * ['0']),
+                       ])
 
     files = list(client.list_files('test_hash'))
     assert files[0][0] == 'name of file'
@@ -119,35 +113,31 @@ def test_set_label_to_hashes_bad_args() -> None:
         client.set_label_to_hashes()
 
 
-def test_set_label_to_hashes_normal(mocker: MockerFixture,
-                                    requests_mock: req_mock.Mocker) -> None:
+def test_set_label_to_hashes_normal(mocker: MockerFixture, requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     spy_log_warning = mocker.spy(client._log, 'warning')
     requests_mock.post(client.multirpc_action_uri, json=[{}])
-    client.set_label_to_hashes(hashes=['hash1'],
-                               label='new label',
-                               allow_recursive_fix=False)
+    client.set_label_to_hashes(hashes=['hash1'], label='new label', allow_recursive_fix=False)
     assert spy_log_warning.call_count == 0
 
 
-def test_set_label_to_hashes_recursion_limit_5(
-        requests_mock: req_mock.Mocker) -> None:
+def test_set_label_to_hashes_recursion_limit_5(requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     hashes = ['hash1', 'hash2']
     label = 'my new label'
     list_torrents_json = dict(
         t={
             'hash1': [
-                '1', '0', '1', '1', 'torrent name', '250952849', '958', '958',
-                '250952849', '357999402', '1426', '0', '0', '262144', ''
+                '1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849',
+                '357999402', '1426', '0', '0', '262144', ''
             ] + (20 * ['0']) + ['1633423132\n'],
             'hash2': [
-                '1', '0', '1', '1', 'torrent name2', '250952849', '958', '958',
-                '250952849', '357999402', '1426', '0', '0', '262144', ''
+                '1', '0', '1', '1', 'torrent name2', '250952849', '958', '958', '250952849',
+                '357999402', '1426', '0', '0', '262144', ''
             ] + (20 * ['0']) + ['1633423132\n'],
             'hash3': [
-                '1', '0', '1', '1', 'torrent name2', '250952849', '958', '958',
-                '250952849', '357999402', '1426', '0', '0', '262144', ''
+                '1', '0', '1', '1', 'torrent name2', '250952849', '958', '958', '250952849',
+                '357999402', '1426', '0', '0', '262144', ''
             ] + (20 * ['0']) + ['1633423132\n'],
         },
         cid=92983,
@@ -173,8 +163,8 @@ def test_set_label(requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     list_torrents_json = dict(
         t=dict(hash1=[
-            '1', '0', '1', '1', 'torrent name', '250952849', '958', '958',
-            '250952849', '357999402', '1426', '0', '0', '262144', 'a label'
+            '1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849',
+            '357999402', '1426', '0', '0', '262144', 'a label'
         ] + (20 * ['0']) + ['1633423132\n']),
         cid=92983,
     )
@@ -194,8 +184,7 @@ def test_move_torrent(requests_mock: req_mock.Mocker) -> None:
     with pytest.raises(HTTPError):
         client.move_torrent('hash1', 'new_place')
 
-    requests_mock.post(client.datadir_action_uri,
-                       json={'errors': ['some error']})
+    requests_mock.post(client.datadir_action_uri, json={'errors': ['some error']})
     with pytest.raises(UnexpectedruTorrentError):
         client.move_torrent('hash1', 'new_place')
 
@@ -232,9 +221,7 @@ def test_add_torrent_url(requests_mock: req_mock.Mocker) -> None:
 
 def test_delete(mocker: MockerFixture) -> None:
     mc = mocker.patch('xirvik.client.xmlrpc.MultiCall')
-    mc.return_value.return_value.results = [
-        dict(faultCode='2000', faultString='some string')
-    ]
+    mc.return_value.return_value.results = [dict(faultCode='2000', faultString='some string')]
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     with pytest.raises(xmlrpc.client.Fault):
         client.delete('some hash')

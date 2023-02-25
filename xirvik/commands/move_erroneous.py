@@ -7,8 +7,7 @@ import click
 
 from ..client import ruTorrentClient
 from ..typing import TorrentInfo
-from .util import (command_with_config_file, common_options_and_arguments,
-                   setup_logging)
+from .util import command_with_config_file, common_options_and_arguments, setup_logging
 
 __all__ = ('main',)
 
@@ -32,9 +31,8 @@ def _should_process(x: TorrentInfo) -> bool:
     logger.debug(f'Name: "{x.name}", message: "{x.message}", '
                  f'is_hash_checking: {x.is_hash_checking}, '
                  f'left_bytes: {x.left_bytes}')
-    return (_has_one(BAD_MESSAGES, x.message.lower())
-            and not x.is_hash_checking and x.left_bytes == 0
-            and bool(x.custom1))
+    return (_has_one(BAD_MESSAGES, x.message.lower()) and not x.is_hash_checking
+            and x.left_bytes == 0 and bool(x.custom1))
 
 
 def _make_move_to(prefix: str, label: str) -> str:

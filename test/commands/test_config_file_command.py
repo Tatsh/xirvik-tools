@@ -43,16 +43,10 @@ def test_get_value_from_alt_yaml(mocker: MockerFixture) -> None:
     mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
-    yaml_mock.safe_load.return_value = {
-        'host': '123.com',
-        'cool-command': {
-            'host': '124.com'
-        }
-    }
+    yaml_mock.safe_load.return_value = {'host': '123.com', 'cool-command': {'host': '124.com'}}
     ctx.params = {'host': None}
     ctx.get_parameter_source.return_value = ParameterSource.DEFAULT
-    command_with_config_file(
-        default_section='cool-command')('test1').invoke(ctx)
+    command_with_config_file(default_section='cool-command')('test1').invoke(ctx)
     assert ctx.params['host'] == '124.com'
 
 
@@ -63,8 +57,7 @@ def test_get_value_no_alt(mocker: MockerFixture) -> None:
     yaml_mock.safe_load.return_value = {'host': '121.com', 'cool-command': {}}
     ctx.params = {'host': None}
     ctx.get_parameter_source.return_value = ParameterSource.DEFAULT
-    command_with_config_file(
-        default_section='cool-command')('test1').invoke(ctx)
+    command_with_config_file(default_section='cool-command')('test1').invoke(ctx)
     assert ctx.params['host'] == '121.com'
 
 
@@ -75,8 +68,7 @@ def test_get_value_no_value(mocker: MockerFixture) -> None:
     yaml_mock.safe_load.return_value = {}
     ctx.params = {'host': None}
     ctx.get_parameter_source.return_value = ParameterSource.DEFAULT
-    command_with_config_file(
-        default_section='cool-command')('test1').invoke(ctx)
+    command_with_config_file(default_section='cool-command')('test1').invoke(ctx)
     assert ctx.params['host'] is None
 
 
@@ -84,14 +76,8 @@ def test_get_value_override_from_cli(mocker: MockerFixture) -> None:
     mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
     yaml_mock = mocker.patch('xirvik.commands.util.yaml')
-    yaml_mock.safe_load.return_value = {
-        'host': '123.com',
-        'cool-command': {
-            'host': '124.com'
-        }
-    }
+    yaml_mock.safe_load.return_value = {'host': '123.com', 'cool-command': {'host': '124.com'}}
     ctx.params = {'host': '125.com'}
     ctx.get_parameter_source.return_value = ParameterSource.COMMANDLINE
-    command_with_config_file(
-        default_section='cool-command')('test1').invoke(ctx)
+    command_with_config_file(default_section='cool-command')('test1').invoke(ctx)
     assert ctx.params['host'] == '125.com'

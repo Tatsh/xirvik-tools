@@ -11,8 +11,7 @@ import click
 from xirvik.typing import TorrentInfo
 
 from ..client import ruTorrentClient
-from .util import (command_with_config_file, common_options_and_arguments,
-                   setup_logging)
+from .util import command_with_config_file, common_options_and_arguments, setup_logging
 
 PREFIX = '/torrents/{}/{}'
 
@@ -25,9 +24,8 @@ def _base_path_check(username: str, completed_dir: str,
         return x
 
     def bpc(info: TorrentInfo) -> bool:
-        return not info.base_path.startswith(
-            f'{PREFIX.format(username, completed_dir)}'
-            f'/{maybe_lower(info.custom1 or "")}')
+        return not info.base_path.startswith(f'{PREFIX.format(username, completed_dir)}'
+                                             f'/{maybe_lower(info.custom1 or "")}')
 
     return bpc
 
@@ -43,20 +41,17 @@ def _key_check(info: TorrentInfo) -> bool:
               '--completed-dir',
               default='_completed',
               help='Top directory where moved torrent data will be placed')
-@click.option(
-    '-t',
-    '--sleep-time',
-    default=10,
-    type=int,
-    help=('Time to sleep in seconds at certain times during this batch '
-          'of requests'))
+@click.option('-t',
+              '--sleep-time',
+              default=10,
+              type=int,
+              help=('Time to sleep in seconds at certain times during this batch '
+                    'of requests'))
 @click.option('-l',
               '--lower-label',
               is_flag=True,
               help='Call lower() on labels used to make directory names')
-@click.option('--ignore-labels',
-              multiple=True,
-              help='list of labels to ignore (case-sensitive)')
+@click.option('--ignore-labels', multiple=True, help='list of labels to ignore (case-sensitive)')
 def main(  # pylint: disable=too-many-arguments,unused-argument
         host: str,
         ignore_labels: Sequence[str],
@@ -91,8 +86,7 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
         raise click.Abort() from e
     count = 0
     for info in (y for y in (x for x in torrents if _key_check(x))
-                 if _base_path_check(username, completed_dir, lower_label
-                                     or False)(y)):
+                 if _base_path_check(username, completed_dir, lower_label or False)(y)):
         label = info.custom1
         if not label or label in ignore_labels:
             continue

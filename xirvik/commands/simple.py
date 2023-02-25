@@ -3,8 +3,7 @@ from base64 import b64encode
 from datetime import datetime
 from logging.handlers import SysLogHandler
 from os import listdir, makedirs, remove as rm
-from os.path import (basename, expanduser, isdir, join as path_join, realpath,
-                     splitext)
+from os.path import basename, expanduser, isdir, join as path_join, realpath, splitext
 from tempfile import NamedTemporaryFile
 from typing import Any, Iterator, NoReturn, Sequence, cast
 import json
@@ -22,11 +21,9 @@ from unidecode import unidecode
 import click
 import requests
 
-from xirvik.client import ruTorrentClient
-from xirvik.typing import TorrentInfo, TorrentTrackedFile
-
-from .util import (command_with_config_file, complete_hosts, complete_ports,
-                   setup_logging)
+from ..client import ruTorrentClient
+from ..typing import TorrentInfo, TorrentTrackedFile
+from .util import command_with_config_file, complete_hosts, complete_ports, setup_logging
 
 
 def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
@@ -38,26 +35,17 @@ def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
 
 
 @click.command(cls=command_with_config_file('config', 'add-torrents'))
-@click.option('-p',
-              '--port',
-              type=int,
-              default=443,
-              shell_complete=complete_ports)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
 @click.option('--start-stopped', is_flag=True)
 @click.option('-s', '--syslog', is_flag=True)
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
 @click.option('--no-verify',
               default=False,
               is_flag=True,
               help='Disable TLS verification (not recommended)')
-@click.argument('directories',
-                type=click.Path(exists=True, file_okay=False),
-                nargs=-1)
+@click.argument('directories', type=click.Path(exists=True, file_okay=False), nargs=-1)
 def start_torrents(host: str,
                    directories: str,
                    port: int = 443,
@@ -98,9 +86,7 @@ def start_torrents(host: str,
             item = path_join(d, item)
             # Workaround for surrogates not allowed error, rename the file
             prefix = f'{splitext(basename(item))[0]:s}-'
-            with NamedTemporaryFile(prefix=prefix,
-                                    suffix='.torrent',
-                                    dir=cache_dir,
+            with NamedTemporaryFile(prefix=prefix, suffix='.torrent', dir=cache_dir,
                                     delete=False) as w:
                 with open(item, 'rb') as r:
                     w.write(r.read())
@@ -114,12 +100,11 @@ def start_torrents(host: str,
                 filename = unidecode(torrent_file.name)
                 logger.info(f'Uploading torrent {basename(item)} (actual '
                             f'name: "{basename(filename)}")')
-                resp = requests.post(
-                    post_url,
-                    data=form_data,
-                    files=dict(torrent_file=(filename, torrent_file)),
-                    verify=not no_verify,
-                    timeout=30)
+                resp = requests.post(post_url,
+                                     data=form_data,
+                                     files=dict(torrent_file=(filename, torrent_file)),
+                                     verify=not no_verify,
+                                     timeout=30)
                 if not resp.ok:
                     logger.error(f'Error uploading {old}')
                     continue
@@ -129,16 +114,9 @@ def start_torrents(host: str,
 
 
 @click.command(cls=command_with_config_file('config', 'list-ftp-users'))
-@click.option('-p',
-              '--port',
-              type=int,
-              default=443,
-              shell_complete=complete_ports)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
 def list_ftp_users(host: str,
                    port: int = 443,
@@ -146,8 +124,7 @@ def list_ftp_users(host: str,
                    config: str | None = None) -> None:
     """Lists FTP users."""
     setup_logging(debug)
-    r = requests.get(f'https://{host}:{port:d}/userpanel/index.php/ftp_users',
-                     timeout=30)
+    r = requests.get(f'https://{host}:{port:d}/userpanel/index.php/ftp_users', timeout=30)
     try:
         r.raise_for_status()
     except HTTPError as e:
@@ -155,23 +132,16 @@ def list_ftp_users(host: str,
     content = Soup(r.text, 'html5lib').select('.gradeX td')
     click.echo(
         tabulate(((user.text, read_only.text == 'Yes', root_dir.text)
-                  for user, read_only, root_dir, _ in (
-                      content[i:i + 4] for i in range(0, len(content), 4))),
+                  for user, read_only, root_dir, _ in (content[i:i + 4]
+                                                       for i in range(0, len(content), 4))),
                  headers=('Username', 'Read-only', 'Root directory')))
 
 
 @click.command(cls=command_with_config_file('config', 'add-ftp-user'))
-@click.option('-p',
-              '--port',
-              type=int,
-              default=443,
-              shell_complete=complete_ports)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
 @click.option('-r', '--root-directory', default='/')
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
 @click.argument('username')
 @click.argument('password')
@@ -186,8 +156,7 @@ def add_ftp_user(host: str,
     setup_logging(debug)
     uri = (f'https://{host}:{port:d}/userpanel/index.php/'
            'ftp_users/add_user')
-    root_dir = root_directory if root_directory.startswith(
-        '/') else f'/{root_directory}'
+    root_dir = root_directory if root_directory.startswith('/') else f'/{root_directory}'
     # Setting read_only=yes does not appear to work
     r = requests.post(uri,
                       data=dict(username=username,
@@ -202,16 +171,9 @@ def add_ftp_user(host: str,
 
 
 @click.command(cls=command_with_config_file('config', 'delete-ftp-user'))
-@click.option('-p',
-              '--port',
-              type=int,
-              default=443,
-              shell_complete=complete_ports)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
 @click.argument('username')
 def delete_ftp_user(host: str,
@@ -232,16 +194,9 @@ def delete_ftp_user(host: str,
 
 
 @click.command(cls=command_with_config_file('config', 'authorize-ip'))
-@click.option('-p',
-              '--port',
-              type=int,
-              default=443,
-              shell_complete=complete_ports)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
 def authorize_ip(host: str,
                  port: int = 443,
@@ -259,21 +214,11 @@ def authorize_ip(host: str,
 
 
 @click.command(cls=command_with_config_file('config', 'fix-rtorrent'))
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
-@click.option('-p',
-              '--port',
-              type=int,
-              default=443,
-              shell_complete=complete_ports)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
-def fix_rtorrent(host: str,
-                 port: int,
-                 debug: bool = False,
-                 config: str | None = None) -> None:
+def fix_rtorrent(host: str, port: int, debug: bool = False, config: str | None = None) -> None:
     """
     Restarts the rtorrent service in case ruTorrent cannot connect to it. Not
     guaranteed to fix anything!
@@ -290,16 +235,9 @@ def fix_rtorrent(host: str,
 
 
 @click.command(cls=command_with_config_file('config', 'list-torrents'))
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
-@click.option('-p',
-              '--port',
-              type=int,
-              default=443,
-              shell_complete=complete_ports)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
 @click.option('-I', '--no-headers', is_flag=True)
 @click.option('-F',
@@ -308,8 +246,8 @@ def fix_rtorrent(host: str,
               default='plain')
 @click.option('-S',
               '--sort',
-              type=click.Choice(('name', 'hash', 'label', 'creation_date',
-                                 'state_changed', 'finished')))
+              type=click.Choice(
+                  ('name', 'hash', 'label', 'creation_date', 'state_changed', 'finished')))
 @click.option('-R', '--reverse-order', is_flag=True)
 def list_torrents(host: str,
                   port: int,
@@ -322,8 +260,7 @@ def list_torrents(host: str,
     """list torrents in a given format."""
     def sorter(x: TorrentInfo) -> Any:
         assert sort is not None
-        if ((val := getattr(x, sort if sort != 'label' else 'custom1',
-                            None)) is None
+        if ((val := getattr(x, sort if sort != 'label' else 'custom1', None)) is None
                 and sort in ('finished', 'creation_date', 'state_changed')):
             return datetime.min
         return val or ''
@@ -337,11 +274,9 @@ def list_torrents(host: str,
         torrents = reversed(list(torrents))
     if table_format in tabulate_formats:
         click.echo_via_pager(
-            tabulate(
-                ((t.hash, t.name, t.custom1, t.finished) for t in torrents),
-                headers=() if no_headers else
-                ('Hash', 'Name', 'Label', 'Finished'),
-                tablefmt=table_format))
+            tabulate(((t.hash, t.name, t.custom1, t.finished) for t in torrents),
+                     headers=() if no_headers else ('Hash', 'Name', 'Label', 'Finished'),
+                     tablefmt=table_format))
     elif table_format == 'json':
         click.echo(
             json.dumps([
@@ -356,16 +291,9 @@ def list_torrents(host: str,
 
 
 @click.command(cls=command_with_config_file('config', 'list-files'))
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
-@click.option('-p',
-              '--port',
-              type=int,
-              default=443,
-              shell_complete=complete_ports)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
 @click.option('-I', '--no-headers', is_flag=True)
 @click.option('-F',
@@ -390,19 +318,17 @@ def list_files(
         reverse_order: bool | None = None) -> None:
     """list a torrent's files in a given format."""
     setup_logging(debug)
-    files = sorted(cast(
-        Iterator[TorrentTrackedFile] | Sequence[TorrentTrackedFile],
-        ruTorrentClient(host).list_files(hash)),
+    files = sorted(cast(Iterator[TorrentTrackedFile] | Sequence[TorrentTrackedFile],
+                        ruTorrentClient(host).list_files(hash)),
                    key=lambda x: getattr(x, sort))
     if reverse_order:
         files = list(reversed(list(files)))
     if table_format in tabulate_formats:
         click.echo_via_pager(
-            tabulate(((f.name, f.size_bytes, f.downloaded_pieces,
-                       f.number_of_pieces, str(f.priority_id)) for f in files),
+            tabulate(((f.name, f.size_bytes, f.downloaded_pieces, f.number_of_pieces,
+                       str(f.priority_id)) for f in files),
                      headers=() if no_headers else
-                     ('Name', 'Size', 'Downloaded Pieces', 'Number of Pieces',
-                      'Priority ID'),
+                     ('Name', 'Size', 'Downloaded Pieces', 'Number of Pieces', 'Priority ID'),
                      tablefmt=table_format))
     elif table_format == 'json':
         click.echo(json.dumps([x._asdict() for x in files]))
@@ -418,21 +344,11 @@ def _resolve_single_file_torrent_path(info: TorrentInfo, filename: str) -> str:
 
 @click.command(cls=command_with_config_file('config', 'list-all-files'),
                help='list all tracked file paths.')
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
-@click.option('-p',
-              '--port',
-              type=int,
-              default=443,
-              shell_complete=complete_ports)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
-def list_all_files(host: str,
-                   port: int,
-                   debug: bool = False,
-                   config: str | None = None) -> None:
+def list_all_files(host: str, port: int, debug: bool = False, config: str | None = None) -> None:
     """list every tracked file."""
     setup_logging(debug)
     client = ruTorrentClient(host)
@@ -444,8 +360,7 @@ def list_all_files(host: str,
         for info in progress_bar:
             files = list(client.list_files(info.hash))
             if len(files) == 1:
-                click.echo(
-                    _resolve_single_file_torrent_path(info, files[0].name))
+                click.echo(_resolve_single_file_torrent_path(info, files[0].name))
             else:
                 for file in (f'{info.base_path}/{y.name}' for y in files):
                     click.echo(file)
@@ -453,10 +368,7 @@ def list_all_files(host: str,
 
 @click.command(cls=command_with_config_file('config', 'list-untracked-files'),
                help='list untracked file paths.')
-@click.option('-H',
-              '--host',
-              help='Xirvik host (without protocol)',
-              shell_complete=complete_hosts)
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
 @click.option(
     '-L',
@@ -469,11 +381,7 @@ def list_all_files(host: str,
         "ssh name-of-server 'find /media/sf_hostshare -type f' | "
         "sed -re 's|^/media/sf_hostshare|/torrents/username|g'"))
 # pylint: enable=invalid-string-quote
-@click.option('-p',
-              '--port',
-              type=int,
-              default=443,
-              shell_complete=complete_ports)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
 def list_untracked_files(host: str,
                          port: int,
@@ -504,14 +412,12 @@ def list_untracked_files(host: str,
         for info in progress_bar:
             files = list(client.list_files(info.hash))
             if len(files) == 1:
-                tracked_files.add(
-                    _resolve_single_file_torrent_path(info, files[0].name))
+                tracked_files.add(_resolve_single_file_torrent_path(info, files[0].name))
             else:
                 for file in (f'{info.base_path}/{y.name}' for y in files):
                     tracked_files.add(file)
     click.echo('Getting server-side file list', file=sys.stderr)
-    with sp.Popen(server_list_command, shell=True, text=True,
-                  stdout=sp.PIPE) as process:
+    with sp.Popen(server_list_command, shell=True, text=True, stdout=sp.PIPE) as process:
         assert process.stdout is not None
         while (line := process.stdout.readline().strip()):
             if line not in tracked_files:

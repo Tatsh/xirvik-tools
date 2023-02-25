@@ -15,8 +15,7 @@ import click
 from xirvik.typing import TorrentInfo
 
 from ..client import ruTorrentClient
-from .util import (command_with_config_file, common_options_and_arguments,
-                   setup_logging)
+from .util import command_with_config_file, common_options_and_arguments, setup_logging
 
 TestCallable = Callable[[TorrentInfo], tuple[str, bool]]
 TestsDict = dict[str, tuple[bool, TestCallable]]
@@ -33,8 +32,7 @@ def _test_date_cb(days: int = 14) -> TestCallable:
         logger.debug(f'    {condition2} <= {expect}')
         return (
             f'over {days} days seeded',
-            bool((condition1 and condition1 <= expect)
-                 or (condition2 and condition2 <= expect)),
+            bool((condition1 and condition1 <= expect) or (condition2 and condition2 <= expect)),
         )
 
     return test_date
@@ -54,7 +52,7 @@ def _test_ratio(info: TorrentInfo) -> tuple[str, bool]:
 @click.option('--label', default=None)
 @click.option('--max-attempts', type=int, default=3)
 @click.option('--sleep-time', type=int, default=10)
-def main(  # pylint: disable=too-many-arguments,unused-argument
+def main(  # pylint: disable=too-many-arguments,unused-argument,unused-variable
         host: str,
         debug: bool = False,
         netrc: str | None = None,
@@ -83,9 +81,9 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
         logger.error('Connection failed on list_torrents() call')
         raise click.Abort() from e
     tests = dict(
-            ratio=(ignore_ratio, _test_ratio),
-            date=(ignore_date, _test_date_cb(days)),
-        )
+        ratio=(ignore_ratio, _test_ratio),
+        date=(ignore_date, _test_date_cb(days)),
+    )
     for info in torrents:
         if info.left_bytes != 0 or info.custom1 != label:
             continue
