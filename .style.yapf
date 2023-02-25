@@ -46,7 +46,7 @@ blank_line_before_nested_class_or_def = False
 #    })
 coalesce_brackets = True
 # The column limit.
-column_limit = 79
+column_limit = 99
 # The style for continuation alignment. Possible values are:
 #
 # - SPACE: Use spaces for continuation alignment. This is default behavior.
