@@ -18,7 +18,7 @@ jobs:
         run: poetry run mypy .
       - if: matrix.python-version == 3.10
         name: Lint with Pylint
-        run: poetry run pylint xirvik setup.py
+        run: poetry run pylint xirvik test/*.py test/commands/*.py
       - if: matrix.python-version == 3.10
         name: Check spelling
         run: |
