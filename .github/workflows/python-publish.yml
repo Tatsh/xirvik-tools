@@ -20,7 +20,7 @@ jobs:
         name: Build and publish
         run: |
           poetry build
-          twine upload --disable-progress-bar dist/*
+          poetry run twine upload --disable-progress-bar dist/*
 'on':
   release:
     types:

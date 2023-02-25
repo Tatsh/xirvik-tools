@@ -16,12 +16,12 @@ jobs:
           python -m pip install --upgrade poetry
           poetry install --with=testing
       - name: Run tests
-        run: pytest --cov=xirvik --cov-branch
+        run: poetry run pytest --cov=xirvik --cov-branch
       - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: matrix.python-version == 3.10
         name: Coveralls
-        run: coveralls --service=github
+        run: poetry run coveralls --service=github
     strategy:
       matrix:
         python-version:
