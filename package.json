@@ -2,7 +2,10 @@
   "author": "Fa An <2998784916@qq.com>",
   "description": "File only used in CI.",
   "devDependencies": {
-    "cspell": "^6.26.3"
+    "@prettier/plugin-xml": "^2.2.0",
+    "cspell": "^6.26.3",
+    "prettier-plugin-ini": "^1.1.0",
+    "prettier-plugin-toml": "^0.3.1"
   },
   "license": "MIT",
   "main": "index.js",

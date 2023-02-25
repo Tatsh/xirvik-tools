@@ -1,3 +1,20 @@
 {
+  "iniSpaceAroundEquals": true,
+  "overrides": [
+    {
+      "files": "*.plist",
+      "options": {
+        "parser": "xml",
+        "useTabs": true
+      }
+    },
+    {
+      "files": ["*.service", "*.timer", "*.yapf"],
+      "options": {
+        "parser": "ini"
+      }
+    }
+  ],
+  "printWidth": 99,
   "singleQuote": true
 }

@@ -1,7 +1,6 @@
 [MAIN]
 ignore=.git
-ignore-patterns=.*\.pyi,
-                .*\.egg-info
+ignore-patterns=.*\.pyi
 jobs=0
 load-plugins=pylint_quotes
 
@@ -21,8 +20,8 @@ logging-format-style=old
 logging-modules=logging,
                 loguru
 
-; [VARIABLES]
-; allow-global-unused-variables=no
+[VARIABLES]
+allow-global-unused-variables=no
 
 [FORMAT]
 expected-line-ending-format=LF
@@ -32,29 +31,29 @@ ignore-imports=no
 
 [BASIC]
 class-attribute-naming-style=snake_case
-good-names=e,
+good-names=_,
            b,
+           d,
+           e,
+           f,
+           fn,
+           g,
            i,
            id,
            j,
            k,
-           f,
-           g,
+           l
            m,
-           x,
-           y,
-           z,
+           mc,
            n,
            r,
-           mc,
-           fn,
            ruTorrentClient,
            t,
            v,
-           d,
            w,
-           _,
-           l
+           x,
+           y,
+           z,
 include-naming-hint=yes
 inlinevar-naming-style=snake_case
 
