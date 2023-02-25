@@ -10,9 +10,6 @@ basestring
 beautifulsoup
 builtins
 classmethod
-seedingtime
-move_datafiles
-
 cmdclass
 colenabled
 colorder
@@ -53,6 +50,7 @@ lunchy
 maxdepth
 metaclass
 modindex
+move_datafiles
 msvs
 multirpc
 mutators
@@ -85,6 +83,7 @@ reqtimeout
 ropeproject
 rtorrent
 rutorrent
+seedingtime
 setenv
 setlabel
 setsettings
