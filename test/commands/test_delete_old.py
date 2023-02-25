@@ -3,7 +3,7 @@
 # pylint: disable=protected-access,redefined-outer-name
 # pylint: disable=unused-argument
 from datetime import datetime, timedelta
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 import pathlib
 import xmlrpc.client as xmlrpc
 
@@ -20,8 +20,8 @@ class MinimalTorrentDict(NamedTuple):
     left_bytes: int = 0
     name: str = ''
     ratio: float = 0
-    creation_date: Optional[datetime] = None
-    state_changed: Optional[datetime] = None
+    creation_date: datetime | None = None
+    state_changed: datetime | None = None
 
 
 def test_delete_old_list_torrents_fail(runner: CliRunner,

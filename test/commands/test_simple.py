@@ -3,7 +3,7 @@
 # pylint: disable=redefined-outer-name,missing-class-docstring
 from datetime import datetime, timedelta
 from os.path import expanduser
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 import json
 import pathlib
 import re
@@ -238,15 +238,15 @@ def test_authorize_ip_error(runner: CliRunner, requests_mock: req_mock.Mocker,
 
 class MinimalTorrentDict(NamedTuple):
     hash: str
-    custom1: Optional[str] = None
+    custom1: str | None = None
     left_bytes: int = 0
     name: str = ''
     ratio: float = 0
-    creation_date: Optional[datetime] = None
-    state_changed: Optional[datetime] = None
+    creation_date: datetime | None = None
+    state_changed: datetime | None = None
     is_hash_checking: bool = False
-    base_path: Optional[str] = None
-    finished: Optional[datetime] = None
+    base_path: str | None = None
+    finished: datetime | None = None
 
 
 def test_list_torrents(runner: CliRunner, mocker: MockerFixture,

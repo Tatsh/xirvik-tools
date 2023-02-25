@@ -3,7 +3,7 @@
 # pylint: disable=redefined-outer-name,missing-class-docstring
 from datetime import datetime
 import pathlib
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from click.testing import CliRunner
 from pytest_mock import MockerFixture
@@ -14,14 +14,14 @@ from xirvik.commands.root import xirvik
 
 class MinimalTorrentDict(NamedTuple):
     hash: str
-    custom1: Optional[str] = None
+    custom1: str | None = None
     left_bytes: int = 0
     name: str = ''
     ratio: float = 0
-    creation_date: Optional[datetime] = None
-    state_changed: Optional[datetime] = None
+    creation_date: datetime | None = None
+    state_changed: datetime | None = None
     is_hash_checking: bool = False
-    base_path: Optional[str] = None
+    base_path: str | None = None
     message: str = ''
 
 

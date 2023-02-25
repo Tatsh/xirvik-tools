@@ -73,7 +73,8 @@ def common_options_and_arguments(
 
 def _clean_host(host: str) -> str:
     # Attempt to not break IPv6 addresses
-    if '[' not in host and (re.search(r'[0-9]+\:[0-9]+', host) or host == '::1'):
+    if '[' not in host and (re.search(r'[0-9]+\:[0-9]+', host)
+                            or host == '::1'):
         return host
     # Remove brackets and remove port at end
     return re.sub(r'[\[\]]', '', re.sub(r'\:[0-9]+$', '', host))
@@ -129,7 +130,7 @@ class InterceptHandler(logging.Handler):  # pragma: no cover
         frame: FrameType | None = logging.currentframe()
         depth = 2
         while frame and frame.f_code.co_filename == logging.__file__:
-            frame= frame.f_back
+            frame = frame.f_back
             depth += 1
         logger.opt(depth=depth, exception=record.exc_info).log(
             level, record.getMessage())
@@ -152,7 +153,7 @@ def command_with_config_file(
     config_file_param_name : str
         The name of the parameter given to Click in ``click.option``.
 
-    default_section : Optional[str]
+    default_section : str | None
         Default top key of YAML to read from.
     """
     home = pathlib.Path.home()
