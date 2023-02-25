@@ -1,6 +1,6 @@
 [Unit]
-Description = Torrent sync with Xirvik
+Description=Torrent sync with Xirvik
 
 [Service]
-Type = oneshot
-ExecStart = /FULL/PATH/TO/xirvik rtorrent add -s HOSTNAME /PATH/TO/SEARCH
+Type=oneshot
+ExecStart=/FULL/PATH/TO/xirvik rtorrent add -s HOSTNAME /PATH/TO/SEARCH
