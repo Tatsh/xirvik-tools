@@ -157,6 +157,7 @@ def command_with_config_file(config_file_param_name: str = 'config',
             config_file_path = (ctx.params.get(config_file_param_name, default_config_file_path)
                                 or default_config_file_path)
             config_data: Any = {}
+            debug = ctx.params.get('debug', False)
             try:
                 with open(config_file_path) as f:
                     config_data = yaml.safe_load(f)
@@ -175,6 +176,11 @@ def command_with_config_file(config_file_param_name: str = 'config',
                 ctx.params[config_file_param_name] = config_file_path
             else:  # pragma no cover
                 warnings.warn(f'Unexpected type in {config_file_path}: ' + str(type(config_data)))
-            return super().invoke(ctx)
+            try:
+                return super().invoke(ctx)
+            except Exception as e:
+                if debug:
+                    logger.exception(str(e))
+                raise click.Abort() from e
 
     return _ConfigFileCommand
