@@ -10,7 +10,7 @@ from requests.exceptions import HTTPError
 import pytest
 import requests_mock as req_mock
 
-from xirvik.client import UnexpectedruTorrentError, ruTorrentClient
+from xirvik.client import ListTorrentsError, UnexpectedruTorrentError, ruTorrentClient
 from xirvik.typing import FileDownloadStrategy, FilePriority
 
 # pylint: disable=missing-function-docstring,protected-access,unused-variable
@@ -60,7 +60,7 @@ def test_list_torrents_bad_status(requests_mock: req_mock.Mocker) -> None:
 def test_list_torrents_bad_type(requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     requests_mock.post(client.multirpc_action_uri, json=dict(t=[]))
-    with pytest.raises(AttributeError):
+    with pytest.raises(ListTorrentsError):
         list(client.list_torrents())
 
 
