@@ -30,6 +30,10 @@ class UnexpectedruTorrentError(Exception):
     """Raised when an unexpected error occurs."""
 
 
+class ListTorrentsError(Exception):
+    """Raised when ruTorrentClient.list_torrents() has an exception."""
+
+
 class ruTorrentClient:
     """
     ruTorrent client class.
@@ -147,7 +151,10 @@ class ruTorrentClient:
                                data=dict(mode='list', cmd='d.custom=seedingtime'),
                                auth=self.auth)
         r.raise_for_status()
-        for hash_, x in cast(dict[str, list[Any]], r.json()['t']).items():
+        possible_dict = cast(dict[str, list[Any]], r.json()['t'])
+        if not hasattr(possible_dict, 'items'):
+            raise ListTorrentsError('Unexpected type in response: ' + str(type(possible_dict)))
+        for hash_, x in possible_dict.items():
             del x[34]  # Delete unknown field
             for i, (type_cls, val) in enumerate(
                     zip((t[1] for t in list(TorrentInfo.__annotations__.items())[1:]),
