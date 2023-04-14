@@ -41,6 +41,7 @@ hsplit
 htmlcov
 idiv
 inlinevar
+isort
 itertools
 labelsize
 levelname
@@ -68,6 +69,7 @@ parseable
 pipx
 plabel
 popen
+prettierrc
 prss
 pstate
 ptrackers

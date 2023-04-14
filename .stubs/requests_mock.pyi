@@ -1,6 +1,5 @@
 from typing import Any, Callable, Mapping
 
-
 class Request:
     text: str | None
 

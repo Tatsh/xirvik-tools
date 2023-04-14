@@ -7,8 +7,7 @@
     <string>sh.tat.XirvikStartTorrents</string>
     <key>ProgramArguments</key>
     <array>
-      <string
-			>FULL PATH TO Python 3, i.e /Users/tatsh/.virtualenvs/xirvik-tools/bin/python3</string>
+      <string>FULL PATH TO Python 3, i.e /Users/tatsh/.virtualenvs/xirvik-tools/bin/python3</string>
       <string>FULL PATH TO xirvik, i.e /Users/tatsh/.virtualenvs/xirvik-tools/bin/xirvik</string>
       <string>rtorrent</string>
       <string>add</string>

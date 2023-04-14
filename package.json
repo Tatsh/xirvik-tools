@@ -12,8 +12,14 @@
   "name": "xirvik-tools",
   "private": false,
   "repository": "https://github.com/Tatsh/xirvik-tools",
-  "version": "1.0.0",
-  "dependencies": {
-    "prettier": "^2.8.4"
-  }
+  "scripts": {
+    "check-formatting": "prettier -c './**/*.cfg' './**/*.ini' './**/*.md' './**/*.toml' './**/*.plist' './**/*.yml' ./.prettierrc ./.style.yapf && isort . --check && yapf -rd xirvik .stubs test",
+    "check-spelling": "cspell --no-progress './**/*'  './**/.*'",
+    "format": "prettier -w './**/*.cfg' './**/*.ini' './**/*.md' './**/*.toml' './**/*.plist' './**/*.yml' ./.prettierrc ./.style.yapf && isort . && yapf -ri xirvik .stubs test",
+    "install-python-deps": "python -m pip install --upgrade pip && pip install poetry && poetry install && pip install -e . && pip install mypy pylint pylint-quotes pytest pytest-cov coveralls pytest-mock types-requests toml yapf",
+    "mypy": "mypy .",
+    "pylint": "pylint xirvik",
+    "qa": "yarn mypy && yarn pylint && yarn check-spelling && yarn check-formatting"
+  },
+  "version": "1.0.0"
 }

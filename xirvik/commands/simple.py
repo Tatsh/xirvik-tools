@@ -300,10 +300,7 @@ def list_torrents(host: str,
               '--table-format',
               type=click.Choice(tabulate_formats + ['json']),
               default='plain')
-@click.option('-S',
-              '--sort',
-              type=click.Choice(('name', 'size_bytes', 'priority')),
-              default='name')
+@click.option('-S', '--sort', type=click.Choice(('name', 'size_bytes', 'priority')), default='name')
 @click.option('-R', '--reverse-order', is_flag=True)
 @click.argument('hash')
 def list_files(
@@ -325,11 +322,12 @@ def list_files(
         files = list(reversed(list(files)))
     if table_format in tabulate_formats:
         click.echo_via_pager(
-            tabulate(((f.name, f.size_bytes, f.downloaded_pieces, f.number_of_pieces,
-                       str(f.priority_id)) for f in files),
-                     headers=() if no_headers else
-                     ('Name', 'Size', 'Downloaded Pieces', 'Number of Pieces', 'Priority ID'),
-                     tablefmt=table_format))
+            tabulate(
+                ((f.name, f.size_bytes, f.downloaded_pieces, f.number_of_pieces, str(f.priority_id))
+                 for f in files),
+                headers=() if no_headers else
+                ('Name', 'Size', 'Downloaded Pieces', 'Number of Pieces', 'Priority ID'),
+                tablefmt=table_format))
     elif table_format == 'json':
         click.echo(json.dumps([x._asdict() for x in files]))
     else:  # pragma no cover
@@ -353,8 +351,7 @@ def list_all_files(host: str, port: int, debug: bool = False, config: str | None
     setup_logging(debug)
     client = ruTorrentClient(host)
     click.echo('Listing torrents ...', file=sys.stderr)
-    with click.progressbar(list(client.list_torrents()),
-                           file=sys.stderr,
+    with click.progressbar(list(client.list_torrents()), file=sys.stderr,
                            label='Getting file list') as progress_bar:
         info: TorrentInfo
         for info in progress_bar:
@@ -405,8 +402,7 @@ def list_untracked_files(host: str,
     client = ruTorrentClient(host)
     click.echo('Listing torrents ...', file=sys.stderr)
     tracked_files = cast(set[str], set())
-    with click.progressbar(list(client.list_torrents()),
-                           file=sys.stderr,
+    with click.progressbar(list(client.list_torrents()), file=sys.stderr,
                            label='Getting file list') as progress_bar:
         info: TorrentInfo
         for info in progress_bar:

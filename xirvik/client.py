@@ -316,13 +316,12 @@ class ruTorrentClient:
         hash\\_ : str
             Hash of the torrent.
         """
-        r = self._session.post(
-            self.multirpc_action_uri,
-            data=(f'mode=fls&hash={hash_}' + '&' + '&'.join(f'cmd={x}' for x in (
-                quote('f.prioritize_first='),
-                quote('f.prioritize_last='),
-            ))),
-            auth=self.auth)
+        r = self._session.post(self.multirpc_action_uri,
+                               data=(f'mode=fls&hash={hash_}' + '&' + '&'.join(f'cmd={x}' for x in (
+                                   quote('f.prioritize_first='),
+                                   quote('f.prioritize_last='),
+                               ))),
+                               auth=self.auth)
         r.raise_for_status()
         for x in r.json():
             # Fix the numeric values which come as strings

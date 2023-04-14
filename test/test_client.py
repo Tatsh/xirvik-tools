@@ -5,7 +5,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Any, cast
 import xmlrpc.client
 
-from pytest_mock import MockerFixture
+from pytest_mock.plugin import MockerFixture
 from requests.exceptions import HTTPError
 import pytest
 import requests_mock as req_mock
@@ -84,7 +84,7 @@ def test_get_torrent(requests_mock: req_mock.Mocker) -> None:
     uri = (f'{client.http_prefix}/rtorrent/plugins/source/action.php'
            '?hash=hash_of_torrent')
     requests_mock.get(uri, headers={'content-disposition': 'attachment; '
-                                    'filename=test.torrent'})
+                                                           'filename=test.torrent'})
     _, fn = client.get_torrent('hash_of_torrent')
 
     assert fn == 'test.torrent'
@@ -163,8 +163,8 @@ def test_set_label(requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     list_torrents_json = dict(
         t=dict(hash1=[
-            '1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849',
-            '357999402', '1426', '0', '0', '262144', 'a label'
+            '1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849', '357999402',
+            '1426', '0', '0', '262144', 'a label'
         ] + (20 * ['0']) + ['1633423132\n']),
         cid=92983,
     )

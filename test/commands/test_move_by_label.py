@@ -2,8 +2,8 @@
 # pylint: disable=missing-function-docstring,protected-access
 # pylint: disable=redefined-outer-name,missing-class-docstring
 from datetime import datetime
-import pathlib
 from typing import NamedTuple
+import pathlib
 
 from click.testing import CliRunner
 from pytest_mock import MockerFixture
@@ -93,8 +93,8 @@ def test_move_torrent_ignored_label(runner: CliRunner, mocker: MockerFixture,
                            is_hash_checking=False,
                            base_path=f'/torrents/{client_mock.return_value.name}/_completed')
     ]
-    assert runner.invoke(xirvik, ('rtorrent', 'move-by-label', '--ignore-labels', 'Ignore-me',
-                                  '-H', 'machine.com')).exit_code == 0
+    assert runner.invoke(xirvik, ('rtorrent', 'move-by-label', '--ignore-labels', 'Ignore-me', '-H',
+                                  'machine.com')).exit_code == 0
     client_mock.return_value.move_torrent.assert_not_called()
 
 
@@ -157,7 +157,6 @@ def test_move_torrent_sleep_after_10(runner: CliRunner, mocker: MockerFixture,
                                base_path=f'/torrents/{client_mock.return_value.name}/_completed'))
     client_mock.return_value.list_torrents.return_value = l
     assert runner.invoke(
-        xirvik,
-        ('rtorrent', 'move-by-label', '-l', '-t', '10', '-H', 'machine.com')).exit_code == 0
+        xirvik, ('rtorrent', 'move-by-label', '-l', '-t', '10', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.move_torrent.call_count == 10
     sleep_mock.assert_called_once_with(10)

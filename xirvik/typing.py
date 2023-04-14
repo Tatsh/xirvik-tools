@@ -1,6 +1,6 @@
 """Typing helpers."""
-from enum import IntEnum
 from datetime import datetime
+from enum import IntEnum
 from typing import NamedTuple
 
 __all__ = ('FilePriority', 'FileDownloadStrategy', 'HashingState', 'State', 'TorrentInfo',

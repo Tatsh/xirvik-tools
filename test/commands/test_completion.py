@@ -2,6 +2,7 @@
 # pylint: disable=missing-function-docstring,protected-access
 # pylint: disable=redefined-outer-name
 import pathlib
+
 import pytest
 
 from xirvik.commands.util import complete_hosts, complete_ports

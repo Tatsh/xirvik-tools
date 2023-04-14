@@ -13,9 +13,8 @@ from pytest_mock.plugin import MockerFixture
 import pytest
 import requests_mock as req_mock
 
-from xirvik.typing import FileDownloadStrategy, FilePriority, TorrentTrackedFile
-
 from xirvik.commands.root import xirvik
+from xirvik.typing import FileDownloadStrategy, FilePriority, TorrentTrackedFile
 
 
 def test_fix_rtorrent(requests_mock: req_mock.Mocker, runner: CliRunner) -> None:
@@ -400,8 +399,8 @@ def test_list_files(runner: CliRunner, mocker: MockerFixture, tmp_path: pathlib.
                            FileDownloadStrategy.NORMAL),
     ]
     data = json.loads(
-        runner.invoke(
-            xirvik, ('rtorrent', 'list-files', '--table-format', 'json', 'hash1')).output.strip())
+        runner.invoke(xirvik,
+                      ('rtorrent', 'list-files', '--table-format', 'json', 'hash1')).output.strip())
     assert isinstance(data, list)
     assert data[0]['name'] == 'file1'
     assert data[1]['name'] == 'file2'

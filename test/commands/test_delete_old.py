@@ -122,8 +122,8 @@ def test_delete_old_ignore_date(runner: CliRunner, mocker: MockerFixture,
                            ratio=2,
                            creation_date=datetime.now() - timedelta(days=14))
     ]
-    assert runner.invoke(xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',
-                                  '--ignore-date', '-H', 'machine.com')).exit_code == 0
+    assert runner.invoke(xirvik, ('rtorrent', 'delete-old', '--label', 'the-label', '--ignore-date',
+                                  '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.delete.call_count == 1
     assert sleep_mock.call_count == 1
 

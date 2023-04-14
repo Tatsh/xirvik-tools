@@ -9,24 +9,19 @@
       }
     },
     {
-      "files": [
-        "*.yapf"
-      ],
+      "files": ["*.yapf"],
       "options": {
         "parser": "ini"
       }
     },
     {
-      "files": [
-        "*.service",
-        "*.timer"
-      ],
+      "files": ["*.service", "*.timer"],
       "options": {
         "iniSpaceAroundEquals": false,
         "parser": "ini"
       }
     }
   ],
-  "printWidth": 99,
+  "printWidth": 100,
   "singleQuote": true
 }
