@@ -57,10 +57,6 @@ pytest-mock = "^3.10.0"
 requests-mock = "^1.10.0"
 coveralls = "^3.3.1"
 
-[tool.poetry.group.packaging.dependencies]
-wheel = "^0.40.0"
-twine = "^4.0.2"
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
