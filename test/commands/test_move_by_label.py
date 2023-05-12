@@ -49,7 +49,7 @@ def test_move_torrent(runner: CliRunner, mocker: MockerFixture, tmp_path: pathli
                            custom1='The Label',
                            name='The Name',
                            is_hash_checking=False,
-                           base_path=f'/downloads/_completed')
+                           base_path='/downloads/_completed')
     ]
     config = tmp_path / 'config'
     config.write_text('{}\n')
@@ -72,7 +72,7 @@ def test_move_torrent_no_label(runner: CliRunner, mocker: MockerFixture, tmp_pat
                            custom1=None,
                            name='The Name',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed')
+                           base_path='/downloads/_completed')
     ]
     assert runner.invoke(xirvik, ('rtorrent', 'move-by-label', '-H', 'machine.com')).exit_code == 0
     client_mock.return_value.move_torrent.assert_not_called()
@@ -91,7 +91,7 @@ def test_move_torrent_ignored_label(runner: CliRunner, mocker: MockerFixture,
                            custom1='Ignore-me',
                            name='The Name',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed')
+                           base_path='/downloads/_completed')
     ]
     assert runner.invoke(xirvik, ('rtorrent', 'move-by-label', '--ignore-labels', 'Ignore-me', '-H',
                                   'machine.com')).exit_code == 0
@@ -107,12 +107,11 @@ def test_move_torrent_already_moved(runner: CliRunner, mocker: MockerFixture,
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
     client_mock.return_value.name = 'some_name'
     client_mock.return_value.list_torrents.return_value = [
-        MinimalTorrentDict(
-            'hash1',
-            custom1='some_label',
-            name='The Name',
-            is_hash_checking=False,
-            base_path=f'/torrents/{client_mock.return_value.name}/_completed/some_label')
+        MinimalTorrentDict('hash1',
+                           custom1='some_label',
+                           name='The Name',
+                           is_hash_checking=False,
+                           base_path='/downloads/_completed/some_label')
     ]
     assert runner.invoke(xirvik, ('rtorrent', 'move-by-label', '-H', 'machine.com')).exit_code == 0
     client_mock.return_value.move_torrent.assert_not_called()
@@ -154,7 +153,7 @@ def test_move_torrent_sleep_after_10(runner: CliRunner, mocker: MockerFixture,
                                custom1='TEST me',
                                name='The Name',
                                is_hash_checking=False,
-                               base_path=f'/downloads/_completed'))
+                               base_path='/downloads/_completed'))
     client_mock.return_value.list_torrents.return_value = l
     assert runner.invoke(
         xirvik, ('rtorrent', 'move-by-label', '-l', '-t', '10', '-H', 'machine.com')).exit_code == 0
