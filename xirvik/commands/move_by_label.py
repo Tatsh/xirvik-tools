@@ -13,7 +13,7 @@ from xirvik.typing import TorrentInfo
 from ..client import ruTorrentClient
 from .util import command_with_config_file, common_options_and_arguments, setup_logging
 
-PREFIX = '/torrents/{}/{}'
+PREFIX = '/downloads/{}'
 
 
 def _base_path_check(username: str, completed_dir: str,
@@ -24,8 +24,10 @@ def _base_path_check(username: str, completed_dir: str,
         return x
 
     def bpc(info: TorrentInfo) -> bool:
-        return not info.base_path.startswith(f'{PREFIX.format(username, completed_dir)}'
-                                             f'/{maybe_lower(info.custom1 or "")}')
+        return (not info.base_path.startswith(f'{PREFIX.format(completed_dir)}'
+                                              f'/{maybe_lower(info.custom1 or "")}')
+                # Old style paths
+                and not info.base_path.startswith(f'/torrents/{username}/'))
 
     return bpc
 
@@ -92,8 +94,8 @@ def main(  # pylint: disable=too-many-arguments,unused-argument
             continue
         if lower_label:
             label = label.lower()
-        move_to = f'{PREFIX.format(username, completed_dir)}/{label}'
-        logger.info(f'Moving {info.name} to {move_to}/')
+        move_to = f'{PREFIX.format(completed_dir)}/{label}'
+        logger.info(f'Moving {info.name} from {info.base_path} to {move_to}/')
         client.move_torrent(info.hash, move_to)
         count += 1
         if count > 0 and (count % 10) == 0:
