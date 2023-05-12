@@ -223,7 +223,7 @@ def test_list_torrents(runner: CliRunner, mocker: MockerFixture, tmp_path: pathl
                            custom1='TEST me',
                            name='The Name',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed')
+                           base_path='/downloads/_completed')
     ]
     lines = runner.invoke(xirvik, ('rtorrent', 'list-torrents')).output.splitlines()
     assert re.match(r'^Hash\s+Name\s+Label\s+Finished', lines[0])
@@ -241,7 +241,7 @@ def test_list_torrents_json(runner: CliRunner, mocker: MockerFixture, tmp_path: 
                            custom1='TEST me',
                            name='The Name',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed')
+                           base_path='/downloads/_completed')
     ]
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '-F', 'json')).output.strip())
@@ -261,12 +261,12 @@ def test_list_torrents_json_reversed(runner: CliRunner, mocker: MockerFixture,
                            custom1='TEST me',
                            name='The Name',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed'),
+                           base_path='/downloads/_completed'),
         MinimalTorrentDict('hash2',
                            custom1='TEST me',
                            name='The Name2',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed')
+                           base_path='/downloads/_completed')
     ]
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--reverse-order', '--table-format',
@@ -288,13 +288,13 @@ def test_list_torrents_json_sort_finished(runner: CliRunner, mocker: MockerFixtu
                            custom1='TEST me',
                            name='The Name',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed',
+                           base_path='/downloads/_completed',
                            finished=datetime.now()),
         MinimalTorrentDict('hash2',
                            custom1='TEST me',
                            name='The Name2',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed',
+                           base_path='/downloads/_completed',
                            finished=datetime.now() - timedelta(days=7)),
     ]
     data = json.loads(
@@ -317,12 +317,12 @@ def test_list_torrents_json_sort_finished_missing(runner: CliRunner, mocker: Moc
                            custom1='TEST me',
                            name='The Name',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed'),
+                           base_path='/downloads/_completed'),
         MinimalTorrentDict('hash2',
                            custom1='TEST me',
                            name='The Name2',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed',
+                           base_path='/downloads/_completed',
                            finished=datetime.now() - timedelta(days=7)),
     ]
     data = json.loads(
@@ -345,12 +345,12 @@ def test_list_torrents_json_sort_missing_attr(runner: CliRunner, mocker: MockerF
                            custom1='TEST me',
                            name='The Name',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed',
+                           base_path='/downloads/_completed',
                            finished=datetime.now() - timedelta(days=8)),
         MinimalTorrentDict('hash2',
                            name='The Name2',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed'),
+                           base_path='/downloads/_completed'),
     ]
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--sort', 'label', '--table-format',
@@ -372,11 +372,11 @@ def test_list_torrents_json_sort_other_criteria(runner: CliRunner, mocker: Mocke
                            custom1='TEST me',
                            name='The Name',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed'),
+                           base_path='/downloads/_completed'),
         MinimalTorrentDict('hash2',
                            name='AThe Name2',
                            is_hash_checking=False,
-                           base_path=f'/torrents/{client_mock.return_value.name}/_completed'),
+                           base_path='/downloads/_completed'),
     ]
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--sort', 'name', '--table-format',
