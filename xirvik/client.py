@@ -1,5 +1,4 @@
 """Client for ruTorrent."""
-from cgi import parse_header
 from datetime import datetime
 from enum import IntEnum
 from netrc import netrc
@@ -15,12 +14,9 @@ from urllib3.util import Retry
 import requests
 
 from .typing import FileDownloadStrategy, FilePriority, TorrentInfo, TorrentTrackedFile
+from .utils import parse_header
 
-__all__ = (
-    'LOG_NAME',
-    'UnexpectedruTorrentError',
-    'ruTorrentClient',
-)
+__all__ = ('LOG_NAME', 'UnexpectedruTorrentError', 'ruTorrentClient')
 
 #: Name used in logger.
 LOG_NAME: Final[str] = 'xirvik.rutorrent'
