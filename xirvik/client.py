@@ -140,7 +140,7 @@ class ruTorrentClient:
 
     def list_torrents(self) -> Iterator[TorrentInfo]:
         """
-        Get all torrents information.
+        Get all torrent information.
 
         Returns
         -------
@@ -235,8 +235,8 @@ class ruTorrentClient:
         # Example:
         #    mode=setlabel&hash=...&hash=...&v=label&v=label&s=label&s=label
         #
-        # This method builds this string out since Requests can take in a byte
-        # string as POST data (and you cannot set a key twice in a dictionary).
+        # This method builds this string in pieces because it is not possible to set the same key
+        # twice in a dictionary.
         hashes = kwargs.pop('hashes', [])
         label = kwargs.pop('label', None)
         allow_recursive_fix = kwargs.pop('allow_recursive_fix', True)

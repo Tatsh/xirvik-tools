@@ -5,7 +5,7 @@
 
 ## `setsettings` (tabs in UI, etc)
 
-Some settings are plugin specific!
+Some settings are plugin-specific!
 
 ```javascript
 const d = new FormData({
