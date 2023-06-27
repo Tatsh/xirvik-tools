@@ -13,7 +13,7 @@ import warnings
 from click.core import ParameterSource
 from loguru import logger
 import click
-import xdg
+import xdg.BaseDirectory
 import yaml
 
 __all__ = ('common_options_and_arguments', 'complete_hosts', 'complete_ports',
@@ -146,7 +146,7 @@ def command_with_config_file(config_file_param_name: str = 'config',
         Default top key of YAML to read from.
     """
     home = pathlib.Path.home()
-    default_config_file_path = xdg.xdg_config_home() / 'xirvik.yml'
+    default_config_file_path = pathlib.Path(xdg.BaseDirectory.xdg_config_home) / 'xirvik.yml'
     if sys.platform == 'win32':  # pragma: no cover
         default_config_file_path = home / 'AppData/Roaming/xirvik-tools/config.yml'
     elif sys.platform == 'darwin':  # pragma: no cover
