@@ -15,7 +15,6 @@ files = [
 name = "appdirs"
 version = "1.4.4"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "dev"
 optional = false
 python-versions = "*"
 files = [
@@ -46,7 +45,6 @@ wrapt = [
 name = "attrs"
 version = "23.1.0"
 description = "Classes Without Boilerplate"
-category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -105,7 +103,6 @@ files = [
 name = "cattrs"
 version = "23.1.2"
 description = "Composable complex class support for attrs and dataclasses."
-category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -224,13 +221,13 @@ files = [
 
 [[package]]
 name = "click"
-version = "8.1.3"
+version = "8.1.4"
 description = "Composable command line interface toolkit"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "click-8.1.3-py3-none-any.whl", hash = "sha256:bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48"},
-    {file = "click-8.1.3.tar.gz", hash = "sha256:7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e"},
+    {file = "click-8.1.4-py3-none-any.whl", hash = "sha256:2739815aaa5d2c986a88f1e9230c55e17f0caad3d958a5e13ad0797c166db9e3"},
+    {file = "click-8.1.4.tar.gz", hash = "sha256:b97d0c74955da062a7d4ef92fadb583806a585b2ea81958a81bd72726cbb8e37"},
 ]
 
 [package.dependencies]
@@ -370,7 +367,6 @@ files = [
 name = "esbonio"
 version = "0.16.1"
 description = "A Language Server for Sphinx projects."
-category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -577,7 +573,6 @@ dev = ["Sphinx (==5.3.0)", "colorama (==0.4.5)", "colorama (==0.4.6)", "freezegu
 name = "lsprotocol"
 version = "2023.0.0a2"
 description = "Python implementation of the Language Server Protocol."
-category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -777,7 +772,6 @@ testing = ["pytest", "pytest-benchmark"]
 name = "pygls"
 version = "1.0.2"
 description = "a pythonic generic language server (pronounced like \"pie glass\")."
-category = "dev"
 optional = false
 python-versions = "<4,>=3.7"
 files = [
@@ -793,7 +787,7 @@ typeguard = ">=3,<4"
 dev = ["bandit (==1.7.4)", "flake8 (==4.0.1)", "mypy (==0.961)"]
 docs = ["sphinx (==5.0.1)", "sphinx-rtd-theme (==1.0.0)"]
 test = ["pytest (==7.1.2)", "pytest-asyncio (==0.18.3)"]
-ws = ["websockets (>=10.0.0,<11.0.0)"]
+ws = ["websockets (==10.*)"]
 
 [[package]]
 name = "pygments"
@@ -855,7 +849,6 @@ pylint = ">=2.8.0"
 name = "pyspellchecker"
 version = "0.7.2"
 description = "Pure python spell checker based on work by Peter Norvig"
-category = "dev"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -1268,7 +1261,6 @@ files = [
 name = "typeguard"
 version = "3.0.2"
 description = "Run-time type checker for Python"
-category = "dev"
 optional = false
 python-versions = ">=3.7.4"
 files = [
@@ -1526,4 +1518,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "3458f9d3b750cf13623ae008ec05ad259773e4907d6c91959da304b9b8df5971"
+content-hash = "4b8437a56c800541e3f708919e3891a9006fcef4d85521b9633defd494b015ea"
