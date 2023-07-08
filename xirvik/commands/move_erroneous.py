@@ -21,10 +21,7 @@ T = TypeVar('T')
 
 
 def _has_one(look_for_list: Iterable[T], val: Iterable[T]) -> bool:
-    for candidate in look_for_list:
-        if candidate in val:
-            return True
-    return False
+    return any(candidate in val for candidate in look_for_list)
 
 
 def _should_process(x: TorrentInfo) -> bool:

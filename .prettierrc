@@ -9,12 +9,6 @@
       }
     },
     {
-      "files": ["*.yapf"],
-      "options": {
-        "parser": "ini"
-      }
-    },
-    {
       "files": ["*.service", "*.timer"],
       "options": {
         "iniSpaceAroundEquals": false,
