@@ -9,7 +9,6 @@ from typing import Any, Iterator, NoReturn, Sequence, cast
 import json
 import logging
 import signal
-import socket
 import subprocess as sp
 import sys
 
@@ -63,7 +62,7 @@ def start_torrents(host: str,
     if syslog:  # pragma: no cover
         try:
             syslog_handle = SysLogHandler(address='/dev/log')
-        except (OSError, socket.error):
+        except OSError:
             syslog_handle = SysLogHandler(address='/var/run/syslog',
                                           facility=SysLogHandler.LOG_USER)
             syslog_handle.ident = 'xirvik-start-torrents'
@@ -83,16 +82,16 @@ def start_torrents(host: str,
         for item in listdir(d):
             if not item.lower().endswith('.torrent'):
                 continue
-            item = path_join(d, item)
+            item_inner = path_join(d, item)
             # Workaround for surrogates not allowed error, rename the file
-            prefix = f'{splitext(basename(item))[0]:s}-'
+            prefix = f'{splitext(basename(item_inner))[0]:s}-'
             with NamedTemporaryFile(prefix=prefix, suffix='.torrent', dir=cache_dir,
                                     delete=False) as w:
-                with open(item, 'rb') as r:
+                with open(item_inner, 'rb') as r:
                     w.write(r.read())
-                old = item
-                item = w.name
-            with open(item, 'rb') as torrent_file:
+                old = item_inner
+                item_inner = w.name
+            with open(item_inner, 'rb') as torrent_file:
                 # Because the server does not understand filename*=UTF8 syntax
                 # https://github.com/kennethreitz/requests/issues/2117
                 # This is not a huge concern, as the API's "Get .torrent"
@@ -234,6 +233,9 @@ def fix_rtorrent(host: str, port: int, debug: bool = False, config: str | None =
         raise click.Abort() from e
 
 
+STATES_FOR_SORTING = set(('finished', 'creation_date', 'state_changed'))
+
+
 @click.command(cls=command_with_config_file('config', 'list-torrents'))
 @click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-C', '--config', help='Configuration file')
@@ -261,7 +263,7 @@ def list_torrents(host: str,
     def sorter(x: TorrentInfo) -> Any:
         assert sort is not None
         if ((val := getattr(x, sort if sort != 'label' else 'custom1', None)) is None
-                and sort in ('finished', 'creation_date', 'state_changed')):
+                and sort in STATES_FOR_SORTING):
             return datetime.min
         return val or ''
 
@@ -366,7 +368,6 @@ def list_all_files(host: str, port: int, debug: bool = False, config: str | None
 @click.command(cls=command_with_config_file('config', 'list-untracked-files'),
                help='list untracked file paths.')
 @click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
-@click.option('-C', '--config', help='Configuration file')
 @click.option(
     '-L',
     '--server-list-command',
@@ -378,18 +379,16 @@ def list_all_files(host: str, port: int, debug: bool = False, config: str | None
         "ssh name-of-server 'find /media/sf_hostshare -type f' | "
         "sed -re 's|^/media/sf_hostshare|/torrents/username|g'"))
 # pylint: enable=invalid-string-quote
-@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
-def list_untracked_files(host: str,
-                         port: int,
-                         server_list_command: str,
-                         debug: bool = False,
-                         config: str | None = None) -> None:
+def list_untracked_files(host: str, server_list_command: str, debug: bool = False) -> None:
     """
     list all files on the server that are not tracked.
 
     Parameters
     ==========
+    host : str
+        Hostname.
+
     server_list_command : str
         This should be a command that outputs lines where each line is a
         complete file path that matches the ``torrents/<username>/...`` output
@@ -397,6 +396,9 @@ def list_untracked_files(host: str,
 
             ``ssh name-of-server 'find /media/sf_hostshare -type f' |
               sed -re 's|^/media/sf_hostshare|/torrents/username|g'``
+
+    debug : bool
+        Enable debugging output.
     """
     setup_logging(debug)
     client = ruTorrentClient(host)

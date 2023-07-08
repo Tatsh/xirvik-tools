@@ -8,13 +8,12 @@
   "ignorePaths": [
     ".coverage",
     ".directory",
+    "__pycache__",
     "build/**",
     "dist/**",
+    "docs/_build/**",
     "htmlcov/**",
-    "node_modules/**",
-    "xirvik_tools.egg-info/**",
-    "__pycache__",
-    "docs/_build/**"
+    "node_modules/**"
   ],
   "languageSettings": [
     {

@@ -135,14 +135,7 @@ class ruTorrentClient:
                                files=dict(torrent_file=f)).raise_for_status()
 
     def list_torrents(self) -> Iterator[TorrentInfo]:
-        """
-        Get all torrent information.
-
-        Returns
-        -------
-        Iterator[TorrentInfo]
-            Series of named tuples.
-        """
+        """Get all torrent information."""
         r = self._session.post(self.multirpc_action_uri,
                                data=dict(mode='list', cmd='d.custom=seedingtime'),
                                auth=self.auth)
@@ -185,13 +178,13 @@ class ruTorrentClient:
         fn = parse_header(r.headers['content-disposition'])[1]['filename']
         return r, fn
 
-    def move_torrent(self, hash_: str, target_dir: str, fast_resume: bool = True) -> None:
+    def move_torrent(self, torrent_hash: str, target_dir: str, fast_resume: bool = True) -> None:
         """
         Move a torrent's files to somewhere else on the server.
 
         Parameters
         ----------
-        hash\\_ : str
+        torrent_hash : str
             Hash of the torrent.
         target_dir : str
             Must be a valid and usable directory.
@@ -200,7 +193,7 @@ class ruTorrentClient:
         """
         r = self._session.post(self.datadir_action_uri,
                                data={
-                                   'hash': hash_,
+                                   'hash': torrent_hash,
                                    'datadir': target_dir,
                                    'move_addpath': '1',
                                    'move_datafiles': '1',
@@ -227,10 +220,8 @@ class ruTorrentClient:
         # The way to set a label to multiple torrents is to specify the hashes
         # using hash=, then the v parameter as many times as there are hashes,
         # and then the s=label for as many times as there are hashes.
-        #
         # Example:
         #    mode=setlabel&hash=...&hash=...&v=label&v=label&s=label&s=label
-        #
         # This method builds this string in pieces because it is not possible to set the same key
         # twice in a dictionary.
         hashes = kwargs.pop('hashes', [])
@@ -277,7 +268,7 @@ class ruTorrentClient:
             else:
                 self._log.warning('Passed recursion limit for label fix')
 
-    def set_label(self, label: str, hash_: str) -> None:
+    def set_label(self, label: str, torrent_hash: str) -> None:
         """
         set a label to a torrent.
 
@@ -285,10 +276,10 @@ class ruTorrentClient:
         ----------
         label : str
             Label to use.
-        hash\\_ : str
+        torrent_hash : str
             Hash of the torrent.
         """
-        self.set_label_to_hashes(hashes=[hash_], label=label)
+        self.set_label_to_hashes(hashes=[torrent_hash], label=label)
 
     def list_files(self, hash_: str) -> Iterator[TorrentTrackedFile]:
         """

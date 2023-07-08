@@ -26,8 +26,7 @@ def parse_header(line: str) -> tuple[str, dict[str, str]]:
     key = parts.__next__()
     pdict = {}
     for p in parts:
-        i = p.find('=')
-        if i >= 0:
+        if (i := p.find('=')) >= 0:
             name = p[:i].strip().lower()
             value = p[i + 1:].strip()
             if len(value) >= 2 and value[0] == value[-1] == '"':

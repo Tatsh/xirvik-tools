@@ -1,4 +1,0 @@
-{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qxirvik.client\n:members:\\E$"}
-{"rule":"LC_AFTER_PERIOD","sentence":"^\\QCLI\nxirvik.commands\n:members:\\E$"}
-{"rule":"LC_AFTER_PERIOD","sentence":"^\\QTyping utilities\nxirvik.typing\n:members:\\E$"}
-{"rule":"MORFOLOGIK_RULE_EN_GB","sentence":"^\\Q:maxdepth: 2\n:caption: Contents:\\E$"}

@@ -24,10 +24,14 @@ delslice
 dets
 diskspace
 distutils
+docparams
 docstrings
+docutils
 ecda
+elif
 endregion
 epub
+esbonio
 excinfo
 execfile
 fastresume
@@ -35,6 +39,7 @@ flabel
 fstr
 fullrows
 genindex
+getabsfile
 getslice
 hostshare
 hsplit
@@ -59,6 +64,7 @@ mypy
 needmessage
 netrc
 nistp
+numpy
 objectdb
 oneshot
 optparse
@@ -66,8 +72,10 @@ organise
 overgeneral
 paren
 parseable
+parseparam
 pipx
 plabel
+pluggy
 popen
 prettierrc
 prss
@@ -76,6 +84,7 @@ ptrackers
 pylint
 pypi
 pytest
+pyxdg
 pyyaml
 rcfile
 rdiv
@@ -83,6 +92,7 @@ referer
 regexes
 reqtimeout
 ropeproject
+rstcheck
 rtorrent
 rutorrent
 seedingtime

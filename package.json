@@ -8,18 +8,18 @@
     "prettier-plugin-toml": "^0.3.1"
   },
   "license": "MIT",
-  "main": "index.js",
   "name": "xirvik-tools",
   "private": false,
   "repository": "https://github.com/Tatsh/xirvik-tools",
   "scripts": {
-    "check-formatting": "prettier -c './**/*.cfg' './**/*.ini' './**/*.md' './**/*.toml' './**/*.plist' './**/*.yml' ./.prettierrc ./.style.yapf && isort . --check && yapf -rd xirvik .stubs test",
+    "check-formatting": "prettier -c '.*/**/*.json' '.*/**/*.y*ml' './**/*.md' './**/*.toml' './**/*.y*ml' ./.prettierrc && poetry run isort . --check && poetry run yapf -rd docs xirvik .stubs tests",
     "check-spelling": "cspell --no-progress './**/*'  './**/.*'",
-    "format": "prettier -w './**/*.cfg' './**/*.ini' './**/*.md' './**/*.toml' './**/*.plist' './**/*.yml' ./.prettierrc ./.style.yapf && isort . && yapf -ri xirvik .stubs test",
-    "install-python-deps": "python -m pip install --upgrade pip && pip install poetry && poetry install && pip install -e . && pip install mypy pylint pylint-quotes pytest pytest-cov coveralls pytest-mock types-requests toml yapf",
-    "mypy": "mypy .",
-    "pylint": "pylint xirvik",
-    "qa": "yarn mypy && yarn pylint && yarn check-spelling && yarn check-formatting"
+    "fix-pluggy": "touch \"$(poetry run python -c 'import inspect, os, pluggy; print(os.path.dirname(inspect.getabsfile(pluggy)))')/py.typed\"",
+    "format": "prettier -w '.*/**/*.json' '.*/**/*.y*ml' './**/*.md' './**/*.toml' './**/*.y*ml' ./.prettierrc && poetry run isort . && poetry run yapf -ri docs xirvik .stubs tests",
+    "mypy": "yarn fix-pluggy && poetry run mypy .",
+    "pylint": "poetry run pylint docs tests xirvik",
+    "qa": "yarn mypy && yarn pylint && yarn check-spelling && yarn check-formatting",
+    "test": "poetry run pytest"
   },
   "version": "0.4.1"
 }
