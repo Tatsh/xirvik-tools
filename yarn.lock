@@ -1108,6 +1108,11 @@ prettier-plugin-ini@^1.1.0:
   dependencies:
     prettier ">=2.3"
 
+prettier-plugin-sort-json@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/prettier-plugin-sort-json/-/prettier-plugin-sort-json-3.1.0.tgz#a54b33a4ac36ac6f9bf31ad7b81106fad161e6ba"
+  integrity sha512-eIDEUjwzekiVd+oKrpd0aoACBTp5zOW71wDTNy+qQ5C9Q8oqt9n9wCm4F+SeRZbXfgblh/WYIguJynImlBXrvQ==
+
 prettier-plugin-toml@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/prettier-plugin-toml/-/prettier-plugin-toml-1.0.0.tgz#7d68dc5989f5cd2f5f4205686fbf78a994518a6d"
@@ -1120,6 +1125,11 @@ prettier@>=2.3:
   version "2.8.4"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.4.tgz#34dd2595629bfbb79d344ac4a91ff948694463c3"
   integrity sha512-vIS4Rlc2FNh0BySk3Wkd6xmwxB0FpOndW5fisM5H8hsZSxU2VWVB5CWIkIjWvrHjIhxk2g3bfMKM87zNTrZddw==
+
+prettier@^3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.0.3.tgz#432a51f7ba422d1469096c0fdc28e235db8f9643"
+  integrity sha512-L/4pUDMxcNa8R/EthV08Zt42WBO4h1rarVtK0K+QJG0X187OLo7l699jWw0GKuwzkPQ//jMFA/8Xm6Fh3J/DAg==
 
 queue-microtask@^1.2.2:
   version "1.2.3"
