@@ -69,6 +69,7 @@ referer
 reqtimeout
 ropeproject
 rstcheck
+rtfd
 rtorrent
 rutorrent
 seedingtime
