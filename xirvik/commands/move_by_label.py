@@ -52,7 +52,7 @@ def _key_check(info: TorrentInfo) -> bool:
               '--lower-label',
               is_flag=True,
               help='Call lower() on labels used to make directory names')
-@click.option('--ignore-labels', multiple=True, help='list of labels to ignore (case-sensitive)')
+@click.option('--ignore-labels', multiple=True, help='List of labels to ignore (case-sensitive).')
 def main(host: str,
          ignore_labels: Sequence[str],
          netrc: str | None = None,
