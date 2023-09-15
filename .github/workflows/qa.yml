@@ -17,8 +17,8 @@ jobs:
         run: yarn
       - name: Lint with mypy
         run: yarn mypy
-      - name: Lint with pylint
-        run: yarn pylint
+      - name: Lint with ruff
+        run: yarn ruff
       - name: Lint with rstcheck
         run: yarn rstcheck
       - name: Check spelling

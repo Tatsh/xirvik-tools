@@ -31,14 +31,14 @@ optional = true
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.4.1"
-pylint = "^2.17.4"
-pylint-quotes = "^0.2.3"
 rope = "^1.8.0"
+ruff = "^0.0.289"
 toml = "^0.10.2"
 types-beautifulsoup4 = "^4.12.0.5"
 types-requests = "^2.31.0.1"
 types-tabulate = "^0.9.0.2"
 yapf = "^0.40.1"
+isort = "^5.12.0"
 
 [tool.poetry.group.docs]
 optional = true
@@ -46,7 +46,7 @@ optional = true
 [tool.poetry.group.docs.dependencies]
 docutils = "^0.20.1"
 esbonio = "^0.16.1"
-rstcheck = {extras = ["sphinx"], version = "^6.2.0"}
+rstcheck = { extras = ["sphinx"], version = "^6.2.0" }
 sphinx = "^7.0.1"
 
 [tool.poetry.group.tests]
@@ -91,106 +91,37 @@ warn_return_any = true
 warn_unreachable = true
 warn_unused_ignores = true
 
-[tool.pylint.main]
-ignore = [".git", "node_modules"]
-load-plugins = [
-  "pylint.extensions.bad_builtin",
-  "pylint.extensions.check_elif",
-  "pylint.extensions.code_style",
-  "pylint.extensions.comparison_placement",
-  "pylint.extensions.consider_refactoring_into_while_condition",
-  "pylint.extensions.consider_ternary_expression",
-  "pylint.extensions.docparams",
-  "pylint.extensions.empty_comment",
-  "pylint.extensions.eq_without_hash",
-  "pylint.extensions.for_any_all",
-  "pylint.extensions.magic_value",
-  "pylint.extensions.overlapping_exceptions",
-  "pylint.extensions.redefined_loop_name",
-  "pylint.extensions.set_membership",
-  "pylint_quotes"
-]
-
-[tool.pylint.basic]
-class-attribute-naming-style = "snake_case"
-good-names = [
-  "_",
-  "d",
-  "e",
-  "f",
-  "fn",
-  "g",
-  "i",
-  "id",
-  "j",
-  "k",
-  "l",
-  "m",
-  "mc",
-  "n",
-  "p",
-  "r",
-  "ruTorrentClient",
-  "t",
-  "v",
-  "w",
-  "x",
-  "y",
-  "z",
-]
-include-naming-hint = true
-inlinevar-naming-style = "snake_case"
-
-[tool.pylint.design]
-max-args = 8
-max-branches = 15
-max-locals = 30
-max-statements = 80
-
-[tool.pylint.format]
-expected-line-ending-format = "LF"
-
-[tool.pylint.logging]
-logging-format-style = "old"
-logging-modules = ["logging", "loguru"]
-
-[tool.pylint."messages control"]
-disable = [
-  "duplicate-code",
-  "magic-value-comparison",
-  "missing-class-docstring",
-  "missing-function-docstring",
-  "missing-module-docstring",
-  "too-many-instance-attributes",
-  "unspecified-encoding",
-  "use-dict-literal"
-]
-enable = [
-  "bad-builtin",
-  "consider-refactoring-into-while-condition",
-  "consider-ternary-expression",
-  "consider-using-assignment-expr",
-  "else-if-used",
-  "empty-comment",
-  "eq-without-hash",
-  "misplaced-comparison-constant",
-  "overlapping-except",
-  "redefined-loop-name",
-  "use-set-for-membership",
-  "useless-type-doc"
-]
-
-[tool.pylint.parameter_documentation]
-default-docstring-type = "numpy"
-
-[tool.pylint.refactoring]
-max-nested-blocks = 6
-
 [tool.pytest.ini_options]
 mock_use_standalone_module = true
 
 [tool.rstcheck]
 ignore_directives = ["automodule"]
+
+[tool.ruff]
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv"
+]
+line-length = 100
 
 [tool.yapf]
 align_closing_bracket_with_visual_indent = true

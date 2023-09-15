@@ -23,14 +23,14 @@
   },
   "repository": "https://github.com/Tatsh/xirvik-tools",
   "scripts": {
-    "check-formatting": "prettier -c '.*/**/*.json' '.*/**/*.y*ml' './**/*.md' './**/*.toml' './**/*.y*ml' ./.prettierrc && poetry run isort . --check && poetry run yapf -rd docs xirvik .stubs tests",
+    "check-formatting": "prettier -c '.*/**/*.json' '.*/**/*.y*ml' './**/*.md' './**/*.toml' './**/*.y*ml' && poetry run isort . --check && poetry run yapf -rd docs xirvik .stubs tests",
     "check-spelling": "cspell --no-progress './**/*'  './**/.*'",
     "fix-pluggy": "touch \"$(poetry run python -c 'import inspect, os, pluggy; print(os.path.dirname(inspect.getabsfile(pluggy)))')/py.typed\"",
-    "format": "prettier -w '.*/**/*.json' '.*/**/*.y*ml' './**/*.md' './**/*.toml' './**/*.y*ml' ./.prettierrc && poetry run isort . && poetry run yapf -ri docs xirvik .stubs tests",
+    "format": "prettier -w '.*/**/*.json' '.*/**/*.y*ml' './**/*.md' './**/*.toml' './**/*.y*ml' && poetry run isort . && poetry run yapf -ri docs xirvik .stubs tests",
     "mypy": "yarn fix-pluggy && poetry run mypy .",
-    "pylint": "poetry run pylint docs tests xirvik",
-    "qa": "yarn mypy && yarn pylint && yarn rstcheck && yarn check-spelling && yarn check-formatting",
+    "qa": "yarn mypy && yarn ruff && yarn rstcheck && yarn check-spelling && yarn check-formatting",
     "rstcheck": "poetry run rstcheck --recursive .",
+    "ruff": "poetry run ruff check .",
     "test": "poetry run pytest"
   },
   "version": "0.4.1"

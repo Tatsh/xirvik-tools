@@ -22,6 +22,7 @@ datadir
 dedented
 delslice
 dets
+direnv
 diskspace
 distutils
 docparams
@@ -83,8 +84,10 @@ pstate
 ptrackers
 pycache
 pylint
+pypackages
 pypi
 pytest
+pytype
 pyxdg
 pyyaml
 rcfile
@@ -123,6 +126,7 @@ unichr
 unidecode
 urllib
 valign
+venv
 virtualenvs
 vsplit
 webui
