@@ -54,3 +54,5 @@ The theme to use for HTML and HTML Help pages.  See the documentation for a
 list of builtin themes.
 '''
 html_theme: Final[str] = 'alabaster'
+
+man_pages = [('commands', 'xirvik', 'Tool for managing a Xirvik-hosted server.', author, '1')]
