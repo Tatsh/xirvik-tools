@@ -1,6 +1,4 @@
 """Command line interface tests."""
-# pylint: disable=missing-function-docstring,protected-access
-# pylint: disable=redefined-outer-name,missing-class-docstring
 from datetime import datetime, timedelta
 from os.path import expanduser
 from typing import NamedTuple
@@ -460,3 +458,140 @@ def test_list_files_normal(runner: CliRunner, mocker: MockerFixture, tmp_path: p
                                    '--reverse-order', 'hash1')).output.splitlines()
     assert re.match(r'^Name\s+Size\s+Downloaded Pieces\s+Number of Pieces\s+Priority ID', lines[0])
     assert re.match(r'file1\s+1000\s+512\s+512', lines[1])
+
+
+def test_list_all_files_single(runner: CliRunner, mocker: MockerFixture, tmp_path: pathlib.Path,
+                               monkeypatch: pytest.MonkeyPatch) -> None:
+    netrc = tmp_path / '.netrc'
+    netrc.write_text('machine machine.com login some_name password pass\n')
+    monkeypatch.setenv('HOME', str(tmp_path))
+    client_mock = mocker.patch('xirvik.commands.simple.ruTorrentClient')
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           custom1='TEST me',
+                           name='The Name',
+                           is_hash_checking=False,
+                           base_path='/downloads/_completed')
+    ]
+    client_mock.return_value.list_files.return_value = [
+        TorrentTrackedFile('file1', 512, 512, 1000, FilePriority.NORMAL,
+                           FileDownloadStrategy.NORMAL)
+    ]
+    lines = runner.invoke(xirvik, ('rtorrent', 'list-all-files')).output.splitlines()
+    assert re.match(r'^/downloads/_completed/file[0-9]$', lines[2])
+
+
+def test_list_all_files_single_alt(runner: CliRunner, mocker: MockerFixture, tmp_path: pathlib.Path,
+                                   monkeypatch: pytest.MonkeyPatch) -> None:
+    """
+    This is a case where the torrent contains a single file inside a directory of the same name.
+    """
+    netrc = tmp_path / '.netrc'
+    netrc.write_text('machine machine.com login some_name password pass\n')
+    monkeypatch.setenv('HOME', str(tmp_path))
+    client_mock = mocker.patch('xirvik.commands.simple.ruTorrentClient')
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           custom1='TEST me',
+                           name='The Name',
+                           is_hash_checking=False,
+                           base_path='/downloads/_completed/file1')
+    ]
+    client_mock.return_value.list_files.return_value = [
+        TorrentTrackedFile('file1', 512, 512, 1000, FilePriority.NORMAL,
+                           FileDownloadStrategy.NORMAL)
+    ]
+    lines = runner.invoke(xirvik, ('rtorrent', 'list-all-files')).output.splitlines()
+    assert re.match(r'^/downloads/_completed/file[0-9]$', lines[2])
+
+
+def test_list_all_files_multiple(runner: CliRunner, mocker: MockerFixture, tmp_path: pathlib.Path,
+                                 monkeypatch: pytest.MonkeyPatch) -> None:
+    netrc = tmp_path / '.netrc'
+    netrc.write_text('machine machine.com login some_name password pass\n')
+    monkeypatch.setenv('HOME', str(tmp_path))
+    client_mock = mocker.patch('xirvik.commands.simple.ruTorrentClient')
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           custom1='TEST me',
+                           name='The Name',
+                           is_hash_checking=False,
+                           base_path='/downloads/_completed')
+    ]
+    client_mock.return_value.list_files.return_value = [
+        TorrentTrackedFile('file1', 512, 512, 1000, FilePriority.NORMAL,
+                           FileDownloadStrategy.NORMAL),
+        TorrentTrackedFile('file2', 512, 512, 1000, FilePriority.NORMAL,
+                           FileDownloadStrategy.NORMAL)
+    ]
+    lines = runner.invoke(xirvik, ('rtorrent', 'list-all-files')).output.splitlines()
+    assert re.match(r'^/downloads/_completed/file[0-9]$', lines[2])
+    assert re.match(r'^/downloads/_completed/file[0-9]$', lines[3])
+
+
+def test_list_untracked_files_single(runner: CliRunner, mocker: MockerFixture,
+                                     tmp_path: pathlib.Path,
+                                     monkeypatch: pytest.MonkeyPatch) -> None:
+    netrc = tmp_path / '.netrc'
+    netrc.write_text('machine machine.com login some_name password pass\n')
+    monkeypatch.setenv('HOME', str(tmp_path))
+    client_mock = mocker.patch('xirvik.commands.simple.ruTorrentClient')
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           custom1='TEST me',
+                           name='The Name',
+                           is_hash_checking=False,
+                           base_path='/downloads/_completed')
+    ]
+    client_mock.return_value.list_files.return_value = [
+        TorrentTrackedFile('file1', 512, 512, 1000, FilePriority.NORMAL,
+                           FileDownloadStrategy.NORMAL)
+    ]
+    sp_mock = mocker.patch('xirvik.commands.simple.sp')
+    index = -1
+    values = ['/downloads/_completed/file1', 'file3', '']
+
+    def cb():
+        nonlocal index
+        index += 1
+        return values[index]
+
+    sp_mock.Popen.return_value.__enter__.return_value.stdout.readline.side_effect = cb
+    lines = runner.invoke(
+        xirvik, ('rtorrent', 'list-untracked-files', '-L', 'ssh blah')).output.splitlines()
+    assert lines[-1] == 'file3'
+
+
+def test_list_untracked_files_multiple(runner: CliRunner, mocker: MockerFixture,
+                                       tmp_path: pathlib.Path,
+                                       monkeypatch: pytest.MonkeyPatch) -> None:
+    netrc = tmp_path / '.netrc'
+    netrc.write_text('machine machine.com login some_name password pass\n')
+    monkeypatch.setenv('HOME', str(tmp_path))
+    client_mock = mocker.patch('xirvik.commands.simple.ruTorrentClient')
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           custom1='TEST me',
+                           name='The Name',
+                           is_hash_checking=False,
+                           base_path='/downloads/_completed')
+    ]
+    client_mock.return_value.list_files.return_value = [
+        TorrentTrackedFile('file1', 512, 512, 1000, FilePriority.NORMAL,
+                           FileDownloadStrategy.NORMAL),
+        TorrentTrackedFile('file2', 512, 512, 1000, FilePriority.NORMAL,
+                           FileDownloadStrategy.NORMAL)
+    ]
+    sp_mock = mocker.patch('xirvik.commands.simple.sp')
+    index = -1
+    values = ['/downloads/_completed/file1', '/downloads/_completed/file2', 'file3', '']
+
+    def cb():
+        nonlocal index
+        index += 1
+        return values[index]
+
+    sp_mock.Popen.return_value.__enter__.return_value.stdout.readline.side_effect = cb
+    lines = runner.invoke(
+        xirvik, ('rtorrent', 'list-untracked-files', '-L', 'ssh blah')).output.splitlines()
+    assert lines[-1] == 'file3'
