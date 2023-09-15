@@ -551,7 +551,7 @@ def test_list_untracked_files_single(runner: CliRunner, mocker: MockerFixture,
     index = -1
     values = ['/downloads/_completed/file1', 'file3', '']
 
-    def cb():
+    def cb() -> str:
         nonlocal index
         index += 1
         return values[index]
@@ -586,7 +586,7 @@ def test_list_untracked_files_multiple(runner: CliRunner, mocker: MockerFixture,
     index = -1
     values = ['/downloads/_completed/file1', '/downloads/_completed/file2', 'file3', '']
 
-    def cb():
+    def cb() -> str:
         nonlocal index
         index += 1
         return values[index]
