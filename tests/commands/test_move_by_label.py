@@ -146,15 +146,15 @@ def test_move_torrent_sleep_after_10(runner: CliRunner, mocker: MockerFixture,
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
     client_mock.return_value.name = 'some_name'
     sleep_mock = mocker.patch('xirvik.commands.move_by_label.sleep')
-    l = []
+    torrent_list = []
     for i in range(10):
-        l.append(
+        torrent_list.append(
             MinimalTorrentDict(f'hash{i}',
                                custom1='TEST me',
                                name='The Name',
                                is_hash_checking=False,
                                base_path='/downloads/_completed'))
-    client_mock.return_value.list_torrents.return_value = l
+    client_mock.return_value.list_torrents.return_value = torrent_list
     assert runner.invoke(
         xirvik, ('rtorrent', 'move-by-label', '-l', '-t', '10', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.move_torrent.call_count == 10
