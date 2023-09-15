@@ -1,5 +1,6 @@
 from typing import Any, Callable, Mapping
 
+
 class Request:
     text: str | None
 
@@ -11,6 +12,9 @@ class Matcher:
 
 class Mocker:
     def __call__(self, f: Callable[..., Any]) -> Callable[..., Any]:
+        ...
+
+    def register_uri(self, method: str, url: str, responses: list[Any]) -> Matcher:
         ...
 
     def post(self,
