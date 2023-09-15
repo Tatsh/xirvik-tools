@@ -17,10 +17,10 @@ def _parseparam(param: str) -> Iterator[str]:
 
 
 def parse_header(line: str) -> tuple[str, dict[str, str]]:
-    """Parse a Content-type like header.
+    """
+    Parse a Content-type like header.
 
     Return the main content-type and a dictionary of options.
-
     """
     parts = _parseparam(';' + line)
     key = parts.__next__()
@@ -30,7 +30,6 @@ def parse_header(line: str) -> tuple[str, dict[str, str]]:
             name = p[:i].strip().lower()
             value = p[i + 1:].strip()
             if len(value) >= 2 and value[0] == value[-1] == '"':
-                value = value[1:-1]
-                value = value.replace('\\\\', '\\').replace('\\"', '"')
+                value = value[1:-1].replace('\\\\', '\\').replace('\\"', '"')
             pdict[name] = value
     return key, pdict
