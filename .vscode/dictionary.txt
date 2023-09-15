@@ -83,7 +83,6 @@ prss
 pstate
 ptrackers
 pycache
-pylint
 pypackages
 pypi
 pytest
