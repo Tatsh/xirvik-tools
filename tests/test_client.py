@@ -12,8 +12,7 @@ import requests_mock as req_mock
 
 from xirvik.client import ListTorrentsError, UnexpectedruTorrentError, ruTorrentClient
 from xirvik.typing import FileDownloadStrategy, FilePriority
-
-# pylint: disable=missing-function-docstring,protected-access,unused-variable
+from xirvik.utils import parse_header
 
 
 def test_netrc() -> None:
@@ -99,6 +98,31 @@ def test_list_files(requests_mock: req_mock.Mocker) -> None:
                        ])
 
     files = list(client.list_files('test_hash'))
+    assert files[0][0] == 'name of file'
+    assert files[0][1] == 14
+    assert files[0][2] == 13
+    assert files[0][3] == 8192
+    assert FilePriority.NORMAL == files[0][4]
+    assert FileDownloadStrategy.NORMAL == files[0][5]
+
+
+def test_list_all_files(requests_mock: req_mock.Mocker) -> None:
+    client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    requests_mock.register_uri('POST', client.multirpc_action_uri, [{
+        'json':
+            dict(
+                t={
+                    'hash here': [
+                        '1', '0', '1', '1', 'name of torrent?', '1000', '1', '1024', '1000', '0',
+                        '0.14', '0', '0', '512', 'label'
+                    ] + (20 * ['0']) + ['1633423132\n'],
+                },
+                cid=92385,
+            )
+    }, {
+        'json': [['name of file', '14', '13', '8192', '1', '0', '0'] + (19 * ['0']),]
+    }])
+    files = list(client.list_all_files())
     assert files[0][0] == 'name of file'
     assert files[0][1] == 14
     assert files[0][2] == 13
@@ -235,3 +259,27 @@ def test_delete2(mocker: MockerFixture) -> None:
         client.delete('some hash')
     except xmlrpc.client.Fault:  # pragma no cover
         pytest.fail('Unexpected fault')
+
+
+def test_parse_header_quotes() -> None:
+    res = parse_header(r'something/blah; def=123; abc="abc\"de\"";')
+    assert res[0] == 'something/blah'
+    assert isinstance(res[1], dict)
+    assert len(res[1].keys()) == 2
+    assert res[1]['def'] == '123'
+    assert res[1]['abc'] == 'abc"de"'
+
+
+def test_parse_header_bad_quotes() -> None:
+    res = parse_header(r'something/blah; bad="123; good=234;')
+    assert res[0] == 'something/blah'
+    assert isinstance(res[1], dict)
+    assert len(res[1].keys()) == 1
+    assert res[1]['bad'] == '"123; good=234;'
+
+
+def test_parse_header() -> None:
+    res = parse_header('something/blah')
+    assert res[0] == 'something/blah'
+    assert isinstance(res[1], dict)
+    assert len(res[1].keys()) == 0
