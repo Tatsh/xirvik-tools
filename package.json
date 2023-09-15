@@ -18,7 +18,8 @@
     "format": "prettier -w '.*/**/*.json' '.*/**/*.y*ml' './**/*.md' './**/*.toml' './**/*.y*ml' ./.prettierrc && poetry run isort . && poetry run yapf -ri docs xirvik .stubs tests",
     "mypy": "yarn fix-pluggy && poetry run mypy .",
     "pylint": "poetry run pylint docs tests xirvik",
-    "qa": "yarn mypy && yarn pylint && yarn check-spelling && yarn check-formatting",
+    "qa": "yarn mypy && yarn pylint && yarn rstcheck && yarn check-spelling && yarn check-formatting",
+    "rstcheck": "poetry run rstcheck --recursive .",
     "test": "poetry run pytest"
   },
   "version": "0.4.1"
