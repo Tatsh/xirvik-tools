@@ -15,6 +15,7 @@
     "htmlcov/**",
     "node_modules/**"
   ],
+  "language": "en-GB",
   "languageSettings": [
     {
       "dictionaries": ["main"],
