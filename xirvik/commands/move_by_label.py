@@ -36,7 +36,6 @@ def _key_check(info: TorrentInfo) -> bool:
     return not info.is_hash_checking and info.left_bytes == 0
 
 
-# pylint: disable=unused-argument
 @click.command(cls=command_with_config_file('config', 'move-by-label'))
 @common_options_and_arguments
 @click.option('-c',
@@ -54,19 +53,18 @@ def _key_check(info: TorrentInfo) -> bool:
               is_flag=True,
               help='Call lower() on labels used to make directory names')
 @click.option('--ignore-labels', multiple=True, help='list of labels to ignore (case-sensitive)')
-def main(  # pylint: disable=too-many-arguments,unused-argument
-        host: str,
-        ignore_labels: Sequence[str],
-        netrc: str | None = None,
-        username: str | None = None,
-        password: str | None = None,
-        completed_dir: str = '_completed',
-        sleep_time: int = 10,
-        lower_label: bool | None = None,
-        max_retries: int = 10,
-        debug: bool = False,
-        backoff_factor: int = 1,
-        config: str | None = None) -> None:
+def main(host: str,
+         ignore_labels: Sequence[str],
+         netrc: str | None = None,
+         username: str | None = None,
+         password: str | None = None,
+         completed_dir: str = '_completed',
+         sleep_time: int = 10,
+         lower_label: bool | None = None,
+         max_retries: int = 10,
+         debug: bool = False,
+         backoff_factor: int = 1,
+         config: str | None = None) -> None:
     """Move torrents according to labels assigned."""
     setup_logging(debug)
     logger.debug(f'Host: {host}')

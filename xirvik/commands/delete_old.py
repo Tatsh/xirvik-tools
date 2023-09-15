@@ -52,22 +52,21 @@ def _test_ratio(info: TorrentInfo) -> tuple[str, bool]:
 @click.option('--label', default=None)
 @click.option('--max-attempts', type=int, default=3)
 @click.option('--sleep-time', type=int, default=10)
-def main(  # pylint: disable=too-many-arguments,unused-argument,unused-variable
-        host: str,
-        debug: bool = False,
-        netrc: str | None = None,
-        username: str | None = None,
-        password: str | None = None,
-        ignore_ratio: bool = False,
-        ignore_date: bool = False,
-        label: str | None = None,
-        max_attempts: int = 3,
-        dry_run: bool = False,
-        max_retries: int = 10,
-        days: int = 14,
-        backoff_factor: int = 1,
-        sleep_time: int = 10,
-        config: str | None = None) -> None:
+def main(host: str,
+         debug: bool = False,
+         netrc: str | None = None,
+         username: str | None = None,
+         password: str | None = None,
+         ignore_ratio: bool = False,
+         ignore_date: bool = False,
+         label: str | None = None,
+         max_attempts: int = 3,
+         dry_run: bool = False,
+         max_retries: int = 10,
+         days: int = 14,
+         backoff_factor: int = 1,
+         sleep_time: int = 10,
+         config: str | None = None) -> None:
     """Delete torrents based on certain criteria."""
     setup_logging(debug)
     client = ruTorrentClient(host,

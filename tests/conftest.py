@@ -6,9 +6,6 @@ import pathlib
 from click.testing import CliRunner
 import pytest
 
-# pylint: disable=missing-function-docstring,protected-access
-# pylint: disable=redefined-outer-name,unused-argument,unused-variable
-
 if os.getenv('_PYTEST_RAISE', '0') != '0':  # pragma no cover
 
     @pytest.hookimpl(tryfirst=True)

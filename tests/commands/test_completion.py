@@ -1,6 +1,4 @@
 """Command line completion tests."""
-# pylint: disable=missing-function-docstring,protected-access
-# pylint: disable=redefined-outer-name
 import pathlib
 
 import pytest

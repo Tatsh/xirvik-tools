@@ -1,7 +1,4 @@
 """delete-old tests."""
-# pylint: disable=missing-class-docstring,missing-function-docstring
-# pylint: disable=protected-access,redefined-outer-name
-# pylint: disable=unused-argument
 from datetime import datetime, timedelta
 from typing import NamedTuple
 import pathlib

@@ -1,6 +1,4 @@
 """Tests for xirvik.commands.util.command_with_config_file."""
-# pylint: disable=missing-function-docstring,protected-access
-# pylint: disable=redefined-outer-name,unused-argument
 import warnings
 
 from click.core import ParameterSource

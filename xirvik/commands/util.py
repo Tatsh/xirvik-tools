@@ -179,7 +179,7 @@ def command_with_config_file(config_file_param_name: str = 'config',
             try:
                 return super().invoke(ctx)
             except Exception as e:
-                if debug:
+                if debug:  # pragma no cover
                     logger.exception(str(e))
                 raise click.Abort() from e
 

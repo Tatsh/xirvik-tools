@@ -10,8 +10,6 @@ from .util import complete_hosts
 
 __all__ = ('xirvik',)
 
-# pylint: disable=invalid-name,unused-argument
-
 
 @click.group()
 @click.option('-C', '--config', help='Configuration file')

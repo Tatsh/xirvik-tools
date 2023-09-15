@@ -1,6 +1,4 @@
 """move-by-label tests."""
-# pylint: disable=missing-function-docstring,protected-access
-# pylint: disable=redefined-outer-name,missing-class-docstring
 from datetime import datetime
 from typing import NamedTuple
 import pathlib

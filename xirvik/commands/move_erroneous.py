@@ -14,7 +14,7 @@ __all__ = ('main',)
 PREFIX: Final[str] = '/torrents/{}/_completed-not-active'
 BAD_MESSAGES: Final[tuple[str, ...]] = (
     'unregistered torrent',
-    "couldn't connect to server",  # pylint: disable=invalid-string-quote
+    "couldn't connect to server",
     'server returned nothing',
 )
 T = TypeVar('T')
@@ -36,7 +36,6 @@ def _make_move_to(prefix: str, label: str) -> str:
     return f'{prefix}/{label}'
 
 
-# pylint: disable=unused-argument
 @click.command(cls=command_with_config_file('config', 'move-erroneous'))
 @common_options_and_arguments
 @click.option('--sleep-time', type=int, default=10)

@@ -30,9 +30,6 @@ def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
     raise SystemExit('Signal raised')
 
 
-# pylint: disable=unused-argument,too-many-arguments
-
-
 @click.command(cls=command_with_config_file('config', 'add-torrents'))
 @click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
 @click.option('-d', '--debug', is_flag=True)
@@ -305,16 +302,15 @@ def list_torrents(host: str,
 @click.option('-S', '--sort', type=click.Choice(('name', 'size_bytes', 'priority')), default='name')
 @click.option('-R', '--reverse-order', is_flag=True)
 @click.argument('hash')
-def list_files(
-        hash: str,  # pylint: disable=redefined-builtin
-        host: str,
-        port: int,
-        debug: bool = False,
-        config: str | None = None,
-        no_headers: bool = False,
-        table_format: str = 'plain',
-        sort: str = 'name',
-        reverse_order: bool | None = None) -> None:
+def list_files(hash: str,
+               host: str,
+               port: int,
+               debug: bool = False,
+               config: str | None = None,
+               no_headers: bool = False,
+               table_format: str = 'plain',
+               sort: str = 'name',
+               reverse_order: bool | None = None) -> None:
     """list a torrent's files in a given format."""
     setup_logging(debug)
     files = sorted(cast(Iterator[TorrentTrackedFile] | Sequence[TorrentTrackedFile],
@@ -368,19 +364,18 @@ def list_all_files(host: str, port: int, debug: bool = False, config: str | None
 @click.command(cls=command_with_config_file('config', 'list-untracked-files'),
                help='list untracked file paths.')
 @click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
-@click.option(
-    '-L',
-    '--server-list-command',
-    help=(
-        'This should be a command that outputs lines where each line is a '
-        'complete file path that matches the "torrents/<username>/..." output '
-        'from ruTorrent\'s API. An example using SSH:\n\n    '
-        # pylint: disable=invalid-string-quote
-        "ssh name-of-server 'find /media/sf_hostshare -type f' | "
-        "sed -re 's|^/media/sf_hostshare|/torrents/username|g'"))
-# pylint: enable=invalid-string-quote
+@click.option('-L',
+              '--server-list-command',
+              help=('This should be a command that outputs lines where each line is a '
+                    'complete file path that matches the "torrents/<username>/..." output '
+                    'from ruTorrent\'s API. An example using SSH:\n\n    '
+                    "ssh name-of-server 'find /media/sf_hostshare -type f' | "
+                    "sed -re 's|^/media/sf_hostshare|/torrents/username|g'"))
 @click.option('-d', '--debug', is_flag=True)
-def list_untracked_files(host: str, server_list_command: str, debug: bool = False) -> None:
+def list_untracked_files(host: str,
+                         server_list_command: str,
+                         debug: bool = False,
+                         config: str | None = None) -> None:
     """
     list all files on the server that are not tracked.
 
