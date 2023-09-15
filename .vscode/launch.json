@@ -6,8 +6,8 @@
       "env": {
         "_PYTEST_RAISE": "1"
       },
+      "module": "pytest",
       "name": "Pytest",
-      "program": "~/.virtualenvs/xirvik-tools/bin/pytest",
       "request": "launch",
       "type": "python"
     }
