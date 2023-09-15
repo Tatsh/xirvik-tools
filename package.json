@@ -1,15 +1,24 @@
 {
-  "author": "Fa An <2998784916@qq.com>",
-  "description": "File only used in CI.",
   "devDependencies": {
-    "@prettier/plugin-xml": "^2.2.0",
-    "cspell": "^6.31.1",
+    "@prettier/plugin-xml": "^3.2.1",
+    "cspell": "^7.3.6",
     "prettier-plugin-ini": "^1.1.0",
-    "prettier-plugin-toml": "^0.3.1"
+    "prettier-plugin-toml": "^1.0.0"
   },
   "license": "MIT",
   "name": "xirvik-tools",
-  "private": false,
+  "prettier": {
+    "endOfLine": "lf",
+    "iniSpaceAroundEquals": true,
+    "plugins": [
+      "@prettier/plugin-xml",
+      "prettier-plugin-ini",
+      "prettier-plugin-sort-json",
+      "prettier-plugin-toml"
+    ],
+    "printWidth": 100,
+    "singleQuote": true
+  },
   "repository": "https://github.com/Tatsh/xirvik-tools",
   "scripts": {
     "check-formatting": "prettier -c '.*/**/*.json' '.*/**/*.y*ml' './**/*.md' './**/*.toml' './**/*.y*ml' ./.prettierrc && poetry run isort . --check && poetry run yapf -rd docs xirvik .stubs tests",
