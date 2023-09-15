@@ -16,6 +16,7 @@ datadir
 dets
 direnv
 diskspace
+doctrees
 docutils
 ecda
 elif
