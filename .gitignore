@@ -1,4 +1,5 @@
 .directory
+.doctrees/
 .ruff_cache/
 /.coverage
 /.pytest_cache/
