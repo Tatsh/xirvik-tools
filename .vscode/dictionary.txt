@@ -68,6 +68,7 @@ pyxdg
 pyyaml
 referer
 reqtimeout
+resp
 ropeproject
 rstcheck
 rtfd

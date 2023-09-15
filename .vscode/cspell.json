@@ -13,7 +13,8 @@
     "dist/**",
     "docs/_build/**",
     "htmlcov/**",
-    "node_modules/**"
+    "node_modules/**",
+    "xirvik.1"
   ],
   "language": "en-GB",
   "languageSettings": [

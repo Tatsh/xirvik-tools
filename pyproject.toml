@@ -97,7 +97,7 @@ warn_unused_ignores = true
 mock_use_standalone_module = true
 
 [tool.rstcheck]
-ignore_directives = ["automodule", "click"]
+ignore_directives = ["automodule", "click", "include"]
 
 [tool.ruff]
 exclude = [
