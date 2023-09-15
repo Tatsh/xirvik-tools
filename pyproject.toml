@@ -48,6 +48,7 @@ docutils = "^0.20.1"
 esbonio = "^0.16.1"
 rstcheck = { extras = ["sphinx"], version = "^6.2.0" }
 sphinx = "^7.0.1"
+sphinx-click = "^5.0.1"
 
 [tool.poetry.group.tests]
 optional = true

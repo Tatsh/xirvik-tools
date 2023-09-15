@@ -1,15 +1,25 @@
 Welcome to Xirvik Tool's documentation!
-=======================================================
-.. automodule:: xirvik.client
-    :members:
+=======================================
 
-CLI
-===
-.. automodule:: xirvik.commands
-    :members:
+Commands
+--------
+
+.. click:: xirvik.commands:xirvik
+  :prog: xirvik
+  :nested: full
+
+Client
+------
+.. automodule:: xirvik.client
+   :members:
+
+Utilities
+---------
+.. automodule:: xirvik.utils
+   :members:
 
 Typing utilities
-================
+----------------
 .. automodule:: xirvik.typing
     :members:
 
