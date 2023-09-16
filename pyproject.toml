@@ -10,7 +10,7 @@ license = "MIT"
 name = "xirvik-tools"
 packages = [{ include = "xirvik" }]
 readme = "README.md"
-version = "0.4.4"
+version = "0.4.5"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4"
