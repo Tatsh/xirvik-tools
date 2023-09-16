@@ -6,4 +6,4 @@
 ![PyPI - Version](https://img.shields.io/pypi/v/xirvik-tools)
 ![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/xirvik-tools)
 ![GitHub](https://img.shields.io/github/license/Tatsh/xirvik-tools)
-![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/xirvik-tools/v0.4.3/develop)
+![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/xirvik-tools/v0.4.4/develop)
