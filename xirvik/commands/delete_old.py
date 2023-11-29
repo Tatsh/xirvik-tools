@@ -1,11 +1,10 @@
-#!/usr/bin/env python
 """
 Deletes old torrents based on specified criteria.
 """
-from datetime import datetime, timedelta
-from os.path import expanduser
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from time import sleep
-from typing import Callable
+from collections.abc import Callable
 import xmlrpc.client as xmlrpc
 
 from loguru import logger
@@ -25,7 +24,7 @@ def _test_date_cb(days: int = 14) -> TestCallable:
     def test_date(info: TorrentInfo) -> tuple[str, bool]:
         condition1 = info.creation_date
         condition2 = info.state_changed
-        expect = datetime.now() - timedelta(days=days)
+        expect = datetime.now(UTC) - timedelta(days=days)
         logger.debug(f'creation date: {condition1}')
         logger.debug(f'state changed: {condition2}')
         logger.debug(f'{condition1} <= {expect} or')
@@ -73,12 +72,12 @@ def main(host: str,
                              name=username,
                              password=password,
                              max_retries=max_retries,
-                             netrc_path=netrc or expanduser('~/.netrc'))
+                             netrc_path=netrc or Path('~/.netrc').expanduser())
     try:
         torrents = client.list_torrents()
     except HTTPError as e:
         logger.error('Connection failed on list_torrents() call')
-        raise click.Abort() from e
+        raise click.Abort from e
     tests = dict(
         ratio=(ignore_ratio, _test_ratio),
         date=(ignore_date, _test_date_cb(days)),

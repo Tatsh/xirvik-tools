@@ -1,6 +1,6 @@
-"""Client tests."""
+"""Client tests."""  # noqa: INP001
 from os import environ
-from os.path import join as path_join
+from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Any, cast
 import xmlrpc.client
@@ -30,7 +30,8 @@ def test_netrc() -> None:
 def test_no_netrc_path() -> None:
     with TemporaryDirectory() as d:
         environ['HOME'] = d
-        with open(path_join(d, '.netrc'), 'w') as f:
+        path_d = Path(d)
+        with (path_d / '.netrc').open('w') as f:
             f.write('machine hostname-test.com login a password b')
         client = ruTorrentClient('hostname-test.com')
         assert client.host == 'hostname-test.com'
@@ -102,8 +103,8 @@ def test_list_files(requests_mock: req_mock.Mocker) -> None:
     assert files[0][1] == 14
     assert files[0][2] == 13
     assert files[0][3] == 8192
-    assert FilePriority.NORMAL == files[0][4]
-    assert FileDownloadStrategy.NORMAL == files[0][5]
+    assert files[0][4] == FilePriority.NORMAL
+    assert files[0][5] == FileDownloadStrategy.NORMAL
 
 
 def test_list_all_files(requests_mock: req_mock.Mocker) -> None:
@@ -127,8 +128,8 @@ def test_list_all_files(requests_mock: req_mock.Mocker) -> None:
     assert files[0][1] == 14
     assert files[0][2] == 13
     assert files[0][3] == 8192
-    assert FilePriority.NORMAL == files[0][4]
-    assert FileDownloadStrategy.NORMAL == files[0][5]
+    assert files[0][4] == FilePriority.NORMAL
+    assert files[0][5] == FileDownloadStrategy.NORMAL
 
 
 def test_set_label_to_hashes_bad_args() -> None:
@@ -139,7 +140,7 @@ def test_set_label_to_hashes_bad_args() -> None:
 
 def test_set_label_to_hashes_normal(mocker: MockerFixture, requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    spy_log_warning = mocker.spy(client._log, 'warning')
+    spy_log_warning = mocker.spy(client._log, 'warning')  # noqa: SLF001
     requests_mock.post(client.multirpc_action_uri, json=[{}])
     client.set_label_to_hashes(hashes=['hash1'], label='new label', allow_recursive_fix=False)
     assert spy_log_warning.call_count == 0

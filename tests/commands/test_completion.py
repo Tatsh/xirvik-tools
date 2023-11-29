@@ -1,4 +1,4 @@
-"""Command line completion tests."""
+"""Command line completion tests."""  # noqa: INP001
 import pathlib
 
 import pytest

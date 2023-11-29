@@ -1,9 +1,10 @@
 """Client for ruTorrent."""
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import IntEnum
 from netrc import netrc
-from os.path import expanduser
-from typing import Any, Final, Iterator, cast
+from pathlib import Path
+from typing import Any, Final, cast
+from collections.abc import Iterator
 from urllib.parse import quote
 import logging
 import xmlrpc.client as xmlrpc
@@ -28,6 +29,9 @@ class UnexpectedruTorrentError(Exception):
 
 class ListTorrentsError(Exception):
     """Raised when ruTorrentClient.list_torrents() has an exception."""
+
+
+FIRST_YEAR_XIRVIK: Final[int] = 2009
 
 
 class ruTorrentClient:
@@ -67,11 +71,11 @@ class ruTorrentClient:
                  name: str | None = None,
                  password: str | None = None,
                  max_retries: int = 10,
-                 netrc_path: str | None = None,
+                 netrc_path: str | Path | None = None,
                  backoff_factor: int = 1):
         if not name and not password:
             if not netrc_path:
-                netrc_path = expanduser('~/.netrc')
+                netrc_path = Path('~/.netrc').expanduser()
             netrc_data = netrc(netrc_path).authenticators(host)
             assert netrc_data is not None
             name, _, password = netrc_data
@@ -142,17 +146,19 @@ class ruTorrentClient:
         r.raise_for_status()
         possible_dict = cast(dict[str, list[Any]], r.json()['t'])
         if not hasattr(possible_dict, 'items'):
+            self._log.debug('Returned: %s', possible_dict)
             raise ListTorrentsError('Unexpected type in response: ' + str(type(possible_dict)))
         for hash_, x in possible_dict.items():
             del x[34]  # Delete unknown field
             for i, (type_cls, val) in enumerate(
                     zip((t[1] for t in list(TorrentInfo.__annotations__.items())[1:]),
-                        (y.strip() for y in x))):
+                        (y.strip() for y in x),
+                        strict=False)):
                 if getattr(type_cls, '__args__', [None])[0] == datetime:
                     try:
-                        x[i] = datetime.fromtimestamp(float(val or '0'))
+                        x[i] = datetime.fromtimestamp(float(val or '0'), UTC)
                         # First year xirvik.com existed
-                        if x[i].year < 2009:
+                        if x[i].year < FIRST_YEAR_XIRVIK:
                             x[i] = None
                     except ValueError:  # pragma no cover
                         x[i] = None
@@ -230,8 +236,8 @@ class ruTorrentClient:
         recursion_limit = kwargs.pop('recursion_limit', 5)
         recursion_attempt = kwargs.pop('recursion_attempt', 0)
         if not hashes or not label:
-            raise TypeError('"hashes" (list) and "label" (str) keyword '
-                            'arguments are required')
+            raise TypeError(  # noqa: TRY003
+                '"hashes" (list) and "label" (str) keyword arguments are required')
         data = b'mode=setlabel'
         for hash_ in hashes:
             data += f'&hash={hash_}'.encode()
@@ -317,7 +323,7 @@ class ruTorrentClient:
             x[3] = int(x[3])  # size in bytes
             x[4] = FilePriority(int(x[4]))  # priority ID
             x[5] = FileDownloadStrategy(int(x[5]))  # download strategy ID
-            # x[6] = int(x[6])  # Not used
+            # x[6] = int(x[6])  # Not used  # noqa: ERA001
             yield TorrentTrackedFile(*x[:6])
 
     def list_all_files(self) -> Iterator[TorrentTrackedFile]:

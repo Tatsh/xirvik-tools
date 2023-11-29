@@ -2,12 +2,16 @@
   "configurations": [
     {
       "args": ["-x"],
+      "autoReload": {
+        "enable": true
+      },
       "console": "integratedTerminal",
       "env": {
         "_PYTEST_RAISE": "1"
       },
+      "justMyCode": true,
       "module": "pytest",
-      "name": "Pytest",
+      "name": "Run tests",
       "request": "launch",
       "type": "python"
     }

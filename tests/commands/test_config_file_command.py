@@ -1,4 +1,4 @@
-"""Tests for xirvik.commands.util.command_with_config_file."""
+"""Tests for xirvik.commands.util.command_with_config_file."""  # noqa: INP001
 import warnings
 
 from click.core import ParameterSource

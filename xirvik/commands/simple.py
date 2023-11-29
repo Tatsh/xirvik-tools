@@ -1,11 +1,13 @@
 """Mirror (copy data from remote to local) helper."""
 from base64 import b64encode
-from datetime import datetime
+from datetime import MINYEAR, UTC, datetime
 from logging.handlers import SysLogHandler
-from os import listdir, makedirs, remove as rm
-from os.path import basename, expanduser, isdir, join as path_join, realpath, splitext
+from os import listdir
+from os.path import realpath
+from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Iterator, NoReturn, Sequence, cast
+from typing import Any, NoReturn, cast
+from collections.abc import Iterator, Sequence
 import json
 import logging
 import signal
@@ -27,7 +29,7 @@ from .util import command_with_config_file, complete_hosts, complete_ports, setu
 
 def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
     """Used as a TERM signal handler. Arguments are ignored."""
-    raise SystemExit('Signal raised')
+    raise SystemExit('Signal raised')  # noqa: TRY003
 
 
 @click.command(cls=command_with_config_file('config', 'add-torrents'))
@@ -43,7 +45,7 @@ def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
               help='Disable TLS verification (not recommended)')
 @click.argument('directories', type=click.Path(exists=True, file_okay=False), nargs=-1)
 def start_torrents(host: str,
-                   directories: str,
+                   directories: list[str],
                    port: int = 443,
                    debug: bool = False,
                    start_stopped: bool = False,
@@ -53,9 +55,8 @@ def start_torrents(host: str,
     """Uploads torrent files to the server."""
     signal.signal(signal.SIGINT, _ctrl_c_handler)
     setup_logging(debug)
-    cache_dir = realpath(expanduser('~/.cache/xirvik'))
-    if not isdir(cache_dir):
-        makedirs(cache_dir)
+    cache_dir = Path(realpath(Path('~/.cache/xirvik').expanduser()))
+    cache_dir.mkdir(parents=True, exist_ok=True)
     if syslog:  # pragma: no cover
         try:
             syslog_handle = SysLogHandler(address='/dev/log')
@@ -75,27 +76,26 @@ def start_torrents(host: str,
     # torrent_file - Torrent file blob data
     if start_stopped:
         form_data['torrents_start_stopped'] = 'on'
-    for d in directories:
+    for d in (Path(x) for x in directories):
         for item in listdir(d):
             if not item.lower().endswith('.torrent'):
                 continue
-            item_inner = path_join(d, item)
+            item_inner = d / item
             # Workaround for surrogates not allowed error, rename the file
-            prefix = f'{splitext(basename(item_inner))[0]:s}-'
+            prefix = f'{item_inner.name:s}-'
             with NamedTemporaryFile(prefix=prefix, suffix='.torrent', dir=cache_dir,
                                     delete=False) as w:
                 with open(item_inner, 'rb') as r:
                     w.write(r.read())
                 old = item_inner
-                item_inner = w.name
-            with open(item_inner, 'rb') as torrent_file:
+            with open(w.name, 'rb') as torrent_file:
                 # Because the server does not understand filename*=UTF8 syntax
                 # https://github.com/kennethreitz/requests/issues/2117
                 # This is not a huge concern, as the API's "Get .torrent"
                 # does not return the file with its original name either
                 filename = unidecode(torrent_file.name)
-                logger.info(f'Uploading torrent {basename(item)} (actual '
-                            f'name: "{basename(filename)}")')
+                logger.info(f'Uploading torrent {Path(item).name} (actual '
+                            f'name: "{Path(filename).name}")')
                 resp = requests.post(post_url,
                                      data=form_data,
                                      files=dict(torrent_file=(filename, torrent_file)),
@@ -106,7 +106,7 @@ def start_torrents(host: str,
                     continue
                 # Delete original only after successful upload
                 logger.debug(f'Deleting {old}')
-                rm(old)
+                Path(old).unlink()
 
 
 @click.command(cls=command_with_config_file('config', 'list-ftp-users'))
@@ -124,7 +124,7 @@ def list_ftp_users(host: str,
     try:
         r.raise_for_status()
     except HTTPError as e:
-        raise click.Abort() from e
+        raise click.Abort from e
     content = Soup(r.text, 'html5lib').select('.gradeX td')
     click.echo(
         tabulate(((user.text, read_only.text == 'Yes', root_dir.text)
@@ -163,7 +163,7 @@ def add_ftp_user(host: str,
     try:
         r.raise_for_status()
     except HTTPError as e:
-        raise click.Abort() from e
+        raise click.Abort from e
 
 
 @click.command(cls=command_with_config_file('config', 'delete-ftp-user'))
@@ -186,7 +186,7 @@ def delete_ftp_user(host: str,
     try:
         r.raise_for_status()
     except HTTPError as e:
-        raise click.Abort() from e
+        raise click.Abort from e
 
 
 @click.command(cls=command_with_config_file('config', 'authorize-ip'))
@@ -206,7 +206,7 @@ def authorize_ip(host: str,
     try:
         r.raise_for_status()
     except HTTPError as e:
-        raise click.Abort() from e
+        raise click.Abort from e
 
 
 @click.command(cls=command_with_config_file('config', 'fix-rtorrent'))
@@ -227,10 +227,10 @@ def fix_rtorrent(host: str, port: int, debug: bool = False, config: str | None =
     try:
         r.raise_for_status()
     except HTTPError as e:
-        raise click.Abort() from e
+        raise click.Abort from e
 
 
-STATES_FOR_SORTING = set(('finished', 'creation_date', 'state_changed'))
+STATES_FOR_SORTING = {'finished', 'creation_date', 'state_changed'}
 
 
 @click.command(cls=command_with_config_file('config', 'list-torrents'))
@@ -257,11 +257,13 @@ def list_torrents(host: str,
                   sort: str | None = None,
                   reverse_order: bool | None = None) -> None:
     """list torrents in a given format."""
+    min_tz_aware = datetime(MINYEAR, 1, 1, tzinfo=UTC)
+
     def sorter(x: TorrentInfo) -> Any:
         assert sort is not None
         if ((val := getattr(x, sort if sort != 'label' else 'custom1', None)) is None
                 and sort in STATES_FOR_SORTING):
-            return datetime.min
+            return min_tz_aware
         return val or ''
 
     setup_logging(debug)
@@ -286,7 +288,8 @@ def list_torrents(host: str,
                      base_path=x.base_path) for x in torrents
             ]))
     else:  # pragma no cover
-        raise click.Abort('Invalid table format specified')
+        click.echo('Invalid table format specified.', err=True)
+        raise click.Abort
 
 
 @click.command(cls=command_with_config_file('config', 'list-files'))
@@ -302,15 +305,16 @@ def list_torrents(host: str,
 @click.option('-S', '--sort', type=click.Choice(('name', 'size_bytes', 'priority')), default='name')
 @click.option('-R', '--reverse-order', is_flag=True)
 @click.argument('hash')
-def list_files(hash: str,
-               host: str,
-               port: int,
-               debug: bool = False,
-               config: str | None = None,
-               no_headers: bool = False,
-               table_format: str = 'plain',
-               sort: str = 'name',
-               reverse_order: bool | None = None) -> None:
+def list_files(
+        hash: str,  # noqa: A002
+        host: str,
+        port: int,
+        debug: bool = False,
+        config: str | None = None,
+        no_headers: bool = False,
+        table_format: str = 'plain',
+        sort: str = 'name',
+        reverse_order: bool | None = None) -> None:
     """list a torrent's files in a given format."""
     setup_logging(debug)
     files = sorted(cast(Iterator[TorrentTrackedFile] | Sequence[TorrentTrackedFile],
@@ -329,7 +333,8 @@ def list_files(hash: str,
     elif table_format == 'json':
         click.echo(json.dumps([x._asdict() for x in files]))
     else:  # pragma no cover
-        raise click.Abort('Invalid table format specified')
+        click.echo('Invalid table format specified.', err=True)
+        raise click.Abort
 
 
 def _resolve_single_file_torrent_path(info: TorrentInfo, filename: str) -> str:
@@ -368,7 +373,7 @@ def list_all_files(host: str, port: int, debug: bool = False, config: str | None
               '--server-list-command',
               help=('This should be a command that outputs lines where each line is a '
                     'complete file path that matches the "torrents/<username>/..." output '
-                    'from ruTorrent\'s API. An example using SSH:\n\n    '
+                    "from ruTorrent's API. An example using SSH:\n\n    "
                     "ssh name-of-server 'find /media/sf_hostshare -type f' | "
                     "sed -re 's|^/media/sf_hostshare|/torrents/username|g'"))
 @click.option('-d', '--debug', is_flag=True)
@@ -410,7 +415,11 @@ def list_untracked_files(host: str,
                 for file in (f'{info.base_path}/{y.name}' for y in files):
                     tracked_files.add(file)
     click.echo('Getting server-side file list', file=sys.stderr)
-    with sp.Popen(server_list_command, shell=True, text=True, stdout=sp.PIPE) as process:
+    with sp.Popen(
+            server_list_command,
+            shell=True,  # noqa: S602
+            text=True,
+            stdout=sp.PIPE) as process:
         assert process.stdout is not None
         while (line := process.stdout.readline().strip()):
             if line not in tracked_files:

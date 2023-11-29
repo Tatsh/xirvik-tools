@@ -1,24 +1,32 @@
 [tool.poetry]
+name = "xirvik-tools"
+version = "0.4.5"
 authors = ["Fa An <2998784916@qq.com>"]
-classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Typing :: Typed"
+]
 description = "Command line utilities for interfacing with Xirvik."
 documentation = "https://xirvik-tools.readthedocs.io/"
 homepage = "https://github.com/Tatsh/xirvik-tools"
 include = ["LaunchAgents", "man", "systemd"]
 keywords = ["command line", "utilities", "xirvik"]
 license = "MIT"
-name = "xirvik-tools"
 packages = [{ include = "xirvik" }]
 readme = "README.md"
-version = "0.4.5"
+repository = "https://github.com/Tatsh/xirvik-tools"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4"
+python = ">=3.11,<4"
 beautifulsoup4 = "^4.12.2"
 cached-property = "^1.5.2"
-click = ">=8.1.7"
+click = ">=8.1.3,<8.1.4 || >8.1.4"
 html5lib = "^1.1"
-loguru = "^0.7.0"
+loguru = "^0.7.2"
 pyxdg = "^0.28"
 pyyaml = "^6.0.1"
 requests = "^2.31.0"
@@ -30,26 +38,27 @@ urllib3 = "^2.1.0"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-isort = "^5.12.0"
 mypy = "^1.7.1"
 rope = "^1.11.0"
-ruff = ">=0.1.6"
-toml = "^0.10.2"
+ruff = "^0.1.6"
+tomlkit = "^0.12.3"
 types-beautifulsoup4 = "^4.12.0.7"
 types-requests = "^2.31.0.10"
 types-tabulate = "^0.9.0.2"
-types-toml = "^0.10.8.7"
-yapf = "^0.40.1"
+yapf = "^0.40.2"
+cruft = "^2.15.0"
 
 [tool.poetry.group.docs]
 optional = true
 
 [tool.poetry.group.docs.dependencies]
+doc8 = "^1.1.1"
 docutils = "^0.20.1"
-esbonio = "^0.16.1"
-rstcheck = { extras = ["sphinx"], version = "^6.2.0" }
+esbonio = "^0.16.3"
+restructuredtext-lint = "^1.4.0"
 sphinx = "^7.2.6"
 sphinx-click = "^5.1.0"
+tomlkit = "^0.12.3"
 
 [tool.poetry.group.tests]
 optional = true
@@ -62,20 +71,41 @@ pytest-cov = "^4.1.0"
 pytest-mock = "^3.12.0"
 requests-mock = "^1.11.0"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.poetry.scripts]
 xirvik = "xirvik.commands:xirvik"
 
-[tool.isort]
-case_sensitive = true
-combine_as_imports = true
-from_first = true
-line_length = 100
-order_by_type = true
-use_parentheses = true
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
+
+[tool.commitizen]
+tag_format = "v$version"
+version_files = ["README.md", "man/xirvik.1", "package.json"]
+version_provider = "poetry"
+
+[tool.cruft]
+skip = [
+  "./*.lock",
+  "./.*_cache",
+  ".git/COMMIT_EDITMSG",
+  ".git/HEAD",
+  ".git/config",
+  "./.git/hooks/*.sample",
+  ".git/index",
+  ".git/logs/HEAD",
+  ".vscode/dictionary.txt",
+  "CHANGELOG.md",
+  "LICENSE.txt",
+  "LaunchAgents/",
+  "dist/",
+  "./docs/*.rst",
+  "htmlcov/",
+  "man/",
+  "node_modules/",
+  "./tests/*/test_*.py",
+  "./tests/test_*.py",
+  "xirvik/"
+]
 
 [tool.mypy]
 disallow_incomplete_defs = true
@@ -96,34 +126,111 @@ warn_unused_ignores = true
 [tool.pytest.ini_options]
 mock_use_standalone_module = true
 
-[tool.rstcheck]
-ignore_directives = ["automodule", "click", "include"]
-
 [tool.ruff]
-exclude = [
-  ".bzr",
-  ".direnv",
-  ".eggs",
-  ".git",
-  ".git-rewrite",
-  ".hg",
-  ".mypy_cache",
-  ".nox",
-  ".pants.d",
-  ".pytype",
-  ".ruff_cache",
-  ".svn",
-  ".tox",
-  ".venv",
-  "__pypackages__",
-  "_build",
-  "buck-out",
-  "build",
-  "dist",
-  "node_modules",
-  "venv"
+cache-dir = "~/.cache/ruff"
+extend-ignore = ["C408", "PTH123", "T201", "TD002", "TD003", "TD004"]
+namespace-packages = ["hooks"]
+extend-select = [
+  "A",
+  "ASYNC",
+  "B",
+  "C4",
+  "DTZ",
+  "ERA",
+  "EXE",
+  "G",
+  "INP",
+  "INT",
+  "ISC001",
+  "ISC003",
+  "NPY",
+  "PD",
+  "PERF",
+  "PGH",
+  "PIE",
+  "PLC0105",
+  "PLC0131",
+  "PLC0132",
+  "PLC0205",
+  "PLC0208",
+  "PLC0414",
+  "PLC3002",
+  "PLE0100",
+  "PLE0101",
+  "PLE0116",
+  "PLE0117",
+  "PLE0118",
+  "PLE0241",
+  "PLE0302",
+  "PLE0307",
+  "PLE0604",
+  "PLE0605",
+  "PLE1142",
+  "PLE1205",
+  "PLE1206",
+  "PLE1300",
+  "PLE1307",
+  "PLE1310",
+  "PLE1507",
+  "PLE1700",
+  "PLE2502",
+  "PLE2510",
+  "PLE2512",
+  "PLE2513",
+  "PLE2514",
+  "PLE2515",
+  "PLR0124",
+  "PLR0133",
+  "PLR0206",
+  "PLR0402",
+  "PLR1701",
+  "PLR1711",
+  "PLR1714",
+  "PLR1722",
+  "PLR2004",
+  "PLR5501",
+  "PLW0120",
+  "PLW0127",
+  "PLW0129",
+  "PLW0131",
+  "PLW0406",
+  "PLW0602",
+  "PLW0603",
+  "PLW0711",
+  "PLW1508",
+  "PLW1509",
+  "PLW1510",
+  "PLW2901",
+  "PLW3301",
+  "PT",
+  "PTH",
+  "PYI",
+  "Q",
+  "RET",
+  "RSE",
+  "RUF200",
+  "S506",
+  "S602",
+  "SIM",
+  "SLF",
+  "SLOT",
+  "T20",
+  "TCH",
+  "TD",
+  "TRY",
+  "UP",
+  "YTT"
 ]
 line-length = 100
+target-version = "py311"
+unsafe-fixes = true
+
+[tool.ruff.flake8-quotes]
+inline-quotes = "single"
+multiline-quotes = "single"
+
+[tool.ruff.lint.pylint]
+allow-magic-value-types = ["bytes", "int", "str"]
 
 [tool.yapf]
 align_closing_bracket_with_visual_indent = true
@@ -170,3 +277,6 @@ split_penalty_for_added_line_split = 30
 split_penalty_import_names = 0
 split_penalty_logical_operator = 300
 use_tabs = false
+
+[tool.yapfignore]
+ignore_patterns = ["node_modules/**"]

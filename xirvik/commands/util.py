@@ -1,11 +1,10 @@
 """Utility functions for CLI commands."""
-from os.path import expanduser
-from types import FrameType
-from typing import Any, Callable, Iterator, Sequence, Type
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+from collections.abc import Callable, Iterator, Sequence
 import functools
 import itertools
 import logging
-import pathlib
 import re
 import sys
 import warnings
@@ -15,6 +14,9 @@ from loguru import logger
 import click
 import xdg.BaseDirectory
 import yaml
+
+if TYPE_CHECKING:  # pragma no cover
+    from types import FrameType
 
 __all__ = ('common_options_and_arguments', 'complete_hosts', 'complete_ports',
            'setup_log_intercept_handler', 'setup_logging')
@@ -51,7 +53,7 @@ def common_options_and_arguments(func: Callable[..., None]) -> Callable[..., Non
                   type=int,
                   help=('Back-off factor used when calculating time to wait to retry '
                         'a failed request'))
-    @click.option('--netrc', default=expanduser('~/.netrc'), help='netrc file path')
+    @click.option('--netrc', default=Path('~/.netrc').expanduser, help='netrc file path')
     @click.option('-C', '--config', help='Configuration file')
     @click.option('-H',
                   '--host',
@@ -74,7 +76,7 @@ def _clean_host(host: str) -> str:
 
 def _read_ssh_known_hosts() -> Iterator[str]:
     try:
-        with open(expanduser('~/.ssh/known_hosts')) as f:
+        with open(Path('~/.ssh/known_hosts').expanduser()) as f:
             for line in f.readlines():
                 host_part = line.split()[0]
                 if ',' in host_part:
@@ -87,7 +89,7 @@ def _read_ssh_known_hosts() -> Iterator[str]:
 
 def _read_netrc_hosts() -> Iterator[str]:
     try:
-        with open(expanduser('~/.netrc')) as f:
+        with open(Path('~/.netrc').expanduser()) as f:
             yield from (x.split()[1] for x in f.readlines())
     except FileNotFoundError:
         pass
@@ -132,7 +134,7 @@ def setup_log_intercept_handler() -> None:  # pragma: no cover
 
 
 def command_with_config_file(config_file_param_name: str = 'config',
-                             default_section: str | None = None) -> Type[click.Command]:
+                             default_section: str | None = None) -> type[click.Command]:
     """
     Returns a custom command class that can read from a configuration file
     in place of missing arguments.
@@ -145,8 +147,8 @@ def command_with_config_file(config_file_param_name: str = 'config',
     default_section : str | None
         Default top key of YAML to read from.
     """
-    home = pathlib.Path.home()
-    default_config_file_path = pathlib.Path(xdg.BaseDirectory.xdg_config_home) / 'xirvik.yml'
+    home = Path.home()
+    default_config_file_path = Path(xdg.BaseDirectory.xdg_config_home) / 'xirvik.yml'
     if sys.platform == 'win32':  # pragma: no cover
         default_config_file_path = home / 'AppData/Roaming/xirvik-tools/config.yml'
     elif sys.platform == 'darwin':  # pragma: no cover
@@ -166,7 +168,7 @@ def command_with_config_file(config_file_param_name: str = 'config',
             if isinstance(config_data, dict):
                 alt_data = (config_data.get(default_section, {})
                             if default_section is not None else {})
-                for param in ctx.params.keys():
+                for param in ctx.params:
                     if ctx.get_parameter_source(param) == ParameterSource.DEFAULT:
                         yaml_param = param.replace('_', '-')
                         if yaml_param in alt_data:
@@ -175,12 +177,13 @@ def command_with_config_file(config_file_param_name: str = 'config',
                             ctx.params[param] = config_data[yaml_param]
                 ctx.params[config_file_param_name] = config_file_path
             else:  # pragma no cover
-                warnings.warn(f'Unexpected type in {config_file_path}: ' + str(type(config_data)))
+                warnings.warn(f'Unexpected type in {config_file_path}: ' + str(type(config_data)),
+                              stacklevel=1)
             try:
                 return super().invoke(ctx)
             except Exception as e:
                 if debug:  # pragma no cover
                     logger.exception(str(e))
-                raise click.Abort() from e
+                raise click.Abort from e
 
     return _ConfigFileCommand

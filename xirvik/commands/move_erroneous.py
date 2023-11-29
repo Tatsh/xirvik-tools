@@ -1,6 +1,7 @@
 """Move torrents in error state to another location."""
 from time import sleep
-from typing import Any, Final, Iterable, TypeVar
+from typing import Any, Final, TypeVar
+from collections.abc import Iterable
 
 from loguru import logger
 import click

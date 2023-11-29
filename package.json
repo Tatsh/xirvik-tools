@@ -1,8 +1,12 @@
 {
+  "contributors": [
+    "Fa An <2998784916@qq.com>"
+  ],
   "devDependencies": {
-    "@prettier/plugin-xml": "^3.2.1",
-    "cspell": "^7.3.6",
-    "prettier": "^3.0.3",
+    "@prettier/plugin-xml": "^3.2.2",
+    "cspell": "^8.0.0",
+    "markdownlint-cli2": "^0.11.0",
+    "prettier": "^3.1.0",
     "prettier-plugin-ini": "^1.1.0",
     "prettier-plugin-sort-json": "^3.1.0",
     "prettier-plugin-toml": "^1.0.0"
@@ -12,6 +16,7 @@
   "prettier": {
     "endOfLine": "lf",
     "iniSpaceAroundEquals": true,
+    "jsonRecursiveSort": true,
     "plugins": [
       "@prettier/plugin-xml",
       "prettier-plugin-ini",
@@ -21,18 +26,18 @@
     "printWidth": 100,
     "singleQuote": true
   },
-  "repository": "https://github.com/Tatsh/xirvik-tools",
+  "repository": "git@github.com:Tatsh/xirvik-tools.git",
   "scripts": {
-    "check-formatting": "prettier -c '.*/**/*.json' '.*/**/*.y*ml' './**/*.md' './**/*.toml' './**/*.y*ml' && poetry run isort . --check && poetry run yapf -rd docs xirvik .stubs tests",
-    "check-spelling": "cspell --no-progress './**/*'  './**/.*'",
+    "check-formatting": "yarn prettier -c . && poetry run yapf -prd . && markdownlint-cli2 '**/*.md' '#node_modules'",
+    "check-spelling": "cspell --no-progress .",
     "clean-dict": "r=(); while IFS=$\\n read -r w; do ! rg --no-config -qi. -g '!.vscode/dictionary.txt' -m 1 \"$w\" . && r+=(\"$w\"); done < ./.vscode/dictionary.txt; j=$(printf \"|%s\" \"${r[@]}\"); j=\"^(${j:1})$\"; grep -Ev \"${j}\" ./.vscode/dictionary.txt > new && mv new ./.vscode/dictionary.txt",
     "fix-pluggy": "touch \"$(poetry run python -c 'import inspect, os, pluggy; print(os.path.dirname(inspect.getabsfile(pluggy)))')/py.typed\"",
-    "format": "prettier -w '.*/**/*.json' '.*/**/*.y*ml' './**/*.md' './**/*.toml' './**/*.y*ml' && poetry run isort . && poetry run yapf -ri docs xirvik .stubs tests",
-    "gen-manpage": "sphinx-build -T -E -b man -D language=en ./docs .",
+    "format": "yarn prettier -w . && poetry run yapf -pri . && markdownlint-cli2 --fix '**/*.md' '#node_modules'",
+    "gen-manpage": "sphinx-build -T -E -b man -d ./docs/_build/doctrees -D language=en ./docs . && mv xirvik-tools.1 man/",
     "mypy": "yarn fix-pluggy && poetry run mypy .",
-    "qa": "yarn mypy && yarn ruff && yarn rstcheck && yarn check-spelling && yarn check-formatting",
-    "rstcheck": "poetry run rstcheck --recursive .",
-    "ruff": "poetry run ruff check .",
+    "qa": "yarn mypy && yarn ruff && yarn check-spelling && yarn check-formatting",
+    "ruff": "poetry run ruff .",
+    "ruff:fix": "poetry run ruff --fix .",
     "test": "poetry run pytest"
   },
   "version": "0.4.5"

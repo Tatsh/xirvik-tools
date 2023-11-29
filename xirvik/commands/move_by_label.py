@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 """Organise torrents based on labels assigned in ruTorrent."""
-from os.path import expanduser
+from pathlib import Path
 from time import sleep
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
 
 from loguru import logger
 from requests.exceptions import HTTPError
@@ -75,7 +74,7 @@ def main(host: str,
                              name=username,
                              password=password,
                              max_retries=max_retries,
-                             netrc_path=netrc or expanduser('~/.netrc'),
+                             netrc_path=netrc or Path('~/.netrc').expanduser(),
                              backoff_factor=backoff_factor)
     username = client.name
     assert username is not None
@@ -83,7 +82,7 @@ def main(host: str,
         torrents = client.list_torrents()
     except (ValueError, HTTPError) as e:
         logger.error('Connection failed on list_torrents() call')
-        raise click.Abort() from e
+        raise click.Abort from e
     count = 0
     for info in (y for y in (x for x in torrents if _key_check(x))
                  if _base_path_check(username, completed_dir, lower_label or False)(y)):

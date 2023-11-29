@@ -1,4 +1,4 @@
-"""move-by-label tests."""
+"""move-by-label tests."""  # noqa: INP001
 from datetime import datetime
 from typing import NamedTuple
 import pathlib
@@ -12,7 +12,7 @@ from xirvik.commands.root import xirvik
 
 
 class MinimalTorrentDict(NamedTuple):
-    hash: str
+    hash: str  # noqa: A003
     custom1: str | None = None
     left_bytes: int = 0
     name: str = ''
@@ -144,16 +144,16 @@ def test_move_torrent_sleep_after_10(runner: CliRunner, mocker: MockerFixture,
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
     client_mock.return_value.name = 'some_name'
     sleep_mock = mocker.patch('xirvik.commands.move_by_label.sleep')
-    torrent_list = []
-    for i in range(10):
-        torrent_list.append(
-            MinimalTorrentDict(f'hash{i}',
-                               custom1='TEST me',
-                               name='The Name',
-                               is_hash_checking=False,
-                               base_path='/downloads/_completed'))
+    tl_len = 10
+    torrent_list = [
+        MinimalTorrentDict(f'hash{i}',
+                           custom1='TEST me',
+                           name='The Name',
+                           is_hash_checking=False,
+                           base_path='/downloads/_completed') for i in range(tl_len)
+    ]
     client_mock.return_value.list_torrents.return_value = torrent_list
     assert runner.invoke(
         xirvik, ('rtorrent', 'move-by-label', '-l', '-t', '10', '-H', 'machine.com')).exit_code == 0
-    assert client_mock.return_value.move_torrent.call_count == 10
-    sleep_mock.assert_called_once_with(10)
+    assert client_mock.return_value.move_torrent.call_count == tl_len
+    sleep_mock.assert_called_once_with(tl_len)

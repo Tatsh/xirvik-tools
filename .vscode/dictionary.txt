@@ -11,7 +11,9 @@ colenabled
 colorder
 colwidth
 commandline
+commitizen
 concat
+cookiecutter
 datadir
 dets
 direnv
@@ -19,9 +21,12 @@ diskspace
 doctrees
 docutils
 ecda
+editmsg
+eeyore
 elif
 endregion
 epub
+esbenp
 esbonio
 excinfo
 fastresume
@@ -37,6 +42,7 @@ itertools
 labelsize
 levelname
 levelno
+linters
 loguru
 lunchy
 maxdepth
@@ -50,6 +56,7 @@ nistp
 oneshot
 organise
 paren
+parens
 parseparam
 pipx
 plabel
@@ -60,6 +67,8 @@ prss
 pstate
 ptrackers
 pycache
+pylance
+pylint
 pypackages
 pypi
 pytest
@@ -92,6 +101,7 @@ tbody
 timedelta
 timeformat
 toctree
+tomlkit
 tryfirst
 typecheck
 unexpectedru
@@ -104,3 +114,4 @@ vsplit
 webui
 xirvik
 yapf
+yapfignore

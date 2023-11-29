@@ -1,4 +1,4 @@
-"""move-erroneous tests."""
+"""move-erroneous tests."""  # noqa: INP001
 from datetime import datetime
 from typing import NamedTuple
 import pathlib
@@ -11,7 +11,7 @@ from xirvik.commands.root import xirvik
 
 
 class MinimalTorrentDict(NamedTuple):
-    hash: str
+    hash: str  # noqa: A003
     custom1: str | None = None
     left_bytes: int = 0
     name: str = ''
@@ -51,13 +51,12 @@ def test_move_erroneous_sleep(runner: CliRunner, mocker: MockerFixture, tmp_path
     monkeypatch.setenv('HOME', str(tmp_path))
     sleep_mock = mocker.patch('xirvik.commands.move_erroneous.sleep')
     client_mock = mocker.patch('xirvik.commands.move_erroneous.ruTorrentClient')
-    ret = []
-    for i in range(12):
-        ret.append(
-            MinimalTorrentDict(f'hash{i}',
-                               message='unregistered torrent',
-                               name=f'Test #{i}',
-                               custom1='anything'))
+    ret = [
+        MinimalTorrentDict(f'hash{i}',
+                           message='unregistered torrent',
+                           name=f'Test #{i}',
+                           custom1='anything') for i in range(12)
+    ]
     client_mock.return_value.list_torrents.return_value = ret
     assert runner.invoke(xirvik, ('rtorrent', 'move-erroneous', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.move_torrent.call_count == 12
