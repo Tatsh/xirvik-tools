@@ -37,6 +37,7 @@ def _key_check(info: TorrentInfo) -> bool:
 
 @click.command(cls=command_with_config_file('config', 'move-by-label'))
 @common_options_and_arguments
+@click.option('-b', '--batch-size', default=10, help='Batch size.')
 @click.option('-c',
               '--completed-dir',
               default='_completed',
@@ -63,7 +64,8 @@ def main(host: str,
          max_retries: int = 10,
          debug: bool = False,
          backoff_factor: int = 1,
-         config: str | None = None) -> None:
+         config: str | None = None,
+         batch_size: int = 10) -> None:
     """Move torrents according to labels assigned."""
     setup_logging(debug)
     logger.debug(f'Host: {host}')
@@ -95,5 +97,5 @@ def main(host: str,
         logger.info(f'Moving {info.name} from {info.base_path} to {move_to}/')
         client.move_torrent(info.hash, move_to)
         count += 1
-        if count > 0 and (count % 10) == 0:
+        if count > 0 and (count % batch_size) == 0:
             sleep(sleep_time)
