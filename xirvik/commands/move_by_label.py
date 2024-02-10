@@ -23,8 +23,9 @@ def _base_path_check(username: str, completed_dir: str,
         return x
 
     def bpc(info: TorrentInfo) -> bool:
-        return (not info.base_path.startswith(f'{PREFIX.format(completed_dir)}'
-                                              f'/{maybe_lower(info.custom1 or "")}')
+        return (info.base_path.strip()
+                and not info.base_path.startswith(f'{PREFIX.format(completed_dir)}'
+                                                  f'/{maybe_lower(info.custom1 or "")}')
                 # Old style paths
                 and not info.base_path.startswith(f'/torrents/{username}/'))
 
