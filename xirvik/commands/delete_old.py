@@ -22,16 +22,14 @@ TestsDict = dict[str, tuple[bool, TestCallable]]
 
 def _test_date_cb(days: int = 14) -> TestCallable:
     def test_date(info: TorrentInfo) -> tuple[str, bool]:
-        condition1 = info.creation_date
-        condition2 = info.state_changed
+        condition1 = info.state_changed
         expect = datetime.now(UTC) - timedelta(days=days)
-        logger.debug(f'creation date: {condition1}')
-        logger.debug(f'state changed: {condition2}')
+        logger.debug(f'state changed: {condition1}')
         logger.debug(f'{condition1} <= {expect} or')
-        logger.debug(f'    {condition2} <= {expect}')
+        logger.debug(f'    {condition1} <= {expect}')
         return (
             f'over {days} days seeded',
-            bool((condition1 and condition1 <= expect) or (condition2 and condition2 <= expect)),
+            bool(condition1 and condition1 <= expect),
         )
 
     return test_date
