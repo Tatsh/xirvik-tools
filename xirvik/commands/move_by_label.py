@@ -1,11 +1,11 @@
 """Organise torrents based on labels assigned in ruTorrent."""
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from time import sleep
-from collections.abc import Callable, Sequence
 
+import click
 from loguru import logger
 from requests.exceptions import HTTPError
-import click
 
 from xirvik.typing import TorrentInfo
 
@@ -23,11 +23,11 @@ def _base_path_check(username: str, completed_dir: str,
         return x
 
     def bpc(info: TorrentInfo) -> bool:
-        return (info.base_path.strip()
-                and not info.base_path.startswith(f'{PREFIX.format(completed_dir)}'
-                                                  f'/{maybe_lower(info.custom1 or "")}')
-                # Old style paths
-                and not info.base_path.startswith(f'/torrents/{username}/'))
+        return bool(info.base_path.strip()
+                    and not info.base_path.startswith(f'{PREFIX.format(completed_dir)}'
+                                                      f'/{maybe_lower(info.custom1 or "")}')
+                    # Old style paths
+                    and not info.base_path.startswith(f'/torrents/{username}/'))
 
     return bpc
 

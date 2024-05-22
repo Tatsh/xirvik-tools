@@ -1,6 +1,7 @@
 """Client for ruTorrent."""
 from datetime import UTC, datetime
 from enum import IntEnum
+from functools import cached_property
 from netrc import netrc
 from pathlib import Path
 from typing import Any, Final, cast
@@ -9,7 +10,6 @@ from urllib.parse import quote
 import logging
 import xmlrpc.client as xmlrpc
 
-from cached_property import cached_property
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 import requests

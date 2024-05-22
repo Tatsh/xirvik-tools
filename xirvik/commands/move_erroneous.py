@@ -60,11 +60,9 @@ def main(
     prefix = PREFIX.format(client.name)
     to_delete: list[tuple[str, str]] = []
     items = [info for info in client.list_torrents() if _should_process(info)]
-    count = 0
-    for info in items:
+    for count, info in enumerate(items):
         logger.info(f'Stopping {info.name}')
         client.stop(info.hash)
-        count += 1
         if count > 0 and (count % 10) == 0:
             sleep(sleep_time)
     count = 0
