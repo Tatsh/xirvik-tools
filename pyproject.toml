@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "xirvik-tools"
-version = "0.4.5"
+version = "0.5.0"
 authors = ["Fa An <2998784916@qq.com>"]
 classifiers = [
   "Development Status :: 4 - Beta",
