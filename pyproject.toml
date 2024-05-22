@@ -11,7 +11,7 @@ classifiers = [
   "Typing :: Typed"
 ]
 description = "Command line utilities for interfacing with Xirvik."
-documentation = "https://xirvik-tools.readthedocs.io/"
+documentation = "https://xirvik-tools.readthedocs.io"
 homepage = "https://github.com/Tatsh/xirvik-tools"
 include = ["LaunchAgents", "man", "systemd"]
 keywords = ["command line", "utilities", "xirvik"]
@@ -85,7 +85,7 @@ version_provider = "poetry"
 [tool.cruft]
 skip = [
   "./*.lock",
-  "./.*_cache",
+  "./.**cache",
   ".git/COMMIT_EDITMSG",
   ".git/HEAD",
   ".git/config",
@@ -101,7 +101,7 @@ skip = [
   "htmlcov/",
   "man/",
   "node_modules/",
-  "./tests/*/test_*.py",
+  "./tests/*/test**.py",
   "./tests/test_*.py",
   "xirvik/"
 ]
