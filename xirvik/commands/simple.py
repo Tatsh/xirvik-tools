@@ -10,6 +10,7 @@ from typing import Any, NoReturn, cast
 from collections.abc import Iterator, Sequence
 import json
 import logging
+import re
 import signal
 import subprocess as sp
 import sys
@@ -382,7 +383,8 @@ def list_untracked_files(host: str,
                          debug: bool = False,
                          config: str | None = None) -> None:
     """
-    list all files on the server that are not tracked.
+    List all files on the server that are not tracked. All paths are fixed to be prefix with
+    ``/downloads/`` instead of the old path ``/torrents/<username>``.
 
     Parameters
     ==========
@@ -391,29 +393,19 @@ def list_untracked_files(host: str,
 
     server_list_command : str
         This should be a command that outputs lines where each line is a
-        complete file path that matches the ``torrents/<username>/...`` output
-        from ruTorrent's API. An example using SSH would be:
+        complete file path on the server. For example with SSH:
 
-            ``ssh name-of-server 'find /media/sf_hostshare -type f' |
-              sed -re 's|^/media/sf_hostshare|/torrents/username|g'``
+            ``ssh name-of-server 'find /downloads -type f'``
 
     debug : bool
         Enable debugging output.
     """
+    def fix_path(res: str) -> str:
+        if res.startswith(f'/torrents/{client.name}/'):
+            return re.sub(fr'^/torrents/{client.name}/', '/downloads/', res)
+        return res
+
     setup_logging(debug)
-    client = ruTorrentClient(host)
-    click.echo('Listing torrents ...', file=sys.stderr)
-    tracked_files = cast(set[str], set())
-    with click.progressbar(list(client.list_torrents()), file=sys.stderr,
-                           label='Getting file list') as progress_bar:
-        info: TorrentInfo
-        for info in progress_bar:
-            files = list(client.list_files(info.hash))
-            if len(files) == 1:
-                tracked_files.add(_resolve_single_file_torrent_path(info, files[0].name))
-            else:
-                for file in (f'{info.base_path}/{y.name}' for y in files):
-                    tracked_files.add(file)
     click.echo('Getting server-side file list', file=sys.stderr)
     with sp.Popen(
             server_list_command,
@@ -421,6 +413,29 @@ def list_untracked_files(host: str,
             text=True,
             stdout=sp.PIPE) as process:
         assert process.stdout is not None
-        while (line := process.stdout.readline().strip()):
-            if line not in tracked_files:
-                click.echo(line)
+        server_files = {x.strip() for x in process.stdout.readlines()}
+    client = ruTorrentClient(host)
+    click.echo('Listing torrents ...', file=sys.stderr)
+    with click.progressbar(list(client.list_torrents()), file=sys.stderr,
+                           label='Getting file list') as progress_bar:
+        info: TorrentInfo
+        for info in progress_bar:
+            logger.debug(f'Torrent: {info.name}')
+            files = list(client.list_files(info.hash))
+            assert len(files) >= 1, 'Zero files?'
+            if len(files) == 1:
+                res = fix_path(_resolve_single_file_torrent_path(info, files[0].name))
+                logger.debug(f'Single file: {res}')
+                try:
+                    server_files.remove(res)
+                except KeyError:
+                    logger.debug(f'Unknown file ({info.name}): {res}')
+            else:
+                for file in (fix_path(f'{info.base_path}/{y.name}') for y in files):
+                    logger.debug(f'File: {file}')
+                    try:
+                        server_files.remove(file)
+                    except KeyError:
+                        logger.debug(f'Unknown file ({info.name}): {file}')
+    for file in sorted(server_files):
+        click.echo(file)
