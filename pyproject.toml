@@ -127,8 +127,13 @@ mock_use_standalone_module = true
 
 [tool.ruff]
 cache-dir = "~/.cache/ruff"
-extend-ignore = ["C408", "PTH123", "T201", "TD002", "TD003", "TD004"]
 namespace-packages = ["hooks"]
+line-length = 100
+target-version = "py311"
+unsafe-fixes = true
+
+[tool.ruff.lint]
+extend-ignore = ["C408", "PTH123", "T201", "TD002", "TD003", "TD004"]
 extend-select = [
   "A",
   "ASYNC",
@@ -220,11 +225,8 @@ extend-select = [
   "UP",
   "YTT"
 ]
-line-length = 100
-target-version = "py311"
-unsafe-fixes = true
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"
 multiline-quotes = "single"
 
