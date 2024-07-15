@@ -40,7 +40,7 @@ optional = true
 mypy = "^1.7.1"
 rope = "^1.11.0"
 ruff = ">=0.5.0,<0.6.0"
-tomlkit = "^0.12.3"
+tomlkit = ">=0.12.3,<0.14.0"
 types-beautifulsoup4 = "^4.12.0.7"
 types-requests = "^2.31.0.10"
 types-tabulate = "^0.9.0.2"
@@ -57,7 +57,7 @@ esbonio = "^0.16.3"
 restructuredtext-lint = "^1.4.0"
 sphinx = "^7.2.6"
 sphinx-click = ">=5.1,<7.0"
-tomlkit = "^0.12.3"
+tomlkit = ">=0.12.3,<0.14.0"
 
 [tool.poetry.group.tests]
 optional = true
