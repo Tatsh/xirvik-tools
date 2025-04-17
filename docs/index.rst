@@ -1,17 +1,20 @@
-Welcome to Xirvik Tool's documentation!
-=======================================
+Xirvik Tools
+============
+
 Commands
 --------
+
 .. include:: commands.rst
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+.. only:: html
 
-   library
+   .. toctree::
+      :maxdepth: 2
+      :caption: Contents:
 
-Indices and tables
-==================
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+      library
+
+   Indices and tables
+   ==================
+   * :ref:`genindex`
+   * :ref:`modindex`

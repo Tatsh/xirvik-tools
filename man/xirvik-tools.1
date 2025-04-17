@@ -27,19 +27,19 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "XIRVIK" "1" "Sep 15, 2023" "0.4.3" "xirvik-tools"
+.TH "XIRVIK-TOOLS" "1" "Apr 17, 2025" "0.5.0" "xirvik-tools"
 .SH NAME
-xirvik \- Tool for managing a Xirvik-hosted server.
+xirvik-tools \- xirvik-tools v0.5.0
+.SH COMMANDS
+.SS xirvik
 .sp
 Root command.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik [OPTIONS] COMMAND [ARGS]...
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -54,30 +54,26 @@ Configuration file
 .B \-H, \-\-host <host>
 Xirvik host (without protocol)
 .UNINDENT
-.SH FTP
+.SS ftp
 .sp
 Commands for managing the FTP server.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik ftp [OPTIONS] COMMAND [ARGS]...
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .SS add\-ftp\-user
 .sp
-Adds an FTP user.
+Add an FTP user.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik ftp add\-ftp\-user [OPTIONS] USERNAME PASSWORD
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -118,15 +114,13 @@ Required argument
 .UNINDENT
 .SS delete\-ftp\-user
 .sp
-Deletes an FTP user.
+Delete an FTP user.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik ftp delete\-ftp\-user [OPTIONS] USERNAME
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -158,15 +152,13 @@ Required argument
 .UNINDENT
 .SS list\-ftp\-users
 .sp
-Lists FTP users.
+List FTP users.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik ftp list\-ftp\-users [OPTIONS]
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -189,31 +181,28 @@ Xirvik host (without protocol)
 .B \-C, \-\-config <config>
 Configuration file
 .UNINDENT
-.SH RTORRENT
+.SS rtorrent
 .sp
 Commands for managing rTorrent.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik rtorrent [OPTIONS] COMMAND [ARGS]...
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .SS fix\-rtorrent
 .sp
-Restarts the rtorrent service in case ruTorrent cannot connect to it. Not
-guaranteed to fix anything!
+Restart the rtorrent service in case ruTorrent cannot connect to it.
+.sp
+Not guaranteed to fix anything!
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik rtorrent fix\-rtorrent [OPTIONS]
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -242,11 +231,9 @@ list all tracked file paths.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik rtorrent list\-all\-files [OPTIONS]
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -271,15 +258,13 @@ Configuration file
 .UNINDENT
 .SS list\-files
 .sp
-list a torrent\(aqs files in a given format.
+List a torrent\(aqs files in a given format.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik rtorrent list\-files [OPTIONS] HASH
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -337,15 +322,13 @@ Required argument
 .UNINDENT
 .SS list\-torrents
 .sp
-list torrents in a given format.
+List torrents in a given format.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik rtorrent list\-torrents [OPTIONS]
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -400,11 +383,9 @@ list untracked file paths.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik rtorrent list\-untracked\-files [OPTIONS]
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -431,11 +412,9 @@ Delete torrents based on certain criteria.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik rtorrent main [OPTIONS]
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -479,18 +458,6 @@ Configuration file
 .TP
 .B \-H, \-\-host <host>
 Xirvik host (without protocol)
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-D, \-\-ignore\-date
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-a, \-\-ignore\-ratio
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-y, \-\-dry\-run
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -508,17 +475,27 @@ Xirvik host (without protocol)
 .TP
 .B \-\-sleep\-time <sleep_time>
 .UNINDENT
+.INDENT 0.0
+.TP
+.B \-D, \-\-ignore\-date
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-a, \-\-ignore\-ratio
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-y, \-\-dry\-run
+.UNINDENT
 .SS main
 .sp
 Move torrents according to labels assigned.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik rtorrent main [OPTIONS]
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -562,6 +539,11 @@ Configuration file
 .TP
 .B \-H, \-\-host <host>
 Xirvik host (without protocol)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b, \-\-batch\-size <batch_size>
+Batch size.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -581,7 +563,7 @@ Call lower() on labels used to make directory names
 .INDENT 0.0
 .TP
 .B \-\-ignore\-labels <ignore_labels>
-list of labels to ignore (case\-sensitive)
+List of labels to ignore (case\-sensitive).
 .UNINDENT
 .SS main
 .sp
@@ -589,11 +571,9 @@ Move torrents in error state to another location.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik rtorrent main [OPTIONS]
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -644,39 +624,25 @@ Xirvik host (without protocol)
 .UNINDENT
 .SS start\-torrents
 .sp
-Uploads torrent files to the server.
+Upload torrent files to the server.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik rtorrent start\-torrents [OPTIONS] [DIRECTORIES]...
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
 Options
 .INDENT 0.0
 .TP
-.B \-p, \-\-port <port>
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-d, \-\-debug
+.B \-\-no\-verify
+Disable TLS verification (not recommended)
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-start\-stopped
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-s, \-\-syslog
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-H, \-\-host <host>
-Xirvik host (without protocol)
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -685,8 +651,20 @@ Configuration file
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-\-no\-verify
-Disable TLS verification (not recommended)
+.B \-H, \-\-host <host>
+Xirvik host (without protocol)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-port <port>
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-s, \-\-syslog
 .UNINDENT
 .sp
 Arguments
@@ -695,30 +673,26 @@ Arguments
 .B DIRECTORIES
 Optional argument(s)
 .UNINDENT
-.SH VM
+.SS vm
 .sp
 Commands for the Linux virtual machine.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik vm [OPTIONS] COMMAND [ARGS]...
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .SS authorize\-ip
 .sp
-Authorises the current IP for access to the VM via SSH/VNC/RDP.
+Authorise the current IP for access to the VM via SSH/VNC/RDP.
 .INDENT 0.0
 .INDENT 3.5
 .sp
-.nf
-.ft C
+.EX
 xirvik vm authorize\-ip [OPTIONS]
-.ft P
-.fi
+.EE
 .UNINDENT
 .UNINDENT
 .sp
@@ -742,8 +716,8 @@ Xirvik host (without protocol)
 Configuration file
 .UNINDENT
 .SH AUTHOR
-Fa An <2998784916@qq.com>
+Andrew Udvare <audvare@gmail.com>
 .SH COPYRIGHT
-2023
+2025
 .\" Generated by docutils manpage writer.
 .

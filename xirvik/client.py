@@ -309,14 +309,15 @@ class ruTorrentClient:  # noqa: N801
         - priority
         - download strategy
 
-        Example use::
+        Example use:
 
-            for name, pieces, pieces_dl, size, priority, dl_strategy in \\
-                client.list_files():
+        .. code-block:: python
+
+           for name, pieces, pieces_dl, size, priority, dl_strategy in client.list_files():
 
         Parameters
         ----------
-        hash_ : str
+        hash\_ : str
             Hash of the torrent.
         """
         r = self._session.post(self.multirpc_action_uri,
@@ -348,7 +349,7 @@ class ruTorrentClient:  # noqa: N801
             yield from self.list_files(info.hash)
 
     def delete(self, hash_: str) -> None:
-        """
+        r"""
         Delete a torrent and its files by hash.
 
         Use the remove() method to remove the torrent but keep the data.
@@ -357,7 +358,7 @@ class ruTorrentClient:  # noqa: N801
 
         Parameters
         ----------
-        hash_ : str
+        hash\_ : str
             Hash of the torrent.
         """
         mc = xmlrpc.MultiCall(self._xmlrpc_proxy)
@@ -379,7 +380,7 @@ class ruTorrentClient:  # noqa: N801
 
         Parameters
         ----------
-        hash_ : str
+        hash\_ : str
             Hash of the torrent.
         """
         self._session.post(self.multirpc_action_uri,
@@ -397,7 +398,7 @@ class ruTorrentClient:  # noqa: N801
 
         Parameters
         ----------
-        hash_ : str
+        hash\_ : str
             Hash of the torrent.
         """
         self._session.post(self.multirpc_action_uri,

@@ -11,4 +11,4 @@ Utilities
 Typing utilities
 ----------------
 .. automodule:: xirvik.typing
-    :members:
+   :members:
