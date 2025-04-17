@@ -1,18 +1,22 @@
-"""move-by-label tests."""  # noqa: INP001
-from datetime import datetime
-from typing import NamedTuple
-import pathlib
+"""move-by-label tests."""
+from __future__ import annotations
 
-from click.testing import CliRunner
-from pytest_mock import MockerFixture
+from typing import TYPE_CHECKING, NamedTuple
+
 from requests.exceptions import HTTPError
-import pytest
-
 from xirvik.commands.root import xirvik
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    import pathlib
+
+    from click.testing import CliRunner
+    from pytest_mock import MockerFixture
+    import pytest
 
 
 class MinimalTorrentDict(NamedTuple):
-    hash: str  # noqa: A003
+    hash: str
     custom1: str | None = None
     left_bytes: int = 0
     name: str = ''
@@ -52,8 +56,7 @@ def test_move_torrent(runner: CliRunner, mocker: MockerFixture, tmp_path: pathli
     config = tmp_path / 'config'
     config.write_text('{}\n')
     assert runner.invoke(
-        xirvik,
-        ('rtorrent', 'move-by-label', '-C', str(config), '-H', 'machine.com')).exit_code == 0
+        xirvik, ('rtorrent', 'move-by-label', '-C', config, '-H', 'machine.com')).exit_code == 0
     client_mock.return_value.move_torrent.assert_called_once_with(
         'hash1', '/downloads/_completed/The Label')
 
@@ -120,6 +123,7 @@ def test_move_torrent_lower(runner: CliRunner, mocker: MockerFixture, tmp_path: 
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
+    mocker.patch('xirvik.commands.move_by_label.sleep')
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
     client_mock.return_value.name = 'some_name'
     client_mock.return_value.list_torrents.return_value = [
@@ -156,4 +160,4 @@ def test_move_torrent_sleep_after_10(runner: CliRunner, mocker: MockerFixture,
     assert runner.invoke(
         xirvik, ('rtorrent', 'move-by-label', '-l', '-t', '10', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.move_torrent.call_count == tl_len
-    sleep_mock.assert_called_once_with(tl_len)
+    sleep_mock.assert_any_call(tl_len)

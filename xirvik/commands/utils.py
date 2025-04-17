@@ -1,45 +1,30 @@
 """Utility functions for CLI commands."""
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from collections.abc import Callable, Iterator, Sequence
 import functools
 import itertools
 import logging
 import re
-import sys
 import warnings
 
 from click.core import ParameterSource
-from loguru import logger
+from typing_extensions import override
 import click
-import xdg.BaseDirectory
+import platformdirs
 import yaml
 
 if TYPE_CHECKING:  # pragma no cover
-    from types import FrameType
+    from collections.abc import Callable, Iterator
 
-__all__ = ('common_options_and_arguments', 'complete_hosts', 'complete_ports',
-           'setup_log_intercept_handler', 'setup_logging')
+__all__ = ('common_options_and_arguments', 'complete_hosts', 'complete_ports')
 
-
-def setup_logging(debug: bool | None = False) -> None:
-    """Shared function to enable logging."""
-    if debug:  # pragma: no cover
-        setup_log_intercept_handler()
-        logger.enable('')
-    else:
-        logger.configure(handlers=(dict(
-            format='<level>{message}</level>',
-            level='INFO',
-            sink=sys.stderr,
-        ),))
+logger = logging.getLogger(__name__)
 
 
 def common_options_and_arguments(func: Callable[..., None]) -> Callable[..., None]:
-    """
-    Shared options and arguments, to be used as a decorator with
-    click.command().
-    """
+    """Shared options and arguments, to be used as a decorator with ``click.command()``."""
     @click.option('-u', '--username', default=None, help='Xirvik user')
     @click.option('-p', '--password', help='Xirvik password')
     @click.option('-r',
@@ -76,8 +61,8 @@ def _clean_host(host: str) -> str:
 
 def _read_ssh_known_hosts() -> Iterator[str]:
     try:
-        with open(Path('~/.ssh/known_hosts').expanduser()) as f:
-            for line in f.readlines():
+        with Path('~/.ssh/known_hosts').expanduser().open(encoding='utf-8') as f:
+            for line in f:
                 host_part = line.split()[0]
                 if ',' in host_part:
                     yield from (_clean_host(x) for x in host_part.split(','))
@@ -89,55 +74,29 @@ def _read_ssh_known_hosts() -> Iterator[str]:
 
 def _read_netrc_hosts() -> Iterator[str]:
     try:
-        with open(Path('~/.netrc').expanduser()) as f:
-            yield from (x.split()[1] for x in f.readlines())
+        with Path('~/.netrc').expanduser().open(encoding='utf-8') as f:
+            yield from (x.split()[1] for x in f)
     except FileNotFoundError:
         pass
 
 
-def complete_hosts(_: Any, __: Any, incomplete: str) -> Sequence[str]:
-    """
-    Returns a list of hosts from SSH known_hosts and ~/.netrc for completion.
-    """
+def complete_hosts(_: Any, __: Any, incomplete: str) -> list[str]:
+    """Return a list of hosts from SSH known_hosts and ``~/.netrc`` for completion."""
     return [
         k for k in itertools.chain(_read_ssh_known_hosts(), _read_netrc_hosts())
         if k.startswith(incomplete)
     ]
 
 
-def complete_ports(_: Any, __: Any, incomplete: str) -> Sequence[str]:
-    """Returns common ports for completion."""
+def complete_ports(_: Any, __: Any, incomplete: str) -> list[str]:
+    """Return common ports for completion."""
     return [k for k in ('80', '443', '8080') if k.startswith(incomplete)]
-
-
-class InterceptHandler(logging.Handler):  # pragma: no cover
-    """Intercept handler taken from Loguru's documentation."""
-    def emit(self, record: logging.LogRecord) -> None:
-        level: str | int
-        # Get corresponding Loguru level if it exists
-        try:
-            level = logger.level(record.levelname).name
-        except ValueError:
-            level = record.levelno
-        # Find caller from where originated the logged message
-        frame: FrameType | None = logging.currentframe()
-        depth = 2
-        while frame and frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
-            depth += 1
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
-
-
-def setup_log_intercept_handler() -> None:  # pragma: no cover
-    """Sets up Loguru to intercept records from the logging module."""
-    logging.basicConfig(handlers=(InterceptHandler(),), level=0)
 
 
 def command_with_config_file(config_file_param_name: str = 'config',
                              default_section: str | None = None) -> type[click.Command]:
     """
-    Returns a custom command class that can read from a configuration file
-    in place of missing arguments.
+    Return a command class that can read from a configuration file in place of missing arguments.
 
     Parameters
     ----------
@@ -147,21 +106,18 @@ def command_with_config_file(config_file_param_name: str = 'config',
     default_section : str | None
         Default top key of YAML to read from.
     """
-    home = Path.home()
-    default_config_file_path = Path(xdg.BaseDirectory.xdg_config_home) / 'xirvik.yml'
-    if sys.platform == 'win32':  # pragma: no cover
-        default_config_file_path = home / 'AppData/Roaming/xirvik-tools/config.yml'
-    elif sys.platform == 'darwin':  # pragma: no cover
-        default_config_file_path = home / 'Library/Application Support/xirvik-tools/config.yml'
+    default_config_file_path = f'{platformdirs.user_config_dir()}/xirvik.yml'
 
     class _ConfigFileCommand(click.Command):
+        @override
         def invoke(self, ctx: click.Context) -> Any:
-            config_file_path = (ctx.params.get(config_file_param_name, default_config_file_path)
-                                or default_config_file_path)
+            config_file_path: str | Path = (ctx.params.get(
+                config_file_param_name, default_config_file_path) or default_config_file_path)
+            config_file_path = Path(config_file_path).expanduser()
             config_data: Any = {}
             debug = ctx.params.get('debug', False)
             try:
-                with open(config_file_path) as f:
+                with config_file_path.open(encoding='utf-8') as f:
                     config_data = yaml.safe_load(f)
             except FileNotFoundError:  # pragma no cover
                 pass
@@ -177,13 +133,13 @@ def command_with_config_file(config_file_param_name: str = 'config',
                             ctx.params[param] = config_data[yaml_param]
                 ctx.params[config_file_param_name] = config_file_path
             else:  # pragma no cover
-                warnings.warn(f'Unexpected type in {config_file_path}: ' + str(type(config_data)),
+                warnings.warn(f'Unexpected type in {config_file_path}: {type(config_data)}',
                               stacklevel=1)
             try:
                 return super().invoke(ctx)
             except Exception as e:
                 if debug:  # pragma no cover
-                    logger.exception(str(e))
+                    logger.exception('Error caught.')
                 raise click.Abort from e
 
     return _ConfigFileCommand

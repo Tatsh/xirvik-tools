@@ -1,21 +1,28 @@
 """Organise torrents based on labels assigned in ruTorrent."""
-from collections.abc import Callable, Sequence
+from __future__ import annotations
+
 from pathlib import Path
 from time import sleep
+from typing import TYPE_CHECKING
+import logging
 
-import click
-from loguru import logger
 from requests.exceptions import HTTPError
+import click
 
-from xirvik.typing import TorrentInfo
+from xirvik.client import ruTorrentClient
 
-from ..client import ruTorrentClient
-from .util import command_with_config_file, common_options_and_arguments, setup_logging
+from .utils import command_with_config_file, common_options_and_arguments
 
+if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+
+    from xirvik.typing import TorrentInfo
+
+logger = logging.getLogger(__name__)
 PREFIX = '/downloads/{}'
 
 
-def _base_path_check(username: str, completed_dir: str,
+def _base_path_check(username: str, completed_dir: str, *,
                      lower_label: bool) -> Callable[[TorrentInfo], bool]:
     def maybe_lower(x: str) -> str:
         if lower_label:
@@ -61,18 +68,19 @@ def main(host: str,
          password: str | None = None,
          completed_dir: str = '_completed',
          sleep_time: int = 10,
-         lower_label: bool | None = None,
          max_retries: int = 10,
-         debug: bool = False,
          backoff_factor: int = 1,
          config: str | None = None,
-         batch_size: int = 10) -> None:
+         batch_size: int = 10,
+         *,
+         debug: bool = False,
+         lower_label: bool | None = None) -> None:
     """Move torrents according to labels assigned."""
-    setup_logging(debug)
-    logger.debug(f'Host: {host}')
-    logger.debug(f'Configuration file: {config}')
-    logger.debug(f'Use lowercase labels: {lower_label}')
-    logger.debug(f'Ignoring labels: {", ".join(ignore_labels)}')
+    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
+    logger.debug('Host: %s', host)
+    logger.debug('Configuration file: %s', config)
+    logger.debug('Use lowercase labels: %s', 'true' if lower_label else 'false')
+    logger.debug('Ignoring labels: %s', ', '.join(ignore_labels))
     client = ruTorrentClient(host,
                              name=username,
                              password=password,
@@ -84,18 +92,18 @@ def main(host: str,
     try:
         torrents = client.list_torrents()
     except (ValueError, HTTPError) as e:
-        logger.error('Connection failed on list_torrents() call')
+        logger.exception('Connection failed on list_torrents() call')
         raise click.Abort from e
     count = 0
     for info in (y for y in (x for x in torrents if _key_check(x))
-                 if _base_path_check(username, completed_dir, lower_label or False)(y)):
+                 if _base_path_check(username, completed_dir, lower_label=lower_label or False)(y)):
         label = info.custom1
         if not label or label in ignore_labels:
             continue
         if lower_label:
             label = label.lower()
         move_to = f'{PREFIX.format(completed_dir)}/{label}'
-        logger.info(f'Moving {info.name} from {info.base_path} to {move_to}/')
+        logger.info('Moving %s from %s to %s/.', info.name, info.base_path, move_to)
         client.move_torrent(info.hash, move_to)
         count += 1
         if count > 0 and (count % batch_size) == 0:

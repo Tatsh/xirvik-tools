@@ -1,10 +1,14 @@
-"""Configuration for Pytest."""  # noqa: INP001
-from typing import NoReturn
+"""Configuration for Pytest."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, NoReturn
 import os
-import pathlib
 
 from click.testing import CliRunner
 import pytest
+
+if TYPE_CHECKING:
+    import pathlib
 
 if os.getenv('_PYTEST_RAISE', '0') != '0':  # pragma no cover
 
@@ -18,12 +22,12 @@ if os.getenv('_PYTEST_RAISE', '0') != '0':  # pragma no cover
         raise excinfo.value
 
 
-@pytest.fixture()
+@pytest.fixture
 def runner() -> CliRunner:
     return CliRunner()
 
 
-@pytest.fixture()
+@pytest.fixture
 def tmp_netrc(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> pathlib.Path:
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login some_name password pass\n')

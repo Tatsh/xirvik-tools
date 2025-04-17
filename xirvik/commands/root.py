@@ -1,12 +1,23 @@
+from __future__ import annotations
+
 import click
 
 from .delete_old import main as delete_old
 from .move_by_label import main as move_by_label
 from .move_erroneous import main as move_erroneous
-from .simple import (add_ftp_user, authorize_ip, delete_ftp_user, fix_rtorrent, list_all_files,
-                     list_files, list_ftp_users, list_torrents, list_untracked_files,
-                     start_torrents)
-from .util import complete_hosts
+from .simple import (
+    add_ftp_user,
+    authorize_ip,
+    delete_ftp_user,
+    fix_rtorrent,
+    list_all_files,
+    list_files,
+    list_ftp_users,
+    list_torrents,
+    list_untracked_files,
+    start_torrents,
+)
+from .utils import complete_hosts
 
 __all__ = ('xirvik',)
 

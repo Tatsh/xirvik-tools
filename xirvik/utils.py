@@ -1,4 +1,9 @@
-from collections.abc import Iterator
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 __all__ = ('parse_header',)
 
@@ -23,13 +28,13 @@ def parse_header(line: str) -> tuple[str, dict[str, str]]:
     Return the main content-type and a dictionary of options.
     """
     parts = _parseparam(';' + line)
-    key = parts.__next__()
+    key = next(parts)
     pdict = {}
     for p in parts:
         if (i := p.find('=')) >= 0:
             name = p[:i].strip().lower()
             value = p[i + 1:].strip()
-            if len(value) >= 2 and value[0] == value[-1] == '"':
+            if len(value) >= 2 and value[0] == value[-1] == '"':  # noqa: PLR2004
                 value = value[1:-1].replace('\\\\', '\\').replace('\\"', '"')
             pdict[name] = value
     return key, pdict

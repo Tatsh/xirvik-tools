@@ -1,17 +1,20 @@
-"""Command line interface tests."""  # noqa: INP001
-from datetime import UTC, datetime, timedelta
+"""Command line interface tests."""
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 import json
 import re
 
-from click.testing import CliRunner
-from pytest_mock.plugin import MockerFixture
-import pytest
-import requests_mock as req_mock
-
 from xirvik.commands.root import xirvik
 from xirvik.typing import FileDownloadStrategy, FilePriority, TorrentTrackedFile
+
+if TYPE_CHECKING:
+    from click.testing import CliRunner
+    from pytest_mock.plugin import MockerFixture
+    import pytest
+    import requests_mock as req_mock
 
 
 def test_fix_rtorrent(requests_mock: req_mock.Mocker, runner: CliRunner) -> None:
@@ -147,7 +150,7 @@ def test_list_ftp_users(runner: CliRunner, requests_mock: req_mock.Mocker, tmp_p
     netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     requests_mock.get('https://machine.com:443/userpanel/index.php/ftp_users',
-                      text='''<table>
+                      text="""<table>
     <tbody>
         <tr class="gradeX">
             <td>some_user</td>
@@ -156,7 +159,7 @@ def test_list_ftp_users(runner: CliRunner, requests_mock: req_mock.Mocker, tmp_p
             <td></td>
         </tr>
     </tbody>
-</table>''')
+</table>""")
     run = runner.invoke(xirvik, ('ftp', 'list-users', '-H', 'machine.com'))
     assert run.exit_code == 0
     assert 'some_user' in run.output
@@ -196,7 +199,7 @@ def test_authorize_ip_error(runner: CliRunner, requests_mock: req_mock.Mocker, t
 
 
 class MinimalTorrentDict(NamedTuple):
-    hash: str  # noqa: A003
+    hash: str
     custom1: str | None = None
     left_bytes: int = 0
     name: str = ''
@@ -283,13 +286,13 @@ def test_list_torrents_json_sort_finished(runner: CliRunner, mocker: MockerFixtu
                            name='The Name',
                            is_hash_checking=False,
                            base_path='/downloads/_completed',
-                           finished=datetime.now(UTC)),
+                           finished=datetime.now(timezone.utc)),
         MinimalTorrentDict('hash2',
                            custom1='TEST me',
                            name='The Name2',
                            is_hash_checking=False,
                            base_path='/downloads/_completed',
-                           finished=datetime.now(UTC) - timedelta(days=7)),
+                           finished=datetime.now(timezone.utc) - timedelta(days=7)),
     ]
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--sort', 'finished', '--table-format',
@@ -317,7 +320,7 @@ def test_list_torrents_json_sort_finished_missing(runner: CliRunner, mocker: Moc
                            name='The Name2',
                            is_hash_checking=False,
                            base_path='/downloads/_completed',
-                           finished=datetime.now(UTC) - timedelta(days=7)),
+                           finished=datetime.now(timezone.utc) - timedelta(days=7)),
     ]
     runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--sort', 'finished', '--table-format',
                            'json')).output.strip()
@@ -342,7 +345,7 @@ def test_list_torrents_json_sort_missing_attr(runner: CliRunner, mocker: MockerF
                            name='The Name',
                            is_hash_checking=False,
                            base_path='/downloads/_completed',
-                           finished=datetime.now(UTC) - timedelta(days=8)),
+                           finished=datetime.now(timezone.utc) - timedelta(days=8)),
         MinimalTorrentDict('hash2',
                            name='The Name2',
                            is_hash_checking=False,
@@ -481,9 +484,7 @@ def test_list_all_files_single(runner: CliRunner, mocker: MockerFixture, tmp_pat
 
 def test_list_all_files_single_alt(runner: CliRunner, mocker: MockerFixture, tmp_path: Path,
                                    monkeypatch: pytest.MonkeyPatch) -> None:
-    """
-    This is a case where the torrent contains a single file inside a directory of the same name.
-    """
+    """Handle when the torrent contains a single file inside a directory of the same name."""
     netrc = tmp_path / '.netrc'
     netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))

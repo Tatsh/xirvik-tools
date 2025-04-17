@@ -1,18 +1,22 @@
-"""delete-old tests."""  # noqa: INP001
-from datetime import UTC, datetime, timedelta
-from typing import NamedTuple
-import pathlib
+"""delete-old tests."""
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING, NamedTuple
 import xmlrpc.client as xmlrpc
 
-from click.testing import CliRunner
-from pytest_mock import MockerFixture
 from requests.exceptions import HTTPError
-
 from xirvik.commands.root import xirvik
+
+if TYPE_CHECKING:
+    import pathlib
+
+    from click.testing import CliRunner
+    from pytest_mock import MockerFixture
 
 
 class MinimalTorrentDict(NamedTuple):
-    hash: str  # noqa: A003
+    hash: str
     custom1: str = ''
     left_bytes: int = 0
     name: str = ''
@@ -63,7 +67,7 @@ def test_delete_old_dry_run(runner: CliRunner, mocker: MockerFixture,
                            left_bytes=0,
                            custom1='the-label',
                            ratio=2,
-                           creation_date=datetime.now(UTC) - timedelta(days=14))
+                           creation_date=datetime.now(timezone.utc) - timedelta(days=14))
     ]
     assert runner.invoke(xirvik, ('rtorrent', 'delete-old', '--dry-run', '--label', 'the-label',
                                   '-H', 'machine.com')).exit_code == 0
@@ -80,7 +84,7 @@ def test_delete_old_normal(runner: CliRunner, mocker: MockerFixture,
                            left_bytes=0,
                            custom1='the-label',
                            ratio=2,
-                           creation_date=datetime.now(UTC) - timedelta(days=14))
+                           creation_date=datetime.now(timezone.utc) - timedelta(days=14))
     ]
     assert runner.invoke(
         xirvik,
@@ -99,7 +103,7 @@ def test_delete_old_ignore_ratio(runner: CliRunner, mocker: MockerFixture,
                            left_bytes=0,
                            custom1='the-label',
                            ratio=0.14,
-                           creation_date=datetime.now(UTC) - timedelta(days=14))
+                           creation_date=datetime.now(timezone.utc) - timedelta(days=14))
     ]
     assert runner.invoke(xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',
                                   '--ignore-ratio', '-H', 'machine.com')).exit_code == 0
@@ -117,7 +121,7 @@ def test_delete_old_ignore_date(runner: CliRunner, mocker: MockerFixture,
                            left_bytes=0,
                            custom1='the-label',
                            ratio=2,
-                           creation_date=datetime.now(UTC) - timedelta(days=14))
+                           creation_date=datetime.now(timezone.utc) - timedelta(days=14))
     ]
     assert runner.invoke(xirvik, ('rtorrent', 'delete-old', '--label', 'the-label', '--ignore-date',
                                   '-H', 'machine.com')).exit_code == 0
@@ -135,7 +139,7 @@ def test_delete_old_xmlrpc_fault(runner: CliRunner, mocker: MockerFixture,
                            left_bytes=0,
                            custom1='the-label',
                            ratio=2,
-                           creation_date=datetime.now(UTC) - timedelta(days=14))
+                           creation_date=datetime.now(timezone.utc) - timedelta(days=14))
     ]
     client_mock.return_value.delete.side_effect = xmlrpc.Fault(200, 'ss')
     assert runner.invoke(xirvik, ('rtorrent', 'delete-old', '--label', 'the-label',
@@ -154,7 +158,7 @@ def test_delete_old_protocol_error(runner: CliRunner, mocker: MockerFixture,
                            left_bytes=0,
                            custom1='the-label',
                            ratio=2,
-                           creation_date=datetime.now(UTC) - timedelta(days=14))
+                           creation_date=datetime.now(timezone.utc) - timedelta(days=14))
     ]
     client_mock.return_value.delete.side_effect = xmlrpc.ProtocolError(
         'https://machine.com', 500, 'ss', {})

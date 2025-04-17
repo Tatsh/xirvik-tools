@@ -1,17 +1,21 @@
-"""move-erroneous tests."""  # noqa: INP001
-from datetime import datetime
-from typing import NamedTuple
-import pathlib
+"""move-erroneous tests."""
+from __future__ import annotations
 
-from click.testing import CliRunner
-from pytest_mock import MockerFixture
-import pytest
+from typing import TYPE_CHECKING, NamedTuple
 
 from xirvik.commands.root import xirvik
 
+if TYPE_CHECKING:
+    from datetime import datetime
+    import pathlib
+
+    from click.testing import CliRunner
+    from pytest_mock import MockerFixture
+    import pytest
+
 
 class MinimalTorrentDict(NamedTuple):
-    hash: str  # noqa: A003
+    hash: str
     custom1: str | None = None
     left_bytes: int = 0
     name: str = ''

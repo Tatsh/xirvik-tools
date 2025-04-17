@@ -1,25 +1,30 @@
-"""Tests for xirvik.commands.util.command_with_config_file."""  # noqa: INP001
+"""Tests for xirvik.commands.util.command_with_config_file."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 import warnings
 
 from click.core import ParameterSource
-from pytest_mock.plugin import MockerFixture
+from xirvik.commands.utils import command_with_config_file
 
-from xirvik.commands.util import command_with_config_file
+if TYPE_CHECKING:
+    from pytest_mock.plugin import MockerFixture
 
 
 def test_no_file(mocker: MockerFixture) -> None:
     ctx = mocker.MagicMock()
-    open_mock = mocker.patch('builtins.open')
-    open_mock.side_effect = FileNotFoundError()
+    ctx.params.get.return_value = 'test1'
+    mocker.patch('xirvik.commands.utils.Path.open', side_effect=FileNotFoundError)
     with warnings.catch_warnings(record=True) as w:
         command_with_config_file()('test1').invoke(ctx)
         assert len(w) == 0
 
 
 def test_incorrect_type(mocker: MockerFixture) -> None:
-    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
-    yaml_mock = mocker.patch('xirvik.commands.util.yaml')
+    ctx.params.get.return_value = 'test1'
+    mocker.patch('xirvik.commands.utils.Path.open')
+    yaml_mock = mocker.patch('xirvik.commands.utils.yaml')
     yaml_mock.safe_load.return_value = None
     with warnings.catch_warnings(record=True) as w:
         command_with_config_file()('test1').invoke(ctx)
@@ -27,9 +32,8 @@ def test_incorrect_type(mocker: MockerFixture) -> None:
 
 
 def test_get_value_from_default_yaml(mocker: MockerFixture) -> None:
-    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
-    yaml_mock = mocker.patch('xirvik.commands.util.yaml')
+    yaml_mock = mocker.patch('xirvik.commands.utils.yaml')
     yaml_mock.safe_load.return_value = {'host': '123.com'}
     ctx.params = {'host': None}
     ctx.get_parameter_source.return_value = ParameterSource.DEFAULT
@@ -38,9 +42,8 @@ def test_get_value_from_default_yaml(mocker: MockerFixture) -> None:
 
 
 def test_get_value_from_alt_yaml(mocker: MockerFixture) -> None:
-    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
-    yaml_mock = mocker.patch('xirvik.commands.util.yaml')
+    yaml_mock = mocker.patch('xirvik.commands.utils.yaml')
     yaml_mock.safe_load.return_value = {'host': '123.com', 'cool-command': {'host': '124.com'}}
     ctx.params = {'host': None}
     ctx.get_parameter_source.return_value = ParameterSource.DEFAULT
@@ -49,9 +52,8 @@ def test_get_value_from_alt_yaml(mocker: MockerFixture) -> None:
 
 
 def test_get_value_no_alt(mocker: MockerFixture) -> None:
-    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
-    yaml_mock = mocker.patch('xirvik.commands.util.yaml')
+    yaml_mock = mocker.patch('xirvik.commands.utils.yaml')
     yaml_mock.safe_load.return_value = {'host': '121.com', 'cool-command': {}}
     ctx.params = {'host': None}
     ctx.get_parameter_source.return_value = ParameterSource.DEFAULT
@@ -60,9 +62,8 @@ def test_get_value_no_alt(mocker: MockerFixture) -> None:
 
 
 def test_get_value_no_value(mocker: MockerFixture) -> None:
-    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
-    yaml_mock = mocker.patch('xirvik.commands.util.yaml')
+    yaml_mock = mocker.patch('xirvik.commands.utils.yaml')
     yaml_mock.safe_load.return_value = {}
     ctx.params = {'host': None}
     ctx.get_parameter_source.return_value = ParameterSource.DEFAULT
@@ -71,9 +72,8 @@ def test_get_value_no_value(mocker: MockerFixture) -> None:
 
 
 def test_get_value_override_from_cli(mocker: MockerFixture) -> None:
-    mocker.patch('builtins.open')
     ctx = mocker.MagicMock()
-    yaml_mock = mocker.patch('xirvik.commands.util.yaml')
+    yaml_mock = mocker.patch('xirvik.commands.utils.yaml')
     yaml_mock.safe_load.return_value = {'host': '123.com', 'cool-command': {'host': '124.com'}}
     ctx.params = {'host': '125.com'}
     ctx.get_parameter_source.return_value = ParameterSource.COMMANDLINE

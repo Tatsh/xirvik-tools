@@ -1,9 +1,14 @@
-"""Command line completion tests."""  # noqa: INP001
-import pathlib
+"""Command line completion tests."""
+from __future__ import annotations
 
-import pytest
+from typing import TYPE_CHECKING
 
-from xirvik.commands.util import complete_hosts, complete_ports
+from xirvik.commands.utils import complete_hosts, complete_ports
+
+if TYPE_CHECKING:
+    import pathlib
+
+    import pytest
 
 
 def test_complete_hosts_blank(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
