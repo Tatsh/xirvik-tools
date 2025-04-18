@@ -41,6 +41,9 @@
               'types-tabulate': '^0.9.0.2',
             },
           },
+          tests+: {
+            'requests-mock': '^1.12.1',
+          },
         },
       },
     },

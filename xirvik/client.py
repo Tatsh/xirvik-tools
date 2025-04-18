@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from enum import IntEnum
 from functools import cached_property
 from netrc import netrc
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, ForwardRef, cast
 from urllib.parse import quote
+import inspect
 import logging
 import xmlrpc.client as xmlrpc
 
@@ -157,25 +157,33 @@ class ruTorrentClient:  # noqa: N801
         possible_dict = cast('dict[str, list[Any]]', r.json()['t'])
         if not hasattr(possible_dict, 'items'):
             self._log.debug('Returned: %s', possible_dict)
-            raise ListTorrentsError('Unexpected type in response: ' + str(type(possible_dict)))
+            msg = f'Unexpected type in response: {type(possible_dict)}'
+            raise ListTorrentsError(msg)
+        annots = inspect.get_annotations(TorrentInfo)
         for hash_, x in possible_dict.items():
             del x[34]  # Delete unknown field
+            type_cls: ForwardRef
             for i, (type_cls, val) in enumerate(
-                    zip((t[1] for t in list(TorrentInfo.__annotations__.items())[1:]),
-                        (y.strip() for y in x),
+                    zip((t[1] for t in list(annots.items())[1:]), (y.strip() for y in x),
                         strict=False)):
-                if getattr(type_cls, '__args__', [None])[0] == datetime:
+                if type_cls.__forward_arg__ == 'datetime | None':
                     try:
-                        x[i] = datetime.fromtimestamp(float(val or '0'), timezone.utc)
+                        x[i] = datetime.fromtimestamp(float(val.strip() or '0'), timezone.utc)
                         # First year xirvik.com existed
                         if x[i].year < FIRST_YEAR_XIRVIK:
                             x[i] = None
                     except ValueError:  # pragma no cover
                         x[i] = None
-                elif type_cls is bool or issubclass(type_cls, IntEnum):
-                    x[i] = type_cls(int(val))
+                elif type_cls.__forward_arg__ == 'int':
+                    x[i] = int(val)
+                elif type_cls.__forward_arg__ == 'float':
+                    x[i] = float(val)
+                elif type_cls.__forward_arg__ == 'bool':
+                    x[i] = bool(int(val))
+                elif (type_cls.__forward_arg__ in {'HashingState', 'State'}):
+                    x[i] = int(val)
                 else:
-                    x[i] = type_cls(val)
+                    x[i] = val
             yield TorrentInfo(hash_, *x)
 
     def get_torrent(self, hash_: str) -> tuple[requests.Response, str]:

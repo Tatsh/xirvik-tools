@@ -546,15 +546,9 @@ def test_list_untracked_files_single(runner: CliRunner, mocker: MockerFixture, t
                            FileDownloadStrategy.NORMAL)
     ]
     sp_mock = mocker.patch('xirvik.commands.simple.sp')
-    index = -1
     values = ['/downloads/_completed/file1', 'file3', '']
 
-    def cb() -> str:
-        nonlocal index
-        index += 1
-        return values[index]
-
-    sp_mock.Popen.return_value.__enter__.return_value.stdout.readline.side_effect = cb
+    sp_mock.run.return_value.stdout = '\n'.join(values)
     lines = runner.invoke(
         xirvik, ('rtorrent', 'list-untracked-files', '-L', 'ssh blah')).output.splitlines()
     assert lines[-1] == 'file3'
@@ -580,15 +574,9 @@ def test_list_untracked_files_multiple(runner: CliRunner, mocker: MockerFixture,
                            FileDownloadStrategy.NORMAL)
     ]
     sp_mock = mocker.patch('xirvik.commands.simple.sp')
-    index = -1
     values = ['/downloads/_completed/file1', '/downloads/_completed/file2', 'file3', '']
 
-    def cb() -> str:
-        nonlocal index
-        index += 1
-        return values[index]
-
-    sp_mock.Popen.return_value.__enter__.return_value.stdout.readline.side_effect = cb
+    sp_mock.run.return_value.stdout = '\n'.join(values)
     lines = runner.invoke(
         xirvik, ('rtorrent', 'list-untracked-files', '-L', 'ssh blah')).output.splitlines()
     assert lines[-1] == 'file3'

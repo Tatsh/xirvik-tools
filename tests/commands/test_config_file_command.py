@@ -33,6 +33,7 @@ def test_incorrect_type(mocker: MockerFixture) -> None:
 
 def test_get_value_from_default_yaml(mocker: MockerFixture) -> None:
     ctx = mocker.MagicMock()
+    mocker.patch('xirvik.commands.utils.Path.open')
     yaml_mock = mocker.patch('xirvik.commands.utils.yaml')
     yaml_mock.safe_load.return_value = {'host': '123.com'}
     ctx.params = {'host': None}
@@ -43,6 +44,7 @@ def test_get_value_from_default_yaml(mocker: MockerFixture) -> None:
 
 def test_get_value_from_alt_yaml(mocker: MockerFixture) -> None:
     ctx = mocker.MagicMock()
+    mocker.patch('xirvik.commands.utils.Path.open')
     yaml_mock = mocker.patch('xirvik.commands.utils.yaml')
     yaml_mock.safe_load.return_value = {'host': '123.com', 'cool-command': {'host': '124.com'}}
     ctx.params = {'host': None}
@@ -53,6 +55,7 @@ def test_get_value_from_alt_yaml(mocker: MockerFixture) -> None:
 
 def test_get_value_no_alt(mocker: MockerFixture) -> None:
     ctx = mocker.MagicMock()
+    mocker.patch('xirvik.commands.utils.Path.open')
     yaml_mock = mocker.patch('xirvik.commands.utils.yaml')
     yaml_mock.safe_load.return_value = {'host': '121.com', 'cool-command': {}}
     ctx.params = {'host': None}

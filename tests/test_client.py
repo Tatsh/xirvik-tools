@@ -234,7 +234,7 @@ def test_move_torrent(requests_mock: req_mock.Mocker) -> None:
 
 def test_move_torrent_no_errors(requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.post(client.datadir_action_uri, json=[])
+    requests_mock.post(client.datadir_action_uri, json={})
     try:
         client.move_torrent('hash1', 'new_place')
     except UnexpectedruTorrentError:  # pragma no cover

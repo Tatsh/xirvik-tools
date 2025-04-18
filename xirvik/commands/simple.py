@@ -384,7 +384,7 @@ def list_all_files(host: str, port: int, config: str | None = None, *, debug: bo
 
 
 @click.command(cls=command_with_config_file('config', 'list-untracked-files'),
-               help='list untracked file paths.')
+               help='List untracked file paths.')
 @click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 @click.option('-L',
               '--server-list-command',
@@ -406,9 +406,7 @@ def list_untracked_files(host: str,
     ``/torrents/<username>``.
     """
     def fix_path(res: str) -> str:
-        if res.startswith(f'/torrents/{client.name}/'):
-            return re.sub(fr'^/torrents/{client.name}/', '/downloads/', res)
-        return res
+        return re.sub(fr'^/torrents/{client.name}/', '/downloads/', res)
 
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
     click.echo('Getting server-side file list', file=sys.stderr)
@@ -429,14 +427,14 @@ def list_untracked_files(host: str,
                 log.debug('Single file: %s', res)
                 try:
                     server_files.remove(res)
-                except KeyError:
+                except KeyError:  # pragma: no cover
                     log.debug('Unknown file  (%s): %s', info.name, res)
             else:
                 for file in (fix_path(f'{info.base_path}/{y.name}') for y in files):
                     log.debug('File: %s', file)
                     try:
                         server_files.remove(file)
-                    except KeyError:
+                    except KeyError:  # pragma: no cover
                         log.debug('Unknown file (%s): %s', info.name, file)
     for file in sorted(server_files):
         click.echo(file)
