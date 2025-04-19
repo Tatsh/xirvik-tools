@@ -1,5 +1,6 @@
 addpath
 addtorrent
+annots
 autodoc
 automodule
 beautifulsoup

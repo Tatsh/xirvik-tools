@@ -56,7 +56,8 @@ def test_move_torrent(runner: CliRunner, mocker: MockerFixture, tmp_path: pathli
     config = tmp_path / 'config'
     config.write_text('{}\n')
     assert runner.invoke(
-        xirvik, ('rtorrent', 'move-by-label', '-C', config, '-H', 'machine.com')).exit_code == 0
+        xirvik,
+        ('rtorrent', 'move-by-label', '-C', str(config), '-H', 'machine.com')).exit_code == 0
     client_mock.return_value.move_torrent.assert_called_once_with(
         'hash1', '/downloads/_completed/The Label')
 
