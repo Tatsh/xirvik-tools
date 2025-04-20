@@ -3,7 +3,7 @@
   description: 'Command line utilities for interfacing with Xirvik.',
   keywords: ['command line', 'xirvik'],
   project_name: 'xirvik-tools',
-  version: '0.5.0',
+  version: '0.5.1',
   want_main: true,
   primary_module: 'xirvik',
   citation+: {

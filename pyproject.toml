@@ -21,7 +21,7 @@ keywords = ["command line", "xirvik"]
 license = "MIT"
 name = "xirvik-tools"
 readme = "README.md"
-version = "0.5.0"
+version = "0.5.1"
 
 [[project.authors]]
 email = "audvare@gmail.com"

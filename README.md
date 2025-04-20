@@ -7,7 +7,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/xirvik-tools)](https://pypi.org/project/xirvik-tools/)
 [![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/xirvik-tools)](https://github.com/Tatsh/xirvik-tools/tags)
 [![License](https://img.shields.io/github/license/Tatsh/xirvik-tools)](https://github.com/Tatsh/xirvik-tools/blob/master/LICENSE.txt)
-[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/xirvik-tools/v0.5.0/master)](https://github.com/Tatsh/xirvik-tools/compare/v0.5.0...master)
+[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/xirvik-tools/v0.5.1/master)](https://github.com/Tatsh/xirvik-tools/compare/v0.5.1...master)
 
 Command line utilities for interfacing with Xirvik.
 
