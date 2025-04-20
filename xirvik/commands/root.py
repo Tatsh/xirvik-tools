@@ -22,7 +22,7 @@ from .utils import complete_hosts
 __all__ = ('xirvik',)
 
 
-@click.group()
+@click.group(context_settings={'help_option_names': ('-h', '--help')})
 @click.option('-C', '--config', help='Configuration file')
 @click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
 def xirvik(config: str | None = None, host: str | None = None) -> None:
