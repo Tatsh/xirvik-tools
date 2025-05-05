@@ -2058,21 +2058,18 @@ files = [
 
 [[package]]
 name = "ratelimit-types"
-version = "0.0.2"
+version = "0.0.3"
 description = "PEP 561 type stubs for ratelimit."
 optional = false
 python-versions = "<3.14,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "ratelimit_types-0.0.2-py3-none-any.whl", hash = "sha256:c2b5a352d9e6e721da140b04306a148d14f8c9df3e7cd4e76f760e6ab69a6422"},
-    {file = "ratelimit_types-0.0.2.tar.gz", hash = "sha256:3d83957467618b8d15a4f22d87f9d083f5de06c4a6ff08401efc43a0ae4d2cac"},
+    {file = "ratelimit_types-0.0.3-py3-none-any.whl", hash = "sha256:491f7d4737ead975aecee1029dd36cb09f2d4be5791b9dd8f2d7030e7e7339b2"},
+    {file = "ratelimit_types-0.0.3.tar.gz", hash = "sha256:7b5086fe31cd5f69bf51a5648cfed28eba5babcfef9ec8e6d5665b40e8006633"},
 ]
 
 [package.dependencies]
 typing-extensions = ">=4.13.1,<5.0.0"
-
-[package.extras]
-erdantic = ["erdantic (<2.0)"]
 
 [[package]]
 name = "regex"
