@@ -4,6 +4,7 @@ annots
 autodoc
 automodule
 beautifulsoup
+bsky
 codeowners
 colenabled
 colorder
