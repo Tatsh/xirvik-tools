@@ -4,9 +4,8 @@ requires = ["poetry-core"]
 
 [project]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -27,9 +26,6 @@ version = "0.5.1"
 email = "audvare@gmail.com"
 name = "Andrew Udvare"
 
-[project.optional-dependencies]
-erdantic = ["erdantic<2.0"]
-
 [project.scripts]
 xirvik = "xirvik.commands:xirvik"
 
@@ -39,29 +35,27 @@ documentation = "https://xirvik-tools.readthedocs.org"
 homepage = "https://tatsh.github.io/xirvik-tools/"
 repository = "https://github.com/Tatsh/xirvik-tools"
 
-[tool]
-
 [tool.commitizen]
 tag_format = "v$version"
 version_files = [
   ".wiswa.jsonnet",
   "CITATION.cff",
   "README.md",
+  "docs/index.rst",
+  "man/xirvik-tools.1",
   "package.json",
   "xirvik/__init__.py",
 ]
 version_provider = "pep621"
 
-[tool.coverage]
-
 [tool.coverage.report]
 exclude_also = ["if TYPE_CHECKING:"]
-omit = ["__main__.py", "conftest.py", "tests.py", "tests/commands/test_*.py", "tests/test_*.py"]
+omit = ["conftest.py", "tests.py", "tests/test_*.py", "__main__.py"]
 show_missing = true
 
 [tool.coverage.run]
 branch = true
-omit = ["__main__.py", "conftest.py", "tests.py", "tests/commands/test_*.py", "tests/test_*.py"]
+omit = ["conftest.py", "tests.py", "tests/test_*.py", "__main__.py"]
 
 [tool.djlint]
 max_line_length = 100
@@ -85,39 +79,38 @@ strict_optional = true
 warn_unreachable = true
 
 [tool.poetry]
-include = ["man", "LaunchAgents", "systemd"]
+include = ["man", { format = "sdist", path = "tests" }, "LaunchAgents", "systemd"]
 
 [tool.poetry.dependencies]
 beautifulsoup4 = "^4.13.4"
 cached-property = "^2.0.1"
 click = "^8.2.1"
+colorlog = "^6.9.0"
 html5lib = "^1.1"
-keyring = "^25.5.0"
+keyring = "^25.6.0"
 mutagen = "^1.47.0"
 platformdirs = "^4.3.8"
 python = ">=3.10,<3.14"
 pyyaml = "^6.0.2"
 ratelimit = "^2.2.1"
-requests = "^2.32.3"
+requests = "^2.32.4"
 tabulate = "^0.9.0"
-typing-extensions = "^4.13.1"
+typing-extensions = "^4.14.0"
 unidecode = "^1.4.0"
-
-[tool.poetry.group]
 
 [tool.poetry.group.dev]
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-commitizen = "^4.8.2"
+commitizen = "^4.8.3"
 djlint = "^1.36.4"
-mypy = ">=1.12,<1.17"
+mypy = "^1.16.0"
 ratelimit-types = "^0"
 ruff = "^0.11.13"
 types-beautifulsoup4 = "^4.12.0.20250516"
 types-pyyaml = "^6.0.12.20250516"
 types-requests = "^2.32.0.20250602"
-types-tabulate = "^0.9.0.2"
+types-tabulate = "^0.9.0.20241207"
 yapf = "^0.43.0"
 
 [tool.poetry.group.docs]
@@ -130,15 +123,22 @@ docutils = "^0.21.2"
 esbonio = "^0.16.5"
 numpydoc = "^1.8.0"
 restructuredtext-lint = "^1.4.0"
-sphinx = "<8.2.0"
 sphinx-click = "^6.0.0"
 sphinx-datatables = "^0.2.1"
 sphinx-hoverxref = "^1.4.2"
-sphinx-immaterial = "^0.13.4"
+sphinx-immaterial = "^0.13.5"
 
 [tool.poetry.group.docs.dependencies.enum-tools]
 extras = ["sphinx"]
-version = "^0.12.0"
+version = "^0.13.0"
+
+[[tool.poetry.group.docs.dependencies.sphinx]]
+python = ">=3.11"
+version = "^8.2.3"
+
+[[tool.poetry.group.docs.dependencies.sphinx]]
+python = "<3.11"
+version = "^7.2.5"
 
 [tool.poetry.group.tests]
 optional = true
@@ -173,8 +173,6 @@ reportUnnecessaryTypeIgnoreComment = "none"
 typeCheckingMode = "off"
 useLibraryCodeForTypes = false
 
-[tool.pytest]
-
 [tool.pytest.ini_options]
 mock_use_standalone_module = true
 norecursedirs = ["node_modules"]
@@ -204,6 +202,7 @@ extend-select = [
   "CPY",
   "D",
   "DJ",
+  "DOC",
   "DTZ",
   "E",
   "EM",
@@ -211,6 +210,7 @@ extend-select = [
   "EXE",
   "F",
   "FA",
+  "FAST",
   "FBT",
   "FIX",
   "FLY",
@@ -242,11 +242,12 @@ extend-select = [
   "SLOT",
   "T10",
   "T20",
-  "TCH",
+  "TC",
   "TD",
   "TID",
   "TRY",
   "UP",
+  "W",
   "YTT",
 ]
 ignore = [
@@ -258,17 +259,11 @@ ignore = [
   "C901",
   "COM812",
   "CPY001",
-  "D100",
-  "D101",
-  "D102",
-  "D103",
-  "D104",
-  "D105",
-  "D106",
-  "D107",
+  "D201",
   "D203",
   "D204",
   "D212",
+  "DOC201",
   "EM101",
   "N818",
   "PLR0912",
@@ -298,6 +293,7 @@ case-sensitive = true
 combine-as-imports = true
 from-first = true
 required-imports = ["from __future__ import annotations"]
+section-order = ["future", "standard-library", "third-party", "local-folder"]
 
 [tool.ruff.lint.pep8-naming]
 extend-ignore-names = ["test_*"]

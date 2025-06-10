@@ -7,9 +7,8 @@ from typing import TYPE_CHECKING
 import logging
 
 from requests.exceptions import HTTPError
-import click
-
 from xirvik.client import ruTorrentClient
+import click
 
 from .utils import command_with_config_file, common_options_and_arguments
 
@@ -75,7 +74,7 @@ def main(host: str,
          *,
          debug: bool = False,
          lower_label: bool | None = None) -> None:
-    """Move torrents according to labels assigned."""
+    """Move torrents according to labels assigned."""  # noqa: DOC501
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
     logger.debug('Host: %s', host)
     logger.debug('Configuration file: %s', config)

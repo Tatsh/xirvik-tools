@@ -146,7 +146,19 @@ class ruTorrentClient:  # noqa: N801
                                }).raise_for_status()
 
     def list_torrents(self) -> Iterator[TorrentInfo]:
-        """Get all torrent information."""
+        """
+        Get all torrent information.
+
+        Yields
+        ------
+        TorrentInfo
+            Information about each torrent.
+
+        Raises
+        ------
+        ListTorrentsError
+            If the response is not as expected.
+        """
         r = self._session.post(self.multirpc_action_uri,
                                data={
                                    'mode': 'list',
@@ -192,7 +204,7 @@ class ruTorrentClient:  # noqa: N801
 
         Returns
         -------
-        tuple
+        tuple[requests.Response, str]
             ``requests.Request`` object and the file name string.
         """
         source_torrent_uri = (f'{self.http_prefix}/rtorrent/plugins/source/'
@@ -214,6 +226,10 @@ class ruTorrentClient:  # noqa: N801
             Must be a valid and usable directory.
         fast_resume : bool
             Use fast resumption.
+
+        Raises
+        ------
+        UnexpectedruTorrentError
         """
         r = self._session.post(self.datadir_action_uri,
                                data={
@@ -240,6 +256,11 @@ class ruTorrentClient:  # noqa: N801
 
             client.set_labels(hashes=[hash_1, hash_2],
                               label='my new label')
+
+        Raises
+        ------
+        TypeError
+            If the ``hashes`` or ``label`` keyword arguments are not passed.
         """
         # The way to set a label to multiple torrents is to specify the hashes
         # using hash=, then the v parameter as many times as there are hashes,
@@ -327,6 +348,11 @@ class ruTorrentClient:  # noqa: N801
         ----------
         hash\_ : str
             Hash of the torrent.
+
+        Yields
+        ------
+        TorrentTrackedFile
+            Named tuple with file information.
         """
         r = self._session.post(self.multirpc_action_uri,
                                data=(f'mode=fls&hash={hash_}' + '&' + '&'.join(f'cmd={x}' for x in (
@@ -352,6 +378,11 @@ class ruTorrentClient:  # noqa: N801
         If there are thousands of torrents, this may take well over 10 minutes.
 
         Returns a generator of tracked files.
+
+        Yields
+        ------
+        TorrentTrackedFile
+            Named tuple with file information.
         """
         for info in self.list_torrents():
             yield from self.list_files(info.hash)
@@ -362,12 +393,17 @@ class ruTorrentClient:  # noqa: N801
 
         Use the remove() method to remove the torrent but keep the data.
 
-        Returns if successful. Faults are converted to xmlrpc.Fault exceptions.
+        Returns if successful. Faults are converted to :py:class:`xmlrpc.Fault` exceptions.
 
         Parameters
         ----------
         hash\_ : str
             Hash of the torrent.
+
+        Raises
+        ------
+        Fault
+            If the XML-RPC call fails, this exception is raised with the fault code and string.
         """
         mc = xmlrpc.MultiCall(self._xmlrpc_proxy)
         getattr(mc, 'd.custom5.set')(hash_, '1')

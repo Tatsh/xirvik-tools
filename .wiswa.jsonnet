@@ -17,32 +17,33 @@
     tool+: {
       poetry+: {
         dependencies+: {
-          beautifulsoup4: '^4.12.3',
+          beautifulsoup4: '^4.13.4',
           'cached-property': '^2.0.1',
-          click: '^8.1.8',
           html5lib: '^1.1',
-          keyring: '^25.5.0',
-          platformdirs: '^4.3.7',
+          keyring: '^25.6.0',
+          platformdirs: '^4.3.8',
           pyyaml: '^6.0.2',
           mutagen: '^1.47.0',
           ratelimit: '^2.2.1',
-          requests: '^2.32.3',
+          requests: '^2.32.4',
           tabulate: '^0.9.0',
-          unidecode: '^1.3.8',
+          unidecode: '^1.4.0',
         },
         include+: ['LaunchAgents', 'systemd'],
         group+: {
           dev+: {
             dependencies+: {
               'ratelimit-types': '^0',
-              'types-beautifulsoup4': '^4.12.0.20240106',
-              'types-pyyaml': '^6.0.12.20250402',
-              'types-requests': '^2.32.0.20250328',
-              'types-tabulate': '^0.9.0.2',
+              'types-beautifulsoup4': '^4.12.0.20250516',
+              'types-pyyaml': '^6.0.12.20250516',
+              'types-requests': '^2.32.0.20250602',
+              'types-tabulate': '^0.9.0.20241207',
             },
           },
           tests+: {
-            'requests-mock': '^1.12.1',
+            dependencies+: {
+              'requests-mock': '^1.12.1',
+            },
           },
         },
       },

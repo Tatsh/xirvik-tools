@@ -5,9 +5,8 @@ from time import sleep
 from typing import TYPE_CHECKING, Any, TypeVar
 import logging
 
-import click
-
 from xirvik.client import ruTorrentClient
+import click
 
 from .utils import command_with_config_file, common_options_and_arguments
 

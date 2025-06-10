@@ -9,10 +9,9 @@ import logging
 import xmlrpc.client as xmlrpc
 
 from requests.exceptions import HTTPError
-import click
-
 from xirvik.client import ruTorrentClient
 from xirvik.typing import TorrentInfo
+import click
 
 from .utils import command_with_config_file, common_options_and_arguments
 
@@ -65,7 +64,7 @@ def main(host: str,
          ignore_ratio: bool = False,
          ignore_date: bool = False,
          dry_run: bool = False) -> None:
-    """Delete torrents based on certain criteria."""
+    """Delete torrents based on certain criteria."""  # noqa: DOC501
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
     client = ruTorrentClient(host,
                              name=username,

@@ -19,10 +19,9 @@ from bs4 import BeautifulSoup as Soup
 from requests.exceptions import HTTPError
 from tabulate import tabulate, tabulate_formats
 from unidecode import unidecode
+from xirvik.client import ruTorrentClient
 import click
 import requests
-
-from xirvik.client import ruTorrentClient
 
 from .utils import command_with_config_file, complete_hosts, complete_ports
 
@@ -35,8 +34,8 @@ log = logging.getLogger(__name__)
 
 
 def _ctrl_c_handler(_: int, __: Any) -> NoReturn:  # pragma: no cover
-    """Signal handler. Arguments are ignored."""
-    raise SystemExit('Signal raised')  # noqa: TRY003
+    msg = 'Signal raised.'
+    raise SystemExit(msg)
 
 
 @click.command(cls=command_with_config_file('config', 'add-torrents'))
@@ -127,7 +126,7 @@ def list_ftp_users(host: str,
                    config: str | None = None,
                    *,
                    debug: bool = False) -> None:
-    """List FTP users."""
+    """List FTP users."""  # noqa: DOC501
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
     r = requests.get(f'https://{host}:{port:d}/userpanel/index.php/ftp_users', timeout=30)
     try:
@@ -158,7 +157,7 @@ def add_ftp_user(host: str,
                  config: str | None = None,
                  *,
                  debug: bool = False) -> None:
-    """Add an FTP user."""
+    """Add an FTP user."""  # noqa: DOC501
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
     uri = (f'https://{host}:{port:d}/userpanel/index.php/'
            'ftp_users/add_user')
@@ -190,7 +189,7 @@ def delete_ftp_user(host: str,
                     config: str | None = None,
                     *,
                     debug: bool = False) -> None:
-    """Delete an FTP user."""
+    """Delete an FTP user."""  # noqa: DOC501
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
     user = b64encode(username.encode()).decode()
     uri = (f'https://{host}:{port:d}/userpanel/index.php/ftp_users/'
@@ -212,7 +211,7 @@ def authorize_ip(host: str,
                  config: str | None = None,
                  *,
                  debug: bool = False) -> None:
-    """Authorise the current IP for access to the VM via SSH/VNC/RDP."""
+    """Authorise the current IP for access to the VM via SSH/VNC/RDP."""  # noqa: DOC501
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
     uri = (f'https://{host}:{port:d}/userpanel/index.php/virtual_machine/'
            'authorize_ip')
@@ -233,7 +232,7 @@ def fix_rtorrent(host: str, port: int, config: str | None = None, *, debug: bool
     Restart the rtorrent service in case ruTorrent cannot connect to it.
 
     Not guaranteed to fix anything!
-    """
+    """  # noqa: DOC501
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
     log.info('No guarantees this will work!')
     uri = (f'https://{host}:{port:d}/userpanel/index.php/services/'
@@ -272,7 +271,7 @@ def list_torrents(host: str,
                   debug: bool = False,
                   no_headers: bool = False,
                   reverse_order: bool | None = None) -> None:
-    """List torrents in a given format."""
+    """List torrents in a given format."""  # noqa: DOC501
     min_tz_aware = datetime(MINYEAR, 1, 1, tzinfo=timezone.utc)
 
     def sorter(x: TorrentInfo) -> Any:
@@ -332,7 +331,7 @@ def list_files(
         debug: bool = False,
         no_headers: bool = False,
         reverse_order: bool | None = None) -> None:
-    """List a torrent's files in a given format."""
+    """List a torrent's files in a given format."""  # noqa: DOC501
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
     files = sorted(cast('Iterator[TorrentTrackedFile] | Sequence[TorrentTrackedFile]',
                         ruTorrentClient(host).list_files(hash)),
