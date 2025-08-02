@@ -19,7 +19,7 @@ from .typing import FileDownloadStrategy, FilePriority, TorrentInfo, TorrentTrac
 from .utils import parse_header
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterable, Iterator
 
 __all__ = ('LOG_NAME', 'UnexpectedruTorrentError', 'ruTorrentClient')
 
@@ -464,3 +464,44 @@ class ruTorrentClient:  # noqa: N801
         self._session.post(self.add_torrent_uri, data={
             'url': url
         }, auth=self.auth).raise_for_status()
+
+    def edit_torrents(self,
+                      hashes: Iterable[str],
+                      *,
+                      comment: str | None = None,
+                      private: bool | None = None,
+                      trackers: Iterable[str] | None = None) -> requests.Response:
+        """
+        Edit torrent properties.
+
+        Parameters
+        ----------
+        hashes : Iterable[str] | None
+            List of torrent hashes to edit.
+        comment : str
+            Comment to set.
+        private : bool | None
+            Value for the private flag.
+        trackers : Iterable[str] | None
+            Tracker URLs.
+
+        Returns
+        -------
+        requests.Response
+            The response object.
+        """
+        r = self._session.post(
+            f'{self.http_prefix}/rtorrent/plugins/edit/action.php',
+            data=(*(({
+                'comment': comment.strip(),
+                'set_comment': '1'
+            } if comment else {}) | ({
+                'private': '1' if private else '0',
+                'set_private': '1',
+            } if private is not None else {}) | ({
+                'set_trackers': '1'
+            } if trackers else {})).items(), *(('hash', h) for h in hashes or []),
+                  *(('tracker', t) for t in trackers or [])),
+            auth=self.auth)
+        r.raise_for_status()
+        return r

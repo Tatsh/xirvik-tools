@@ -302,3 +302,19 @@ def test_parse_header() -> None:
     assert res[0] == 'something/blah'
     assert isinstance(res[1], dict)
     assert len(res[1].keys()) == 0
+
+
+def test_edit_torrent(requests_mock: req_mock.Mocker) -> None:
+    client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    z = requests_mock.post(f'{client.http_prefix}/rtorrent/plugins/edit/action.php')
+    r = client.edit_torrents(['hash1', 'hash2'],
+                             comment='New comment',
+                             private=True,
+                             trackers=['http://tracker.example.com', 'http://tracker2.example.com'])
+    assert r.status_code == 200
+    # cspell: disable  # noqa: ERA001
+    assert z.request_history[0].text == (
+        'comment=New+comment&set_comment=1&private=1&set_private=1&set_trackers=1&hash=hash1'
+        '&hash=hash2&tracker=http%3A%2F%2Ftracker.example.com&'
+        'tracker=http%3A%2F%2Ftracker2.example.com')
+    # cspell: enable  # noqa: ERA001
