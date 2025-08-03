@@ -4,6 +4,7 @@ from __future__ import annotations
 import click
 
 from .delete_old import main as delete_old
+from .install_services import install_services
 from .move_by_label import main as move_by_label
 from .move_erroneous import main as move_erroneous
 from .simple import (
@@ -56,6 +57,7 @@ rtorrent.add_command(list_torrents, 'list-torrents')
 rtorrent.add_command(list_untracked_files, 'list-untracked-files')
 rtorrent.add_command(move_by_label, 'move-by-label')
 rtorrent.add_command(move_erroneous, 'move-erroneous')
+rtorrent.add_command(install_services, 'install-services')
 rtorrent.add_command(start_torrents, 'add')
 vm.add_command(authorize_ip)
 xirvik.add_command(ftp)

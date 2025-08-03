@@ -46,6 +46,8 @@ libjsonnet
 linters
 lunchy
 modindex
+msys
+msystem
 multirpc
 mypy
 needmessage
