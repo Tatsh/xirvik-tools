@@ -53,7 +53,7 @@ def install_services(directories: tuple[Path, ...],
     if IS_MAC:
         label = 'sh.tat.xirvik-start-torrents'
         output_path = Path(f'~/Library/LaunchAgents/{label}.plist').expanduser()
-        with output_path.open('w+') as f:
+        with output_path.open('w+b') as f:
             plistlib.dump(
                 {
                     'Label': label,
