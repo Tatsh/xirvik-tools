@@ -78,7 +78,7 @@ class ruTorrentClient:  # noqa: N801
         if not name and not password:
             if not netrc_path:
                 netrc_path = Path('~/.netrc').expanduser()
-            netrc_data = netrc(netrc_path).authenticators(host)
+            netrc_data = netrc(netrc_path).authenticators(host.split(':', maxsplit=1)[0])
             assert netrc_data is not None
             name, _, password = netrc_data
         assert name is not None
