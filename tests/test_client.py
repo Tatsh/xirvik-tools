@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 import xmlrpc.client
 
 from requests.exceptions import HTTPError
-from xirvik.client import ListTorrentsError, UnexpectedruTorrentError, ruTorrentClient
+from xirvik.client import ListTorrentsError, UnexpectedruTorrentError, log, ruTorrentClient
 from xirvik.typing import FileDownloadStrategy, FilePriority
 from xirvik.utils import parse_header
 import pytest
@@ -142,7 +142,7 @@ def test_set_label_to_hashes_bad_args() -> None:
 
 def test_set_label_to_hashes_normal(mocker: MockerFixture, requests_mock: req_mock.Mocker) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    spy_log_warning = mocker.spy(client._log, 'warning')  # noqa: SLF001
+    spy_log_warning = mocker.spy(log, 'warning')
     requests_mock.post(client.multirpc_action_uri, json=[{}])
     client.set_label_to_hashes(hashes=['hash1'], label='new label', allow_recursive_fix=False)
     assert spy_log_warning.call_count == 0

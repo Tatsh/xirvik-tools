@@ -8,6 +8,7 @@ from time import sleep
 import logging
 import xmlrpc.client as xmlrpc
 
+from bascom import setup_logging
 from requests.exceptions import HTTPError
 from xirvik.client import ruTorrentClient
 from xirvik.typing import TorrentInfo
@@ -48,24 +49,35 @@ def _test_ratio(info: TorrentInfo) -> tuple[str, bool]:
 @click.option('-D', '--ignore-date', is_flag=True)
 @click.option('-a', '--ignore-ratio', is_flag=True)
 @click.option('-y', '--dry-run', is_flag=True)
-def main(host: str,
-         netrc: str | None = None,
-         username: str | None = None,
-         password: str | None = None,
-         label: str | None = None,
-         max_attempts: int = 3,
-         max_retries: int = 10,
-         days: int = 14,
-         backoff_factor: int = 1,
-         sleep_time: int = 10,
-         config: str | None = None,
-         *,
-         debug: bool = False,
-         ignore_ratio: bool = False,
-         ignore_date: bool = False,
-         dry_run: bool = False) -> None:
+def main(
+        host: str,
+        netrc: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        label: str | None = None,
+        max_attempts: int = 3,
+        max_retries: int = 10,
+        days: int = 14,
+        backoff_factor: int = 1,
+        sleep_time: int = 10,
+        config: str | None = None,  # noqa: ARG001
+        *,
+        debug: bool = False,
+        ignore_ratio: bool = False,
+        ignore_date: bool = False,
+        dry_run: bool = False) -> None:
     """Delete torrents based on certain criteria."""  # noqa: DOC501
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
+    setup_logging(debug=debug,
+                  loggers={
+                      'urllib3': {
+                          'handlers': ('console',),
+                          'propagate': False
+                      },
+                      'xirvik': {
+                          'handlers': ('console',),
+                          'propagate': False
+                      }
+                  })
     client = ruTorrentClient(host,
                              name=username,
                              password=password,

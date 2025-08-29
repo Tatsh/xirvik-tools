@@ -21,10 +21,9 @@ from .utils import parse_header
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
-__all__ = ('LOG_NAME', 'UnexpectedruTorrentError', 'ruTorrentClient')
+__all__ = ('UnexpectedruTorrentError', 'ruTorrentClient')
 
-LOG_NAME = 'xirvik.rutorrent'
-"""Name used in logger."""
+log = logging.getLogger(__name__)
 
 
 class UnexpectedruTorrentError(Exception):
@@ -91,7 +90,6 @@ class ruTorrentClient:  # noqa: N801
                       read=max_retries,
                       redirect=False,
                       backoff_factor=backoff_factor)
-        self._log = logging.getLogger(LOG_NAME)
         self._http_adapter = HTTPAdapter(max_retries=cast('Any', retry))
         self._session = requests.Session()
         self._session.mount('http://', self._http_adapter)
@@ -168,7 +166,7 @@ class ruTorrentClient:  # noqa: N801
         r.raise_for_status()
         possible_dict = cast('dict[str, list[Any]]', r.json()['t'])
         if not hasattr(possible_dict, 'items'):
-            self._log.debug('Returned: %s', possible_dict)
+            log.debug('Returned: %s', possible_dict)
             msg = f'Unexpected type in response: {type(possible_dict)}'
             raise ListTorrentsError(msg)
         annots = inspect.get_annotations(TorrentInfo)
@@ -275,27 +273,27 @@ class ruTorrentClient:  # noqa: N801
         recursion_limit = kwargs.pop('recursion_limit', 5)
         recursion_attempt = kwargs.pop('recursion_attempt', 0)
         if not hashes or not label:
-            raise TypeError(  # noqa: TRY003
-                '"hashes" (list) and "label" (str) keyword arguments are required')
+            msg = '"hashes" (list) and "label" (str) keyword arguments are required.'
+            raise TypeError(msg)
         data = b'mode=setlabel'
         for hash_ in hashes:
             data += f'&hash={hash_}'.encode()
         data += f'&v={label}'.encode() * len(hashes)
         data += b'&s=label' * len(hashes)
-        self._log.debug('set_labels() with data: %s', data.decode())
+        log.debug('set_labels() with data: %s', data.decode())
         r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
         r.raise_for_status()
         json = r.json()
         # This may not be an error, but sometimes just `[]` is returned
         # Even with the retries, sometimes all but one torrent gets a label
         if len(json) != len(hashes):
-            self._log.warning(
-                'JSON returned should have been an array with '
-                'same length as hashes list passed in: %s', json)
+            log.warning(
+                'JSON returned should have been an array with same length as hashes list passed '
+                'in: %s', json)
             if allow_recursive_fix and recursion_attempt < recursion_limit:
                 recursion_attempt += 1
-                self._log.info('Attempting label again '
-                               '(%d out of %d)', recursion_attempt, recursion_limit)
+                log.info('Attempting label again '
+                         '(%d out of %d)', recursion_attempt, recursion_limit)
                 data = b'mode=setlabel'
                 new_hashes = []
                 for v in self.list_torrents():
@@ -304,14 +302,14 @@ class ruTorrentClient:  # noqa: N801
                         data += f'&hash={hash_}'.encode()
                         new_hashes.append(hash_)
                 if not new_hashes:
-                    self._log.debug('Found no torrents to correct')
+                    log.debug('Found no torrents to correct')
                     return
                 self.set_label_to_hashes(hashes=new_hashes,
                                          label=label,
                                          recursion_limit=recursion_limit,
                                          recursion_attempt=recursion_attempt)
             else:
-                self._log.warning('Passed recursion limit for label fix')
+                log.warning('Passed recursion limit for label fix')
 
     def set_label(self, label: str, torrent_hash: str) -> None:
         """

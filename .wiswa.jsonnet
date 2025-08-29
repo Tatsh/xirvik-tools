@@ -9,6 +9,9 @@
   citation+: {
     'date-released': '2025-04-17',
   },
+  copilot: {
+    intro: 'Xirvik is a series of command line tools for interfacing with Xirvik services.',
+  },
   pyproject+: {
     project+: {
       include+: ['LaunchAgents', 'man', 'systemd'],

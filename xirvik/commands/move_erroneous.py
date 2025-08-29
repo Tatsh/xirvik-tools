@@ -5,6 +5,7 @@ from time import sleep
 from typing import TYPE_CHECKING, Any, TypeVar
 import logging
 
+from bascom import setup_logging
 from xirvik.client import ruTorrentClient
 import click
 
@@ -42,18 +43,28 @@ def _make_move_to(prefix: str, label: str) -> str:
 @common_options_and_arguments
 @click.option('--sleep-time', type=int, default=10)
 def main(
-    host: str,
-    netrc: str | None = None,
-    username: str | None = None,
-    password: str | None = None,
-    sleep_time: int = 10,
-    max_retries: int = 10,
-    *,
-    debug: bool = False,
-    **kwargs: Any,
+        host: str,
+        netrc: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        sleep_time: int = 10,
+        max_retries: int = 10,
+        *,
+        debug: bool = False,
+        **kwargs: Any,  # noqa: ARG001
 ) -> None:
     """Move torrents in error state to another location."""
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
+    setup_logging(debug=debug,
+                  loggers={
+                      'urllib3': {
+                          'handlers': ('console',),
+                          'propagate': False
+                      },
+                      'xirvik': {
+                          'handlers': ('console',),
+                          'propagate': False
+                      }
+                  })
     client = ruTorrentClient(host,
                              name=username,
                              password=password,

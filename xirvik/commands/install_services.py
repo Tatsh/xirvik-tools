@@ -6,12 +6,12 @@ from os import environ
 from pathlib import Path
 from shlex import quote
 from shutil import which
-import logging
 import platform
 import plistlib
 import subprocess as sp
 import sys
 
+from bascom import setup_logging
 import click
 
 from .utils import complete_hosts
@@ -42,7 +42,7 @@ def install_services(directories: tuple[Path, ...],
                      debug: bool = False,
                      interval: int = 2) -> None:
     """Install the xirvik-start-torrents service."""  # noqa: DOC501
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
+    setup_logging(debug=debug, loggers={'xirvik': {'handlers': ('console',), 'propagate': False}})
     if IS_WINDOWS:
         click.echo('This command is not supported on Windows.')
         raise click.Abort
