@@ -14,4 +14,4 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ruTorrent.edit_torrents()` method for editing trackers, private flag, and comments.
 - Command `xirvik rtorrent install-services` to install services for launchd and systemd.
 
-[unreleased]: https://github.com/Tatsh/ultra-todo/-/compare/v0.5.1...HEAD
+[unreleased]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.1...HEAD
