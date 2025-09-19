@@ -580,3 +580,15 @@ def test_list_untracked_files_multiple(runner: CliRunner, mocker: MockerFixture,
     lines = runner.invoke(
         xirvik, ('rtorrent', 'list-untracked-files', '-L', 'ssh blah')).output.splitlines()
     assert lines[-1] == 'file3'
+
+
+def test_download_untracked_files(runner: CliRunner, mocker: MockerFixture, tmp_path: Path,
+                                  monkeypatch: pytest.MonkeyPatch) -> None:
+    mocker.patch('xirvik.commands.simple.setup_logging')
+    mock_run = mocker.patch('xirvik.commands.simple.sp.run')
+    mock_conn = mocker.patch('xirvik.commands.simple.Connection')
+    mock_conn.return_value.__enter__.return_value = mocker.MagicMock()
+    (tmp_path / 'input.txt').write_text('some/dir/file1\nsome/dir/file2\nsome/dir/file2\n')
+    assert runner.invoke(xirvik, ('rtorrent', 'download-untracked-files', str(
+        tmp_path / 'input.txt'), str(tmp_path / 'output'))).exit_code == 0
+    assert mock_run.call_count == 2

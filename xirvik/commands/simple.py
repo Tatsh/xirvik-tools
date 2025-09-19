@@ -6,6 +6,7 @@ from datetime import MINYEAR, datetime, timezone
 from logging.handlers import SysLogHandler
 from os.path import realpath
 from pathlib import Path
+from shlex import quote
 from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING, Any, NoReturn, cast
 import json
@@ -17,6 +18,7 @@ import sys
 
 from bascom import setup_logging
 from bs4 import BeautifulSoup as Soup
+from fabric import Connection  # type: ignore[import-untyped]
 from requests.exceptions import HTTPError
 from tabulate import tabulate, tabulate_formats
 from unidecode import unidecode
@@ -560,3 +562,61 @@ def list_untracked_files(
                         log.debug('Unknown file (%s): %s', info.name, file)
     for file in sorted(server_files):
         click.echo(file)
+
+
+@click.command(cls=command_with_config_file('config', 'list-untracked-files'),
+               help='List untracked file paths.')
+@click.argument('untracked-filename', type=click.Path(exists=True, path_type=Path))
+@click.argument('target', type=click.Path(path_type=Path))
+@click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
+@click.option('-p', '--port', type=int, default=443, shell_complete=complete_ports)
+@click.option('-d', '--debug', is_flag=True)
+@click.option('-u', '--username', help='SSH user name.')
+def download_untracked_files(
+        host: str,
+        port: int,
+        target: Path,
+        untracked_filename: Path,
+        config: str | None = None,  # noqa: ARG001
+        username: str | None = None,
+        *,
+        debug: bool = False) -> None:
+    """Download untracked files using rsync."""
+    setup_logging(debug=debug,
+                  loggers={
+                      'fabric': {
+                          'handlers': ('console',),
+                          'propagate': False
+                      },
+                      'paramiko': {
+                          'handlers': ('console',),
+                          'propagate': False
+                      },
+                      'xirvik': {
+                          'handlers': ('console',),
+                          'propagate': False
+                      }
+                  })
+    processed: set[str] = set()
+
+    def get_lines() -> Iterator[str]:
+        with untracked_filename.open(encoding='utf-8') as f:
+            for file_or_dir in (f'/downloads/{"/".join(x.strip().split("/")[2:5])}' for x in f):
+                if file_or_dir not in processed:
+                    processed.add(file_or_dir)
+                    yield file_or_dir
+
+    def is_dir(client: Connection, path: str) -> bool:
+        return bool(
+            client.run(f'stat -c %F {quote(path)}', hide=True).stdout.strip() == 'directory')
+
+    with Connection(host, port=port, user=username) as client:
+        for file_or_dir in get_lines():
+            out_file_or_dir = target / '/'.join(file_or_dir.split('/')[2:])
+            out_file_or_dir.parent.mkdir(parents=True, exist_ok=True)
+            src = f'{host}:{file_or_dir}{"/" if is_dir(client, file_or_dir) else ""}'
+            sp.run(('rsync', '-e', f'ssh -p {port}', '--progress', '-lrtNEU', *(('-v') if debug else
+                                                                                ()), src,
+                    str(out_file_or_dir)),
+                   check=True)
+            log.info('Finished downloading `%s` to `%s`.', src, out_file_or_dir)

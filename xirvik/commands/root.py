@@ -11,6 +11,7 @@ from .simple import (
     add_ftp_user,
     authorize_ip,
     delete_ftp_user,
+    download_untracked_files,
     fix_rtorrent,
     list_all_files,
     list_files,
@@ -50,6 +51,7 @@ ftp.add_command(add_ftp_user, 'add-user')
 ftp.add_command(delete_ftp_user, 'delete-user')
 ftp.add_command(list_ftp_users, 'list-users')
 rtorrent.add_command(delete_old, 'delete-old')
+rtorrent.add_command(download_untracked_files, 'download-untracked-files')
 rtorrent.add_command(fix_rtorrent, 'fix')
 rtorrent.add_command(list_all_files, 'list-all-files')
 rtorrent.add_command(list_files, 'list-files')
