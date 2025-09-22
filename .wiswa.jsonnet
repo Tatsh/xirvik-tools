@@ -10,6 +10,7 @@ local utils = import 'utils.libjsonnet';
   copilot: {
     intro: 'xirvik-tools is a set of command line tools for interfacing with Xirvik services.',
   },
+  security_policy_supported_versions: { '0.5.x': ':white_check_mark:' },
   pyproject+: {
     project+: {
       scripts: { xirvik: 'xirvik.commands:xirvik' },
