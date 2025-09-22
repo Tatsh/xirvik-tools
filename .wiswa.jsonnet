@@ -1,73 +1,53 @@
-(import 'defaults.libjsonnet') + {
-  // Project-specific
+local utils = import 'utils.libjsonnet';
+
+{
+  project_name: 'xirvik-tools',
   description: 'Command line utilities for interfacing with Xirvik.',
   keywords: ['command line', 'xirvik'],
-  project_name: 'xirvik-tools',
+  primary_module: 'xirvik',
   version: '0.5.1',
   want_main: true,
-  primary_module: 'xirvik',
-  citation+: {
-    'date-released': '2025-04-17',
-  },
   copilot: {
-    intro: 'Xirvik is a series of command line tools for interfacing with Xirvik services.',
+    intro: 'xirvik-tools is a set of command line tools for interfacing with Xirvik services.',
   },
   pyproject+: {
     project+: {
-      include+: ['LaunchAgents', 'man', 'systemd'],
       scripts: { xirvik: 'xirvik.commands:xirvik' },
     },
     tool+: {
       poetry+: {
         dependencies+: {
-          beautifulsoup4: '^4.13.4',
-          'cached-property': '^2.0.1',
-          html5lib: '^1.1',
-          keyring: '^25.6.0',
-          platformdirs: '^4.3.8',
-          pyyaml: '^6.0.2',
-          mutagen: '^1.47.0',
-          ratelimit: '^2.2.1',
-          requests: '^2.32.4',
-          tabulate: '^0.9.0',
-          unidecode: '^1.4.0',
+          beautifulsoup4: utils.latestPypiPackageVersionCaret('beautifulsoup4'),
+          'cached-property': utils.latestPypiPackageVersionCaret('cached-property'),
+          fabric: utils.latestPypiPackageVersionCaret('fabric'),
+          html5lib: utils.latestPypiPackageVersionCaret('html5lib'),
+          keyring: utils.latestPypiPackageVersionCaret('keyring'),
+          platformdirs: utils.latestPypiPackageVersionCaret('platformdirs'),
+          pyyaml: utils.latestPypiPackageVersionCaret('pyyaml'),
+          mutagen: utils.latestPypiPackageVersionCaret('mutagen'),
+          ratelimit: utils.latestPypiPackageVersionCaret('ratelimit'),
+          requests: utils.latestPypiPackageVersionCaret('requests'),
+          tabulate: utils.latestPypiPackageVersionCaret('tabulate'),
+          unidecode: utils.latestPypiPackageVersionCaret('unidecode'),
         },
         include+: ['LaunchAgents', 'systemd'],
         group+: {
           dev+: {
             dependencies+: {
-              'ratelimit-types': '^0',
-              'types-beautifulsoup4': '^4.12.0.20250516',
-              'types-pyyaml': '^6.0.12.20250516',
-              'types-requests': '^2.32.0.20250602',
-              'types-tabulate': '^0.9.0.20241207',
+              'types-beautifulsoup4': utils.latestPypiPackageVersionCaret('types-beautifulsoup4'),
+              'types-pyyaml': utils.latestPypiPackageVersionCaret('types-pyyaml'),
+              'types-ratelimit': utils.latestPypiPackageVersionCaret('types-ratelimit'),
+              'types-requests': utils.latestPypiPackageVersionCaret('types-requests'),
+              'types-tabulate': utils.latestPypiPackageVersionCaret('types-tabulate'),
             },
           },
           tests+: {
             dependencies+: {
-              'requests-mock': '^1.12.1',
+              'requests-mock': utils.latestPypiPackageVersionCaret('requests-mock'),
             },
           },
         },
       },
-    },
-  },
-  // Common
-  authors: [
-    {
-      'family-names': 'Udvare',
-      'given-names': 'Andrew',
-      email: 'audvare@gmail.com',
-      name: '%s %s' % [self['given-names'], self['family-names']],
-    },
-  ],
-  local funding_name = '%s2' % std.asciiLower(self.github_username),
-  github_username: 'Tatsh',
-  github+: {
-    funding+: {
-      ko_fi: funding_name,
-      liberapay: funding_name,
-      patreon: funding_name,
     },
   },
 }
