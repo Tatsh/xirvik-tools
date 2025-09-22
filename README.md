@@ -39,8 +39,18 @@ pip install xirvik-tools
 
 ## Usage
 
-Add `-d` to show debug logs.
+```plain
+Usage: xirvik [OPTIONS] COMMAND [ARGS]...
 
-```shell
-xirvik-tools
+  Root command.
+
+Options:
+  -C, --config TEXT  Configuration file
+  -H, --host TEXT    Xirvik host (without protocol)
+  -h, --help         Show this message and exit.
+
+Commands:
+  ftp       Commands for managing the FTP server.
+  rtorrent  Commands for managing rTorrent.
+  vm        Commands for the Linux virtual machine.
 ```
