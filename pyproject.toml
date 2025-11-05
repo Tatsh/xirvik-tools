@@ -36,7 +36,7 @@ repository = "https://github.com/Tatsh/xirvik-tools"
 
 [tool.commitizen]
 name = "cz_path"
-remove_path_prefixes = ["include", "src", "xirvik-tools"]
+remove_path_prefixes = ["include", "src", "xirvik"]
 tag_format = "v$version"
 version_files = [
   ".wiswa.jsonnet",
