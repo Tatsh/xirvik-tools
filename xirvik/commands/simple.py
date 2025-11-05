@@ -30,6 +30,7 @@ from .utils import command_with_config_file, complete_hosts, complete_ports
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
+    from logging.config import _HandlerConfiguration
 
     from xirvik.typing import TorrentInfo, TorrentTrackedFile
 
@@ -67,16 +68,16 @@ def start_torrents(
         no_verify: bool = False) -> None:
     """Upload torrent files to the server."""
     signal.signal(signal.SIGINT, _ctrl_c_handler)
-    handlers: dict[str, logging.Handler] = {}
+    handlers: dict[str, _HandlerConfiguration] = {}
     handlers_tuple: tuple[str, ...] = ('console',)
     if syslog:  # pragma: no cover
-        try:
-            syslog_handle = SysLogHandler(address='/dev/log')
-        except OSError:
-            syslog_handle = SysLogHandler(address='/var/run/syslog',
-                                          facility=SysLogHandler.LOG_USER)
-            syslog_handle.ident = 'xirvik-start-torrents'
-        handlers = {'syslog': syslog_handle}
+        handlers = {
+            'syslog': {
+                'address': '/dev/log' if Path('/dev/log').exists() else '/var/run/syslog',
+                'class': SysLogHandler,
+                'ident': 'xirvik-start-torrents'
+            }
+        }
         handlers_tuple += ('syslog',)
     setup_logging(debug=debug,
                   handlers=handlers,
