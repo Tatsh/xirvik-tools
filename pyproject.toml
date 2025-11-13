@@ -84,7 +84,7 @@ warn_unreachable = true
 include = ["man", { format = "sdist", path = "tests" }, "LaunchAgents", "systemd"]
 
 [tool.poetry.dependencies]
-bascom = "^0.0.3"
+bascom = "^0.0.4"
 beautifulsoup4 = "^4.14.2"
 cached-property = "^2.0.1"
 click = "^8.3.0"
@@ -105,11 +105,11 @@ unidecode = "^1.4.0"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-commitizen = "^4.9.1"
-cz-path = "^0.0.2"
+commitizen = "^4.10.0"
+cz-path = "^0.0.4"
 djlint = "^1.36.4"
 mypy = "^1.18.2"
-ruff = "^0.14.3"
+ruff = "^0.14.4"
 types-beautifulsoup4 = "^4.12.0.20250516"
 types-pyyaml = "^6.0.12.20250915"
 types-ratelimit = "^2.2.0.20250501"
@@ -150,7 +150,7 @@ optional = true
 
 [tool.poetry.group.tests.dependencies]
 mock = "^5.2.0"
-pytest = "^8.4.2"
+pytest = "^9.0.1"
 pytest-cov = "^7.0.0"
 pytest-mock = "^3.15.1"
 requests-mock = "^1.12.1"
