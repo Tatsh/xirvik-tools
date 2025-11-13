@@ -78,14 +78,11 @@ def start_torrents(
                 'ident': 'xirvik-start-torrents'
             }
         }
-        handlers_tuple += ('syslog',)
+        handlers_tuple = ('syslog',)
     setup_logging(debug=debug,
                   handlers=handlers,
                   loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
+                      'urllib3': {},
                       'xirvik': {
                           'handlers': handlers_tuple,
                           'propagate': False
