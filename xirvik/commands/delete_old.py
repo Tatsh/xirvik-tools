@@ -67,17 +67,7 @@ def main(
         ignore_date: bool = False,
         dry_run: bool = False) -> None:
     """Delete torrents based on certain criteria."""  # noqa: DOC501
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     client = ruTorrentClient(host,
                              name=username,
                              password=password,

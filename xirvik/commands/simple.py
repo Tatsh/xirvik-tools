@@ -146,17 +146,7 @@ def list_ftp_users(
         *,
         debug: bool = False) -> None:
     """List FTP users."""  # noqa: DOC501
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     r = requests.get(f'https://{host}:{port:d}/userpanel/index.php/ftp_users', timeout=30)
     try:
         r.raise_for_status()
@@ -188,17 +178,7 @@ def add_ftp_user(
         *,
         debug: bool = False) -> None:
     """Add an FTP user."""  # noqa: DOC501
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     uri = (f'https://{host}:{port:d}/userpanel/index.php/'
            'ftp_users/add_user')
     root_dir = root_directory if root_directory.startswith('/') else f'/{root_directory}'
@@ -231,17 +211,7 @@ def delete_ftp_user(
         *,
         debug: bool = False) -> None:
     """Delete an FTP user."""  # noqa: DOC501
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     user = b64encode(username.encode()).decode()
     uri = (f'https://{host}:{port:d}/userpanel/index.php/ftp_users/'
            f'delete/{user}')
@@ -264,17 +234,7 @@ def authorize_ip(
         *,
         debug: bool = False) -> None:
     """Authorise the current IP for access to the VM via SSH/VNC/RDP."""  # noqa: DOC501
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     uri = (f'https://{host}:{port:d}/userpanel/index.php/virtual_machine/'
            'authorize_ip')
     r = requests.get(uri, timeout=30)
@@ -300,17 +260,7 @@ def fix_rtorrent(
 
     Not guaranteed to fix anything!
     """  # noqa: DOC501
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     log.info('No guarantees this will work!')
     uri = (f'https://{host}:{port:d}/userpanel/index.php/services/'
            'restart/rtorrent')
@@ -350,17 +300,7 @@ def list_torrents(
         port: int = 443,
         reverse_order: bool | None = None) -> None:
     """List torrents in a given format."""  # noqa: DOC501
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     min_tz_aware = datetime(MINYEAR, 1, 1, tzinfo=timezone.utc)
 
     def sorter(x: TorrentInfo) -> Any:
@@ -420,17 +360,7 @@ def list_files(
         no_headers: bool = False,
         reverse_order: bool | None = None) -> None:
     """List a torrent's files in a given format."""  # noqa: DOC501
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     files = sorted(cast('Iterator[TorrentTrackedFile] | Sequence[TorrentTrackedFile]',
                         ruTorrentClient(f'{host}:{port}').list_files(hash)),
                    key=lambda x: getattr(x, sort))
@@ -470,17 +400,7 @@ def list_all_files(
         *,
         debug: bool = False) -> None:
     """List every tracked file."""
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     client = ruTorrentClient(f'{host}:{port}')
     click.echo('Listing torrents ...', file=sys.stderr)
     with click.progressbar(list(client.list_torrents()), file=sys.stderr,
@@ -523,17 +443,7 @@ def list_untracked_files(
     def fix_path(res: str) -> str:
         return re.sub(fr'^/torrents/{client.name}/', '/downloads/', res)
 
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     click.echo('Getting server-side file list', file=sys.stderr)
     process = sp.run(  # noqa: S602
         server_list_command, shell=True, text=True, stdout=sp.PIPE, check=True)
@@ -583,21 +493,7 @@ def download_untracked_files(
         *,
         debug: bool = False) -> None:
     """Download untracked files using rsync."""
-    setup_logging(debug=debug,
-                  loggers={
-                      'fabric': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'paramiko': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'fabric': {}, 'paramiko': {}, 'xirvik': {}})
     processed: set[str] = set()
 
     def get_lines() -> Iterator[str]:

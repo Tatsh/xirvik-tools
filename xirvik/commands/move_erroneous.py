@@ -54,17 +54,7 @@ def main(
         **kwargs: Any,  # noqa: ARG001
 ) -> None:
     """Move torrents in error state to another location."""
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     client = ruTorrentClient(host,
                              name=username,
                              password=password,

@@ -76,17 +76,7 @@ def main(host: str,
          debug: bool = False,
          lower_label: bool | None = None) -> None:
     """Move torrents according to labels assigned."""  # noqa: DOC501
-    setup_logging(debug=debug,
-                  loggers={
-                      'urllib3': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      },
-                      'xirvik': {
-                          'handlers': ('console',),
-                          'propagate': False
-                      }
-                  })
+    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
     logger.debug('Host: %s', host)
     logger.debug('Configuration file: %s', config)
     logger.debug('Use lowercase labels: %s', 'true' if lower_label else 'false')
