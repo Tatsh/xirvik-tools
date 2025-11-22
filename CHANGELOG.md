@@ -9,6 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+## [0.5.2]
+
 ### Changed
 
 - The `xirvik rtorrent add` command will no longer print to CLI if the system log flag is passed.
@@ -277,7 +279,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ruTorrent.set_label()` method.
 - `ruTorrent.move_torrent()` method.
 
-[unreleased]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.1...HEAD
+[unreleased]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/Tatsh/xirvik-tools/compare/v0.4.5...v0.5.0
 [0.4.5]: https://github.com/Tatsh/xirvik-tools/compare/v0.4.4...v0.4.5
