@@ -5,7 +5,7 @@ local utils = import 'utils.libjsonnet';
   description: 'Command line utilities for interfacing with Xirvik.',
   keywords: ['command line', 'xirvik'],
   primary_module: 'xirvik',
-  version: '0.5.1',
+  version: '0.5.2',
   want_main: true,
   copilot: {
     intro: 'xirvik-tools is a set of command line tools for interfacing with Xirvik services.',
