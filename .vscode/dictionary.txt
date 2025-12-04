@@ -47,7 +47,6 @@ fullrows
 genindex
 globaltoc
 hostshare
-hoverxref
 htmlcov
 intersphinx
 isort

@@ -84,8 +84,8 @@ warn_unreachable = true
 include = ["man", { format = "sdist", path = "tests" }, "LaunchAgents", "systemd"]
 
 [tool.poetry.dependencies]
-bascom = "^0.0.4"
-beautifulsoup4 = "^4.14.2"
+bascom = "^0.1.0"
+beautifulsoup4 = "^4.14.3"
 cached-property = "^2.0.1"
 click = "^8.3.1"
 fabric = "^3.2.2"
@@ -108,8 +108,8 @@ optional = true
 commitizen = "^4.10.0"
 cz-path = "^0.0.4"
 djlint = "^1.36.4"
-mypy = "^1.18.2"
-ruff = "^0.14.6"
+mypy = "^1.19.0"
+ruff = "^0.14.7"
 types-beautifulsoup4 = "^4.12.0.20250516"
 types-pyyaml = "^6.0.12.20250915"
 types-ratelimit = "^2.2.0.20250501"
@@ -125,11 +125,10 @@ autodoc-pydantic = "^2.2.0"
 doc8 = "^2.0.0"
 docutils = "<0.22"
 esbonio = "^1.0.0"
-numpydoc = "^1.9.0"
-restructuredtext-lint = "^2.0.0"
+numpydoc = "^1.10.0"
+restructuredtext-lint = "^2.0.2"
 sphinx-click = "^6.1.0"
 sphinx-datatables = "^0.3.1"
-sphinx-hoverxref = "^1.4.2"
 sphinx-immaterial = "^0.13.8"
 tomlkit = "^0.13.3"
 
@@ -139,7 +138,7 @@ version = "^0.13.0"
 
 [[tool.poetry.group.docs.dependencies.sphinx]]
 python = ">=3.11"
-version = "^8.2.3"
+version = "<9.0.0"
 
 [[tool.poetry.group.docs.dependencies.sphinx]]
 python = "<3.11"
