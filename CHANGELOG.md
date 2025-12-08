@@ -9,6 +9,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+## Fixed
+
+- System log support.
+- Preserve case when generating systemd units.
+
 ## [0.5.2]
 
 ### Changed
