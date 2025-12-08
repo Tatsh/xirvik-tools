@@ -69,13 +69,13 @@ def start_torrents(
     """Upload torrent files to the server."""
     signal.signal(signal.SIGINT, _ctrl_c_handler)
     handlers: dict[str, _HandlerConfiguration] = {}
-    handlers_tuple: tuple[str, ...] = ('console',)
+    handlers_tuple: tuple[str, ...] = ()
     if syslog:  # pragma: no cover
         handlers = {
             'syslog': {
                 'address': '/dev/log' if Path('/dev/log').exists() else '/var/run/syslog',
+                'formatter': logging.Formatter('xirvik: %(message)s'),
                 'class': SysLogHandler,
-                'ident': 'xirvik-start-torrents'
             }
         }
         handlers_tuple = ('syslog',)
@@ -85,8 +85,8 @@ def start_torrents(
                       'urllib3': {},
                       'xirvik': {
                           'handlers': handlers_tuple,
-                          'propagate': False
-                      }
+                          'propagate': False,
+                      } if handlers_tuple else {}
                   })
     cache_dir = Path(realpath(Path('~/.cache/xirvik').expanduser()))
     cache_dir.mkdir(parents=True, exist_ok=True)
