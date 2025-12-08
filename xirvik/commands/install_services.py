@@ -74,6 +74,7 @@ def install_services(directories: tuple[Path, ...],
     timer_output_path = Path('~/.config/systemd/user/xirvik-start-torrents.timer').expanduser()
     with service_output_path.open('w+') as f:
         parser = ConfigParser(delimiters=('=',))
+        parser.optionxform = str  # type: ignore[assignment,method-assign]
         parser['Unit'] = {
             'Description': 'Torrent sync with Xirvik',
             'After': 'network.target',
@@ -86,6 +87,7 @@ def install_services(directories: tuple[Path, ...],
         parser.write(f, space_around_delimiters=False)
     with timer_output_path.open('w+') as f:
         parser = ConfigParser(delimiters=('=',))
+        parser.optionxform = str  # type: ignore[assignment,method-assign]
         parser['Unit'] = {'Description': 'Trigger for Xirvik torrent sync'}
         parser['Timer'] = {
             'OnCalendar': f'*-*-* *:0/{interval}:00',
