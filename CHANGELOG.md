@@ -9,6 +9,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+## [0.5.3] - 2025-12-20
+
+## Added
+
+- Attestation.
+
 ## Fixed
 
 - System log support.
@@ -284,7 +290,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ruTorrent.set_label()` method.
 - `ruTorrent.move_torrent()` method.
 
-[unreleased]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.2...HEAD
+[unreleased]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/Tatsh/xirvik-tools/compare/v0.4.5...v0.5.0
