@@ -11,11 +11,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.5.3] - 2025-12-20
 
-## Added
+### Added
 
 - Attestation.
 
-## Fixed
+### Fixed
 
 - System log support.
 - Preserve case when generating systemd units.
