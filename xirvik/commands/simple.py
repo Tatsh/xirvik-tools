@@ -459,14 +459,14 @@ def list_untracked_files(
                 log.debug('Single file: %s', res)
                 try:
                     server_files.remove(res)
-                except KeyError:  # pragma: no cover
-                    log.debug('Unknown file  (%s): %s', info.name, res)
+                except ValueError:  # pragma: no cover
+                    log.debug('Unknown file (%s): %s', info.name, res)
             else:
                 for file in (fix_path(f'{info.base_path}/{y.name}') for y in files):
                     log.debug('File: %s', file)
                     try:
                         server_files.remove(file)
-                    except KeyError:  # pragma: no cover
+                    except ValueError:  # pragma: no cover
                         log.debug('Unknown file (%s): %s', info.name, file)
     for file in sorted(server_files):
         click.echo(file)
