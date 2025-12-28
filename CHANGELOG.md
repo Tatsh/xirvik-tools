@@ -9,6 +9,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+### Fixed
+
+- Catch correct exception type in `list-untracked-files` when a file is listed but is not in the
+  user command generated list.
+
 ## [0.5.3] - 2025-12-20
 
 ### Added
