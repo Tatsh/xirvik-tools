@@ -106,7 +106,7 @@ jobs:
       - name: 'Attest'
         uses: 'actions/attest-build-provenance@v3'
         with:
-          subject-path: 'dist/*'
+          subject-path: 'dist/*.AppImage'
       - if: github.ref_type == 'tag'
         name: Upload package
         uses: softprops/action-gh-release@v2
@@ -121,9 +121,6 @@ jobs:
           - { arch: x86_64, image: ubuntu-latest }
 name: 'AppImage'
 'on':
-  pull_request:
-    branches:
-      - 'master'
   push:
     branches:
       - 'master'
