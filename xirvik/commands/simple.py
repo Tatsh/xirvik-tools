@@ -472,7 +472,7 @@ def list_untracked_files(
         click.echo(file)
 
 
-@click.command(cls=command_with_config_file('config', 'list-untracked-files'),
+@click.command(cls=command_with_config_file('config', 'download-untracked-files'),
                help='List untracked file paths.')
 @click.argument('untracked-filename', type=click.Path(exists=True, path_type=Path))
 @click.argument('target', type=click.Path(path_type=Path))
