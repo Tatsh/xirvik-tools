@@ -15,7 +15,6 @@ benc
 bencode
 bencodepy
 bsky
-codeowners
 colenabled
 colorder
 colorlog
@@ -45,6 +44,7 @@ fontawesome
 foxundermoon
 fullrows
 genindex
+getline
 globaltoc
 hostshare
 htmlcov
@@ -110,6 +110,8 @@ setlabel
 setsettings
 shellformat
 sindex
+snapcore
+snapcraft
 softprops
 speedintitle
 speedlistdl

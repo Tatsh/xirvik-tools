@@ -1,0 +1,24 @@
+apps:
+  xirvik-tools:
+    command: 'bin/xirvik-tools'
+    plugs:
+      - 'home'
+      - 'network'
+      - 'network-bind'
+base: 'core24'
+confinement: 'strict'
+description: 'Command line utilities for interfacing with Xirvik.'
+grade: 'stable'
+name: 'xirvik-tools'
+parts:
+  xirvik-tools:
+    plugin: 'poetry'
+    source: '.'
+    stage-packages: []
+platforms:
+  amd64:
+    build-on: 'amd64'
+  arm64:
+    build-on: 'arm64'
+summary: 'Command line utilities for interfacing with Xirvik.'
+version: '0.5.3'
