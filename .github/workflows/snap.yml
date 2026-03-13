@@ -10,13 +10,13 @@ jobs:
           snapcraft-args: 'pack'
           snapcraft-channel: 'latest/stable'
       - name: 'Upload Artifacts'
-        uses: 'actions/upload-artifact@v6'
+        uses: 'actions/upload-artifact@v7'
         with:
           if-no-files-found: 'error'
           name: 'xirvik-tools-snap-${{ matrix.system.arch }}'
           path: '*.snap'
       - name: 'Attest'
-        uses: 'actions/attest-build-provenance@v3'
+        uses: 'actions/attest-build-provenance@v4'
         with:
           subject-path: '*.snap'
       - if: "github.ref_type == 'tag'"
