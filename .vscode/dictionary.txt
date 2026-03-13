@@ -44,7 +44,6 @@ fontawesome
 foxundermoon
 fullrows
 genindex
-getline
 globaltoc
 hostshare
 htmlcov
@@ -60,6 +59,7 @@ lextudio
 lftp
 libera
 libjsonnet
+libsonnet
 linters
 manylinux
 modindex
@@ -104,7 +104,6 @@ resp
 rstcheck
 rtorrent
 schemafile
-sdist
 seedingtime
 setlabel
 setsettings
@@ -132,10 +131,10 @@ unexpectedru
 unidecode
 venv
 vers
-virtualenv
 vsplit
 webui
 wiswa
 xirvik
 yapf
 yapfignore
+yarnrc

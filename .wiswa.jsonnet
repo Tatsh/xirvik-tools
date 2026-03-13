@@ -16,10 +16,18 @@ local utils = import 'utils.libjsonnet';
       scripts: { xirvik: 'xirvik.commands:xirvik' },
     },
     tool+: {
+      hatch+: {
+        build+: {
+          targets+: {
+            wheel+: {
+              packages+: ['xirvik'],
+            },
+          },
+        },
+      },
       poetry+: {
         dependencies+: {
           beautifulsoup4: utils.latestPypiPackageVersionCaret('beautifulsoup4'),
-          'cached-property': utils.latestPypiPackageVersionCaret('cached-property'),
           fabric: utils.latestPypiPackageVersionCaret('fabric'),
           html5lib: utils.latestPypiPackageVersionCaret('html5lib'),
           keyring: utils.latestPypiPackageVersionCaret('keyring'),

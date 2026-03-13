@@ -27,17 +27,15 @@ repos:
     repo: 'https://github.com/pre-commit/pre-commit-hooks'
     rev: 'v6.0.0'
   - hooks:
-      - id: 'poetry-check'
-        stages:
-          - 'pre-push'
-      - id: 'poetry-lock'
+      - id: 'uv-lock'
         stages:
           - 'pre-push'
       - args:
           - '--all-groups'
-        id: 'poetry-install'
-    repo: 'https://github.com/python-poetry/poetry'
-    rev: '2.3.2'
+          - '--frozen'
+        id: 'uv-sync'
+    repo: 'https://github.com/astral-sh/uv-pre-commit'
+    rev: '0.10.9'
   - hooks:
       - id: 'yapf'
         name: 'check Python files are formatted'
@@ -53,7 +51,7 @@ repos:
         id: 'check-jsonschema'
         name: 'validate package.json'
     repo: 'https://github.com/python-jsonschema/check-jsonschema'
-    rev: '0.36.2'
+    rev: '0.37.0'
   - hooks:
       - id: 'validate-cff'
     repo: 'https://github.com/citation-file-format/cffconvert'
@@ -87,7 +85,7 @@ repos:
         id: 'fix-formatting-prettier'
         language: 'system'
         name: 'check files are formatted with Prettier'
-      - entry: 'poetry run ruff check --fix --exit-non-zero-on-fix'
+      - entry: 'uv run ruff check --fix --exit-non-zero-on-fix'
         id: 'fix-ruff'
         language: 'system'
         name: 'check Python files have Ruff fixes applied'

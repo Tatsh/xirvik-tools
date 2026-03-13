@@ -12,7 +12,9 @@ grade: 'stable'
 name: 'xirvik-tools'
 parts:
   xirvik-tools:
-    plugin: 'poetry'
+    plugin: 'python'
+    python-packages:
+      - '.'
     source: '.'
     stage-packages: []
 platforms:

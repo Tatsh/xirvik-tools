@@ -3,17 +3,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: 'actions/checkout@v6'
-      - name: 'Install Poetry'
-        run: 'pipx install poetry yq'
+      - name: 'Install yq'
+        run: 'pipx install yq'
+      - name: 'Install uv'
+        uses: 'astral-sh/setup-uv@v7'
       - name: 'Set up Python'
         uses: 'actions/setup-python@v6'
         with:
-          cache: 'poetry'
           python-version: '3.13'
-      - name: 'Install dependencies (Poetry)'
+      - name: 'Install dependencies (uv)'
         run: |
-          poetry install
-          poetry run -- pip install pyinstaller
+          uv sync
+          uv pip install pyinstaller
         shell: 'bash'
       - name: 'Build with PyInstaller'
         run: |
@@ -64,7 +65,7 @@ jobs:
                   cat version-info.txt
               fi
               echo "Building executable for '${script_name}'..."
-              poetry run -- pyinstaller --log-level ERROR --onefile -n "${script_name}" --optimize 1 \
+              uv run pyinstaller --log-level ERROR --onefile -n "${script_name}" --optimize 1 \
                 --hidden-import colorlog -y --version-file version-info.txt \
                 temp_script.py
               if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
