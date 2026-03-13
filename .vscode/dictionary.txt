@@ -129,6 +129,7 @@ tryfirst
 udvare
 unexpectedru
 unidecode
+userprofile
 venv
 vers
 vsplit
