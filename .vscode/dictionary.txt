@@ -132,6 +132,7 @@ unidecode
 userprofile
 venv
 vers
+virtualenv
 vsplit
 webui
 wiswa

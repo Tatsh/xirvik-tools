@@ -35,7 +35,7 @@ repos:
           - '--frozen'
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
-    rev: '0.10.9'
+    rev: '0.10.10'
   - hooks:
       - id: 'yapf'
         name: 'check Python files are formatted'
