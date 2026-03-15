@@ -3,7 +3,7 @@ build:
   jobs:
     post_install:
       - 'pip install uv'
-      - 'uv sync --group docs --all-extras --no-dev'
+      - 'UV_PROJECT_ENVIRONMENT="$READTHEDOCS_VIRTUALENV_PATH" uv sync --group docs --inexact --all-extras --no-dev'
   os: 'ubuntu-22.04'
   tools:
     python: '3.12'
