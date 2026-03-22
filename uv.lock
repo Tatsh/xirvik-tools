@@ -728,16 +728,16 @@ wheels = [
 
 [[package]]
 name = "cz-path"
-version = "0.0.4"
+version = "0.0.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "commitizen" },
     { name = "gitpython" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5f/0b/3494b6d12bb25b381072908839ca6d298cf9be1e44f682313da9c1171694/cz_path-0.0.4.tar.gz", hash = "sha256:d40c1d571def8c03324776212bb274022b3ee42cbfe0a804d6a5bbaaae340414", size = 7316, upload-time = "2025-11-10T20:59:06.255Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/63/572eb6852727f0e732315e8bb6b147371848e9de7d1a457af1d4878d899a/cz_path-0.0.6.tar.gz", hash = "sha256:025c5556b03b58191a5c9ae2fbd9344456d4b3e1bd2420ed1790da1074cf34eb", size = 1247276, upload-time = "2026-03-21T19:30:14.582Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/49/61/238e8c597bb28655d87fd207b021b266001db0c6e387fe9beff5f72337e1/cz_path-0.0.4-py3-none-any.whl", hash = "sha256:804cead9f91c6983e05340b3a4661f8a3f6fea591d015455483492e7b90f7b5a", size = 5481, upload-time = "2025-11-10T20:59:05.284Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/8b/8db8066214db09d312baccbb9577b2b40cd6bfd0269479238adbea2730ac/cz_path-0.0.6-py3-none-any.whl", hash = "sha256:d616ebc6d374b8ae02b1435c274ac5a22ab706da5c2cc3c5257f61e49b768190", size = 5525, upload-time = "2026-03-21T19:30:13.401Z" },
 ]
 
 [[package]]
