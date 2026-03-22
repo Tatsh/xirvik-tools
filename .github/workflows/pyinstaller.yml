@@ -12,51 +12,62 @@ jobs:
         with:
           python-version: '3.13'
       - if: matrix.os == 'windows-11-arm'
-        name: 'Restore vcpkg cache'
+        name: 'Cache vcpkg installed packages'
         uses: 'actions/cache@v5'
         with:
-          key: vcpkg-openssl-arm64-windows-${{ hashFiles('.github/workflows/pyinstaller.yml') }}
-          path: |
-            ~\vcpkg
-          restore-keys: |
-            vcpkg-openssl-arm64-windows-
+          key: vcpkg-arm64-windows-openssl-${{ hashFiles('.github/workflows/pyinstaller.yml') }}
+          path: '~/vcpkg/installed'
       - if: matrix.os == 'windows-11-arm'
         name: 'Set up vcpkg'
         run: |
-          if (Test-Path "$env:USERPROFILE\vcpkg\.git") {
-            git -C "$env:USERPROFILE\vcpkg" pull --depth 1
-          } else {
-            git clone --depth 1 https://github.com/microsoft/vcpkg "$env:USERPROFILE\vcpkg"
+          $cachedInstalled = $null
+          if (Test-Path "$env:USERPROFILE\vcpkg\installed") {
+            $cachedInstalled = "$env:TEMP\vcpkg-installed"
+            Move-Item "$env:USERPROFILE\vcpkg\installed" $cachedInstalled
+            Remove-Item -Recurse -Force "$env:USERPROFILE\vcpkg"
+          }
+          git clone --depth 1 https://github.com/microsoft/vcpkg "$env:USERPROFILE\vcpkg"
+          if ($cachedInstalled) {
+            Move-Item $cachedInstalled "$env:USERPROFILE\vcpkg\installed"
           }
           & "$env:USERPROFILE\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
-          & "$env:USERPROFILE\vcpkg\vcpkg.exe" install openssl
+          & "$env:USERPROFILE\vcpkg\vcpkg.exe" install openssl --triplet arm64-windows
+
+          $installed = "$env:USERPROFILE\vcpkg\installed\arm64-windows"
+
           Add-Content -Path $env:GITHUB_PATH -Value "$env:USERPROFILE\vcpkg"
+          Add-Content -Path $env:GITHUB_PATH -Value "$installed\tools\pkgconf"
           Add-Content -Path $env:GITHUB_ENV -Value "VCPKG_ROOT=$env:USERPROFILE\vcpkg"
           Add-Content -Path $env:GITHUB_ENV -Value "VCPKG_DEFAULT_TRIPLET=arm64-windows"
-          Add-Content -Path $env:GITHUB_ENV -Value "OPENSSL_DIR=$env:USERPROFILE\vcpkg\installed\arm64-windows"
+          Add-Content -Path $env:GITHUB_ENV -Value "OPENSSL_DIR=$installed"
+          Add-Content -Path $env:GITHUB_ENV -Value "PKG_CONFIG_PATH=$installed\lib\pkgconfig"
+          Add-Content -Path $env:GITHUB_ENV -Value "CMAKE_PREFIX_PATH=$installed"
+          Add-Content -Path $env:GITHUB_ENV -Value "LIB=$installed\lib"
+          Add-Content -Path $env:GITHUB_ENV -Value "INCLUDE=$installed\include"
         shell: 'pwsh'
       - name: 'Install dependencies (uv)'
         run: |
-          uv sync
+          uv sync --all-extras --all-groups
           uv pip install pyinstaller
         shell: 'bash'
       - name: 'Build with PyInstaller'
         run: |
           project_name=$(tomlq -r '.project.urls.repository|split("/")[-1]' pyproject.toml)
-          vers=$(echo "$(tomlq -r '.project.version|split(".")|map(tonumber)|@csv' pyproject.toml),0")
+          vers="$(tomlq -r '.project.version|split(".")|map(tonumber)|@csv' pyproject.toml),0"
           version=$(tomlq -r .project.version pyproject.toml)
-          while IFS=$' ' read -r script_name python_path func_name; do
-              func_name="${func_name#"${func_name%%[![:space:]]*}"}"
-              func_name="${func_name%"${func_name##*[![:space:]]}"}"
-              cat > temp_script.py <<EOF
+          script_name='xirvik'
+          IFS=$' ' read -r python_path func_name < <(tomlq -r '.project.scripts."'"${script_name}"'"|split(":")|join(" ")' pyproject.toml)
+          func_name="${func_name#"${func_name%%[![:space:]]*}"}"
+          func_name="${func_name%"${func_name##*[![:space:]]}"}"
+          cat > temp_script.py <<EOF
           from ${python_path} import ${func_name}
           if __name__ == '__main__':
               ${func_name}()
           EOF
-              if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
-                  cat temp_script.py
-              fi
-              cat > version-info.txt <<EOF
+          if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
+              cat temp_script.py
+          fi
+          cat > version-info.txt <<EOF
           VSVersionInfo(
               ffi=FixedFileInfo(date=(0, 0),
                                 filevers=(${vers}),
@@ -85,22 +96,24 @@ jobs:
                   VarFileInfo([VarStruct('Translation', [0x409, 1200, 0x809, 1252])])
               ])
           EOF
-              if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
-                  cat version-info.txt
-              fi
-              echo "Building executable for '${script_name}'..."
-              openssl_args=()
-              if [[ -n "${OPENSSL_DIR:-}" ]]; then
-                  openssl_args=(--add-binary "${OPENSSL_DIR}/bin/*.dll;.")
-              fi
-              uv run pyinstaller --log-level ERROR --onefile -n "${script_name}" --optimize 1 \
-                --hidden-import colorlog -y --version-file version-info.txt \
-                "${openssl_args[@]}" \
-                temp_script.py
-              if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
-                  cat "${script_name}.spec"
-              fi
-          done < <(tomlq -r '.project.scripts|to_entries[]|"\(.key) \(.value|split(":")|join(" "))"' pyproject.toml)
+          if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
+              cat version-info.txt
+          fi
+          echo "Building executable for '${script_name}'..."
+          openssl_args=()
+          if [[ -n "${OPENSSL_DIR:-}" ]]; then
+              openssl_args=(--add-binary "${OPENSSL_DIR}/bin/*.dll;.")
+          fi
+          uv run pyinstaller --log-level ERROR --onefile -n "${script_name}" --optimize 1 \
+            --hidden-import colorlog \
+            --collect-submodules xirvik \
+            --collect-data binaryornot \
+            -y --version-file version-info.txt \
+            "${openssl_args[@]}" \
+            temp_script.py
+          if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
+              cat "${script_name}.spec"
+          fi
         shell: 'bash'
       - if: matrix.os == 'windows-latest' || matrix.os == 'windows-11-arm'
         name: 'Test binary'
@@ -110,6 +123,7 @@ jobs:
           foreach ($file in $distFiles) {
             Write-Host "Testing '$($file.FullName)'."
             & $file.FullName --help
+            & $file.FullName rtorrent --help
           }
       - if: matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
         name: 'Test binary'
@@ -123,6 +137,7 @@ jobs:
               fi
               echo "Testing '${file}'."
               "./${file}" --help
+              "./${file}" rtorrent --help
           done
       - name: 'Upload Artifacts'
         uses: 'actions/upload-artifact@v7'
@@ -132,9 +147,23 @@ jobs:
           path: |
             ${{ matrix.dist_path }}
       - name: 'Attest'
-        uses: 'actions/attest-build-provenance@v4'
+        uses: 'actions/attest@v4'
         with:
           subject-path: '${{ matrix.dist_path }}'
+      - name: 'Generate SBOM'
+        uses: 'anchore/sbom-action@v0'
+        env:
+          SYFT_SOURCE_NAME: 'xirvik-tools'
+          SYFT_SOURCE_VERSION: ${{ github.ref_name }}
+        with:
+          path: 'dist/'
+          output-file: 'sbom.spdx.json'
+          upload-artifact: false
+      - name: 'Attest SBOM'
+        uses: 'actions/attest@v4'
+        with:
+          subject-path: '${{ matrix.dist_path }}'
+          sbom-path: 'sbom.spdx.json'
       - if: (matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel') && github.ref_type == 'tag'
         name: 'Zip files'
         run: |
@@ -150,13 +179,20 @@ jobs:
         shell: pwsh
       - if: github.ref_type == 'tag'
         name: 'Attest'
-        uses: 'actions/attest-build-provenance@v4'
+        uses: 'actions/attest@v4'
         with:
           subject-path: '_out/*.zip'
+      - if: github.ref_type == 'tag'
+        name: 'Attest SBOM'
+        uses: 'actions/attest@v4'
+        with:
+          subject-path: '_out/*.zip'
+          sbom-path: 'sbom.spdx.json'
       - if: github.ref_type == 'tag'
         name: Upload package
         uses: softprops/action-gh-release@v2
         with:
+          draft: true
           fail_on_unmatched_files: true
           files: |
             _out/*.zip

@@ -59,4 +59,20 @@ local utils = import 'utils.libjsonnet';
       },
     },
   },
+  pyinstaller+: {
+    include_only: ['xirvik'],
+    collect_data: ['binaryornot'],
+    collect_submodules: ['xirvik'],
+    test_commands: ['rtorrent --help'],
+    uv_sync_args: ['--all-extras', '--all-groups'],
+    vcpkg: {
+      enabled: true,
+      targets: {
+        'windows-11-arm': {
+          triplet: 'arm64-windows',
+          packages: ['openssl'],
+        },
+      },
+    },
+  },
 }

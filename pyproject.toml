@@ -5,10 +5,9 @@ requires = ["hatchling"]
 [dependency-groups]
 dev = [
   "commitizen>=4.13.9",
-  "cz-path>=0.0.4",
-  "djlint>=1.36.4",
+  "cz-path>=0.0.6",
   "mypy>=1.19.1",
-  "ruff>=0.15.6",
+  "ruff>=0.15.7",
   "types-beautifulsoup4>=4.12.0.20250516",
   "types-pyyaml>=6.0.12.20250915",
   "types-ratelimit>=2.2.0.20250501",
@@ -27,14 +26,13 @@ docs = [
   "sphinx-click>=6.2.0",
   "sphinx-datatables>=1.0.0",
   "sphinx-immaterial>=0.13.9",
-  "sphinx<9.0.0; python_version >= \"3.11\"",
-  "sphinx>=7.2.5; python_version < \"3.11\"",
+  "sphinx>=9.1.0; python_version >= \"3.13\"",
   "tomlkit>=0.14.0",
 ]
 tests = [
   "coveralls>=4.1.0",
   "mock>=5.2.0",
-  "pytest-cov>=7.0.0",
+  "pytest-cov>=7.1.0",
   "pytest-mock>=3.15.1",
   "pytest>=9.0.2",
   "requests-mock>=1.12.1",
@@ -97,9 +95,11 @@ version_files = [
   ".wiswa.jsonnet",
   "CITATION.cff",
   "README.md",
+  "docs/badges.rst",
   "docs/index.rst",
   "man/xirvik-tools.1",
   "package.json",
+  "snapcraft.yaml",
   "xirvik/__init__.py",
 ]
 version_provider = "pep621"
@@ -112,14 +112,6 @@ show_missing = true
 [tool.coverage.run]
 branch = true
 omit = ["__main__.py", "conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py"]
-
-[tool.djlint]
-max_line_length = 100
-no_line_after_yaml = true
-preserve_blank_lines = true
-preserve_leading_space = true
-profile = "jinja"
-use_gitignore = true
 
 [tool.doc8]
 max-line-length = 100

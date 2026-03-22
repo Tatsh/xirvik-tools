@@ -7,11 +7,16 @@ apps:
       - 'network-bind'
 base: 'core24'
 confinement: 'strict'
+contact: 'https://github.com/Tatsh/xirvik-tools/issues'
 description: 'Command line utilities for interfacing with Xirvik.'
+donation: 'https://buymeacoffee.com/Tatsh'
 grade: 'stable'
+issues: 'https://github.com/Tatsh/xirvik-tools/issues'
+license: 'MIT'
 name: 'xirvik-tools'
 parts:
   xirvik-tools:
+    build-packages: []
     plugin: 'python'
     python-packages:
       - '.'
@@ -22,5 +27,8 @@ platforms:
     build-on: 'amd64'
   arm64:
     build-on: 'arm64'
+source-code: 'https://github.com/Tatsh/xirvik-tools'
 summary: 'Command line utilities for interfacing with Xirvik.'
+title: 'xirvik-tools'
 version: '0.5.3'
+website: 'https://tatsh.github.io/xirvik-tools/'

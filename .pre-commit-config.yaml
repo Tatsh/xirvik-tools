@@ -1,3 +1,12 @@
+ci:
+  skip:
+    - 'check-jsonschema'
+    - 'cspell'
+    - 'detect-aws-credentials'
+    - 'fix-formatting-markdown'
+    - 'fix-formatting-prettier'
+    - 'fix-ruff'
+    - 'yarn-check-lock'
 default_install_hook_types:
   - 'pre-commit'
   - 'pre-push'
@@ -35,7 +44,7 @@ repos:
           - '--frozen'
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
-    rev: '0.10.10'
+    rev: '0.10.12'
   - hooks:
       - id: 'yapf'
         name: 'check Python files are formatted'
@@ -93,13 +102,13 @@ repos:
         types_or:
           - 'python'
           - 'pyi'
-      - entry: 'yarn markdownlint-cli2 --fix'
+      - entry: 'yarn markdownlint-cli2 --config package.json --configPointer /markdownlint-cli2 --fix'
         id: 'fix-formatting-markdown'
         language: 'system'
         name: 'check Markdown files are formatted'
         types_or:
           - 'markdown'
-      - entry: 'yarn check-spelling --no-must-find-files --no-summary'
+      - entry: 'yarn cspell --no-progress --no-must-find-files --no-summary'
         id: 'cspell'
         language: 'node'
         name: 'check spelling'
