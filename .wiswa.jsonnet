@@ -16,15 +16,6 @@ local utils = import 'utils.libjsonnet';
       scripts: { xirvik: 'xirvik.commands:xirvik' },
     },
     tool+: {
-      hatch+: {
-        build+: {
-          targets+: {
-            wheel+: {
-              packages+: ['xirvik'],
-            },
-          },
-        },
-      },
       poetry+: {
         dependencies+: {
           beautifulsoup4: utils.latestPypiPackageVersionCaret('beautifulsoup4'),

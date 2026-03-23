@@ -36,6 +36,7 @@ dets
 diskspace
 docstrings
 doctrees
+dorny
 dunder
 ecda
 eeyore

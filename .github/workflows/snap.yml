@@ -38,6 +38,14 @@ name: 'Snap'
   push:
     branches:
       - 'master'
+    paths:
+      - '**/*.py'
+      - '**/*.pyi'
+      - '.github/workflows/snap.yml'
+      - 'pyproject.toml'
+      - 'snapcraft.yaml'
+      - 'uv.lock'
+      - 'poetry.lock'
     tags:
       - 'v*.*.*'
   workflow_dispatch: null

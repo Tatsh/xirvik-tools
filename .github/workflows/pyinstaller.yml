@@ -216,6 +216,13 @@ name: 'PyInstaller'
   push:
     branches:
       - 'master'
+    paths:
+      - '**/*.py'
+      - '**/*.pyi'
+      - '.github/workflows/pyinstaller.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'poetry.lock'
     tags:
       - 'v*.*.*'
 permissions:
