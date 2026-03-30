@@ -473,7 +473,7 @@ def list_untracked_files(
 
 
 @click.command(cls=command_with_config_file('config', 'download-untracked-files'),
-               help='List untracked file paths.')
+               help='Download untracked file paths.')
 @click.argument('untracked-filename', type=click.Path(exists=True, path_type=Path))
 @click.argument('target', type=click.Path(path_type=Path))
 @click.option('-H', '--host', help='Xirvik host (without protocol)', shell_complete=complete_hosts)
