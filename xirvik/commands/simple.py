@@ -509,8 +509,10 @@ def download_untracked_files(
             out_file_or_dir = target / '/'.join(file_or_dir.split('/')[2:])
             out_file_or_dir.parent.mkdir(parents=True, exist_ok=True)
             src = f'{host}:{file_or_dir}{"/" if is_dir(client, file_or_dir) else ""}'
-            sp.run(('rsync', '-e', f'ssh -p {port}', '--progress', '-lrtNEU', *(('-v') if debug else
+            sp.run(
+                (  # noqa: S607
+                    'rsync', '-e', f'ssh -p {port}', '--progress', '-lrtNEU', *(('-v') if debug else
                                                                                 ()), src,
                     str(out_file_or_dir)),
-                   check=True)
+                check=True)
             log.info('Finished downloading `%s` to `%s`.', src, out_file_or_dir)
