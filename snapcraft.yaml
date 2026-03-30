@@ -1,6 +1,6 @@
 apps:
   xirvik-tools:
-    command: 'bin/xirvik'
+    command: 'bin/xirvik-tools'
     plugs:
       - 'home'
       - 'network'

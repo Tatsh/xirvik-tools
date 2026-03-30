@@ -18,6 +18,7 @@ bencodepy
 binaryornot
 bsky
 cdrommsf
+codesign
 colenabled
 colorder
 colorlog
@@ -36,7 +37,6 @@ dets
 diskspace
 docstrings
 doctrees
-dorny
 dunder
 ecda
 eeyore
@@ -63,6 +63,7 @@ jsonnet
 jsonschema
 kwargs
 labelsize
+lastexitcode
 launchable
 lextudio
 lftp
@@ -84,7 +85,9 @@ needmessage
 netrc
 nistp
 norecursedirs
+notarytool
 notpeter
+npmjs
 numpy
 numpydoc
 onefile
@@ -125,6 +128,7 @@ setlabel
 setsettings
 shellcheck
 shellformat
+signtool
 sindex
 snapcore
 snapcraft
@@ -158,6 +162,7 @@ virtualenv
 vsplit
 webui
 wiswa
+xcrun
 xirvik
 yapf
 yapfignore
