@@ -582,6 +582,29 @@ def test_list_untracked_files_multiple(runner: CliRunner, mocker: MockerFixture,
     assert lines[-1] == 'file3'
 
 
+def test_list_untracked_files_empty_files(runner: CliRunner, mocker: MockerFixture, tmp_path: Path,
+                                          monkeypatch: pytest.MonkeyPatch) -> None:
+    netrc = tmp_path / '.netrc'
+    netrc.write_text('machine machine.com login some_name password pass\n')
+    monkeypatch.setenv('HOME', str(tmp_path))
+    client_mock = mocker.patch('xirvik.commands.simple.ruTorrentClient')
+    client_mock.return_value.list_torrents.return_value = [
+        MinimalTorrentDict('hash1',
+                           custom1='TEST me',
+                           name='The Name',
+                           is_hash_checking=False,
+                           base_path='/downloads/_completed')
+    ]
+    client_mock.return_value.list_files.return_value = []
+    sp_mock = mocker.patch('xirvik.commands.simple.sp')
+    values = ['/downloads/_completed/file1', '']
+
+    sp_mock.run.return_value.stdout = '\n'.join(values)
+    lines = runner.invoke(
+        xirvik, ('rtorrent', 'list-untracked-files', '-L', 'ssh blah')).output.splitlines()
+    assert lines[-1] == '/downloads/_completed/file1'
+
+
 def test_download_untracked_files(runner: CliRunner, mocker: MockerFixture, tmp_path: Path,
                                   monkeypatch: pytest.MonkeyPatch) -> None:
     mocker.patch('xirvik.commands.simple.setup_logging')

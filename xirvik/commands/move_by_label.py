@@ -43,23 +43,24 @@ def _key_check(info: TorrentInfo) -> bool:
     return not info.is_hash_checking and info.left_bytes == 0
 
 
-@click.command(cls=command_with_config_file('config', 'move-by-label'))
+@click.command(cls=command_with_config_file('config', 'move-by-label'),
+               context_settings={'help_option_names': ('-h', '--help')})
 @common_options_and_arguments
-@click.option('-b', '--batch-size', default=10, help='Batch size.')
+@click.option('-b', '--batch-size', type=int, default=10, help='Batch size.')
 @click.option('-c',
               '--completed-dir',
               default='_completed',
-              help='Top directory where moved torrent data will be placed')
+              help='Top directory where moved torrent data will be placed.')
 @click.option('-t',
               '--sleep-time',
               default=10,
               type=int,
               help=('Time to sleep in seconds at certain times during this batch '
-                    'of requests'))
+                    'of requests.'))
 @click.option('-l',
               '--lower-label',
               is_flag=True,
-              help='Call lower() on labels used to make directory names')
+              help='Call lower() on labels used to make directory names.')
 @click.option('--ignore-labels', multiple=True, help='List of labels to ignore (case-sensitive).')
 def main(host: str,
          ignore_labels: Sequence[str],
@@ -88,7 +89,6 @@ def main(host: str,
                              netrc_path=netrc or Path('~/.netrc').expanduser(),
                              backoff_factor=backoff_factor)
     username = client.name
-    assert username is not None
     try:
         torrents = client.list_torrents()
     except (ValueError, HTTPError) as e:

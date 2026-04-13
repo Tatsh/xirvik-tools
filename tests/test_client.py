@@ -40,6 +40,24 @@ def test_no_netrc_path() -> None:
         assert client.host == 'hostname-test.com'
 
 
+def test_netrc_no_entry() -> None:
+    with NamedTemporaryFile('w', encoding='utf-8') as f:
+        f.write('machine other-host.com login a password b\n')
+        f.flush()
+        with pytest.raises(ValueError, match=r'No netrc entry found for hostname-test\.com'):
+            ruTorrentClient('hostname-test.com', netrc_path=f.name)
+
+
+def test_name_required() -> None:
+    with pytest.raises(ValueError, match='Username is required'):
+        ruTorrentClient('hostname-test.com', password='bbbb')
+
+
+def test_password_required() -> None:
+    with pytest.raises(ValueError, match='Password is required'):
+        ruTorrentClient('hostname-test.com', name='a')
+
+
 def test_http_prefix() -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     assert client.http_prefix == 'https://hostname-test.com'

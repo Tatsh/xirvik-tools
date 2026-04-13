@@ -39,9 +39,13 @@ def _make_move_to(prefix: str, label: str) -> str:
     return f'{prefix}/{label}'
 
 
-@click.command(cls=command_with_config_file('config', 'move-erroneous'))
+@click.command(cls=command_with_config_file('config', 'move-erroneous'),
+               context_settings={'help_option_names': ('-h', '--help')})
 @common_options_and_arguments
-@click.option('--sleep-time', type=int, default=10)
+@click.option('--sleep-time',
+              type=int,
+              default=10,
+              help='Time to sleep between batches in seconds.')
 def main(
         host: str,
         netrc: str | None = None,
@@ -68,20 +72,16 @@ def main(
         client.stop(info.hash)
         if count > 0 and (count % 10) == 0:
             sleep(sleep_time)
-    count = 0
-    for info in items:
+    for count, info in enumerate(items):
         move_to = _make_move_to(prefix, info.custom1.lower())
         to_delete.append((info.hash, info.name))
         logger.info('Moving %s to %s/.', info.name, move_to)
         client.move_torrent(info.hash, move_to)
         client.stop(info.hash)
-        count += 1
         if count > 0 and (count % 10) == 0:
             sleep(sleep_time)
-    count = 0
-    for hash_, name in to_delete:
+    for count, (hash_, name) in enumerate(to_delete):
         logger.info('Removing torrent "%s" (without deleting data).', name)
         client.remove(hash_)
-        count += 1
         if count > 0 and (count % 10) == 0:
             sleep(sleep_time)

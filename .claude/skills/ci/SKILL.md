@@ -19,9 +19,13 @@ files. Launch each agent sequentially using the Agent tool with subagent_type `g
 telling it to follow the corresponding `.claude/agents/<name>.md` file. Scope each agent to only the
 changed files, not the entire project.
 
+You must skip any agents that are not relevant to the changed files (e.g. if no Click command files
+changed, skip the click-auditor).
+
 ### When Python code is being committed
 
-If any changed files are under `xirvik/` or `tests/`, run the following agents **in order**:
+If any changed files are under `xirvik/` or `tests/`, run the following
+agents **in order**:
 
 1. **python-moderniser** - upgrade to modern Python features.
 1. **click-auditor** - validate Click command consistency. **Only run if files under
@@ -34,13 +38,19 @@ If any changed files are under `xirvik/` or `tests/`, run the following agents *
 
 ### When user-facing changes are being committed
 
-- **changelog** - update `CHANGELOG.md` with entries for the changes.
-  After it completes, check if `CHANGELOG.md` was modified
-  (`git diff CHANGELOG.md`). If it was, it will be staged together
-  with the relevant commit. **Only run when changes affect users**:
-  files under `xirvik/`, `tests/`, or
-  dependency/version changes in `pyproject.toml`. **Skip for**: workflows, CI config, `.claude/`,
-  `.cursor/`, `.github/instructions/`, documentation-only changes, and other non-user-facing files.
+- **changelog** - update `CHANGELOG.md` only for **user-facing** changes (behaviour, CLI, public
+  API, security, or meaningful dependency constraints that affect installs). After it completes,
+  check if `CHANGELOG.md` was modified (`git diff CHANGELOG.md`). If it was, stage it with the
+  relevant commit. Follow `.claude/agents/changelog.md`, including its skip list.
+
+  Files under `xirvik/`, `tests/`, or version changes in `pyproject.toml` are **candidates**
+  for the changelog agent only when they **change what users see or
+  how the software behaves**. Editing those paths is not sufficient on its own.
+
+  **Skip the changelog agent** for workflows, CI config, `.claude/`, documentation-only churn,
+  cruft or generator clean-up (for example replacing template placeholders such as `unknown` in
+  repository URLs, badges, packaging metadata, or `CODEOWNERS` with the real project identity),
+  internal refactors with no behaviour change, and other non-user-facing work.
 
 ## Analysing changes
 
@@ -77,8 +87,8 @@ When all changes are from re-running Wiswa (the project generator) and
 no hand-written code changed, this is a **cruft update**. Indicators:
 
 - Only Wiswa-managed files changed (workflows,
-  `package.json`, `pyproject.toml`, `.pre-commit-config.yaml`, `.claude/agents/`,
-  `.cursor/rules/`, `.github/instructions/`, `CITATION.cff`, `.vscode/dictionary.txt`, `uv.lock`,
+  `package.json`, `pyproject.toml`, `.pre-commit-config.yaml`, `.claude/agents/`, `.claude/rules/`,
+  `CITATION.cff`, `.vscode/dictionary.txt`, `uv.lock`,
   `.wiswa.jsonnet`, etc.).
 - No files under the primary module or `tests/` changed.
 
@@ -158,6 +168,9 @@ Run commands separately. Do not chain commands with `&&` or `;`. Do not use scri
 6. If a pre-commit hook fails, fix the issue, re-stage (use appropriate agent if there is one), and
    try to commit again.
 7. After all commits, run `git status` to verify clean state.
+
+Temp commit message files under `.wiswa-ci/` do not need to be deleted after a successful commit; you
+may leave them in place.
 
 ## Rules
 

@@ -67,6 +67,11 @@ class ruTorrentClient:  # noqa: N801
 
     backoff_factor : int
         Factor used to calculate back-off time when retrying requests.
+
+    Raises
+    ------
+    ValueError
+        If no netrc entry is found for the host, or if username or password is not provided.
     """
     def __init__(self,
                  host: str,
@@ -79,13 +84,22 @@ class ruTorrentClient:  # noqa: N801
             if not netrc_path:
                 netrc_path = Path('~/.netrc').expanduser()
             netrc_data = netrc(netrc_path).authenticators(host.split(':', maxsplit=1)[0])
-            assert netrc_data is not None
+            if netrc_data is None:
+                msg = f'No netrc entry found for {host}'
+                raise ValueError(msg)
             name, _, password = netrc_data
-        assert name is not None
-        assert password is not None
+        if name is None:
+            msg = 'Username is required'
+            raise ValueError(msg)
+        if password is None:
+            msg = 'Password is required'
+            raise ValueError(msg)
         self.name = name
+        """Username for authentication."""
         self.password = password
+        """Password for authentication."""
         self.host = host
+        """Hostname with no protocol."""
         retry = Retry(connect=max_retries,
                       read=max_retries,
                       redirect=False,
@@ -123,13 +137,13 @@ class ruTorrentClient:  # noqa: N801
         return (self.name, self.password)
 
     def add_torrent(self, filepath: str, *, start_now: bool = True) -> None:
-        """Add a torrent. Use ``start_now=False`` to start paused.
+        """
+        Add a torrent. Use ``start_now=False`` to start paused.
 
         Parameters
         ----------
         filepath : str
             File path to the torrent file.
-
         start_now : bool
             If the torrent should start immediately.
         """
@@ -176,34 +190,40 @@ class ruTorrentClient:  # noqa: N801
             for i, (type_cls, val) in enumerate(
                     zip((t[1] for t in list(annots.items())[1:]), (y.strip() for y in x),
                         strict=False)):
-                if type_cls.__forward_arg__ == 'datetime | None':
-                    try:
-                        x[i] = datetime.fromtimestamp(float(val.strip() or '0'), timezone.utc)
-                        # First year xirvik.com existed
-                        if x[i].year < FIRST_YEAR_XIRVIK:
+                match type_cls.__forward_arg__:
+                    case 'datetime | None':
+                        try:
+                            x[i] = datetime.fromtimestamp(float(val.strip() or '0'), timezone.utc)
+                            # First year xirvik.com existed
+                            if x[i].year < FIRST_YEAR_XIRVIK:
+                                x[i] = None
+                        except ValueError:  # pragma no cover
                             x[i] = None
-                    except ValueError:  # pragma no cover
-                        x[i] = None
-                elif type_cls.__forward_arg__ == 'int':
-                    x[i] = int(val)
-                elif type_cls.__forward_arg__ == 'float':
-                    x[i] = float(val)
-                elif type_cls.__forward_arg__ == 'bool':
-                    x[i] = bool(int(val))
-                elif (type_cls.__forward_arg__ in {'HashingState', 'State'}):
-                    x[i] = int(val)
-                else:
-                    x[i] = val
+                    case 'int':
+                        x[i] = int(val)
+                    case 'float':
+                        x[i] = float(val)
+                    case 'bool':
+                        x[i] = bool(int(val))
+                    case 'HashingState' | 'State':
+                        x[i] = int(val)
+                    case _:
+                        x[i] = val
             yield TorrentInfo(hash_, *x)
 
     def get_torrent(self, hash_: str) -> tuple[requests.Response, str]:
-        """
+        r"""
         Prepare to get a torrent file given a hash.
+
+        Parameters
+        ----------
+        hash\_ : str
+            Hash of the torrent.
 
         Returns
         -------
         tuple[requests.Response, str]
-            ``requests.Request`` object and the file name string.
+            :py:class:`~requests.Response` object and the file name string.
         """
         source_torrent_uri = (f'{self.http_prefix}/rtorrent/plugins/source/'
                               f'action.php?hash={hash_}')
@@ -228,6 +248,7 @@ class ruTorrentClient:  # noqa: N801
         Raises
         ------
         UnexpectedruTorrentError
+            If the server returns errors in the response.
         """
         r = self._session.post(self.datadir_action_uri,
                                data={
@@ -247,13 +268,18 @@ class ruTorrentClient:  # noqa: N801
         """
         Set a label to a list of info hashes. The label can be a new label.
 
-        To remove a label, pass an empty string as the `label` keyword
-        argument.
+        To remove a label, pass an empty string as the ``label`` keyword argument.
 
         Example use::
 
             client.set_labels(hashes=[hash_1, hash_2],
                               label='my new label')
+
+        Parameters
+        ----------
+        **kwargs : Any
+            Expected keys: ``hashes`` (list of hash strings), ``label`` (str), and optionally
+            ``allow_recursive_fix`` (bool), ``recursion_limit`` (int), ``recursion_attempt`` (int).
 
         Raises
         ------
@@ -451,13 +477,14 @@ class ruTorrentClient:  # noqa: N801
                            auth=self.auth).raise_for_status()
 
     def add_torrent_url(self, url: str) -> None:
-        """Add a torrent via URI.
+        """
+        Add a torrent via URI.
 
         Parameters
         ----------
         url : str
-            URI to the torrent file. Must be available either under the current
-            credentials or public.
+            URI to the torrent file. Must be available either under the current credentials or
+            public.
         """
         self._session.post(self.add_torrent_uri, data={
             'url': url
@@ -474,9 +501,9 @@ class ruTorrentClient:  # noqa: N801
 
         Parameters
         ----------
-        hashes : Iterable[str] | None
+        hashes : Iterable[str]
             List of torrent hashes to edit.
-        comment : str
+        comment : str | None
             Comment to set.
         private : bool | None
             Value for the private flag.

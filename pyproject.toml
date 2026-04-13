@@ -6,12 +6,13 @@ requires = ["hatchling"]
 dev = [
   "commitizen>=4.13.9",
   "cz-path>=0.0.6",
-  "mypy>=1.19.1",
-  "ruff>=0.15.8",
+  "mypy>=1.20.0",
+  "ruff>=0.15.9",
+  "ty>=0.0.29",
   "types-beautifulsoup4>=4.12.0.20250516",
   "types-pyyaml>=6.0.12.20250915",
   "types-ratelimit>=2.2.0.20250501",
-  "types-requests>=2.33.0.20260327",
+  "types-requests>=2.33.0.20260402",
   "types-tabulate>=0.10.0.20260308",
   "yapf>=0.43.0",
 ]
@@ -53,15 +54,15 @@ classifiers = [
 dependencies = [
   "bascom>=0.1.2",
   "beautifulsoup4>=4.14.3",
-  "click>=8.3.1",
-  "fabric>=3.2.2",
+  "click>=8.3.2",
+  "fabric>=3.2.3",
   "html5lib>=1.1",
   "keyring>=25.7.0",
   "mutagen>=1.47.0",
   "platformdirs>=4.9.4",
   "pyyaml>=6.0.3",
   "ratelimit>=2.2.1",
-  "requests>=2.33.0",
+  "requests>=2.33.1",
   "tabulate>=0.10.0",
   "typing-extensions>=4.15.0",
   "unidecode>=1.4.0",
@@ -99,6 +100,7 @@ version_files = [
   "docs/index.rst",
   "man/xirvik-tools.1",
   "package.json",
+  "sh.tat.xirvik-tools.yml",
   "snapcraft.yaml",
   "xirvik/__init__.py",
 ]
@@ -106,15 +108,18 @@ version_provider = "pep621"
 
 [tool.coverage.report]
 exclude_also = ["if TYPE_CHECKING:"]
-omit = ["__main__.py", "conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py"]
+omit = ["conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py", "xirvik/__main__.py"]
 show_missing = true
 
 [tool.coverage.run]
 branch = true
-omit = ["__main__.py", "conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py"]
+omit = ["conftest.py", "tests.py", "tests/*/test_*.py", "tests/test_*.py", "xirvik/__main__.py"]
 
 [tool.doc8]
 max-line-length = 100
+
+[tool.hatch.build.targets.sdist]
+include = ["xirvik", "tests"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["xirvik"]
@@ -143,7 +148,8 @@ reportMissingModuleSource = "error"
 reportPropertyTypeMismatch = "error"
 reportUnnecessaryTypeIgnoreComment = "none"
 typeCheckingMode = "off"
-useLibraryCodeForTypes = false
+venv = ".venv"
+venvPath = "."
 
 [tool.pytest.ini_options]
 mock_use_standalone_module = true
@@ -167,23 +173,7 @@ quote-style = "single"
 
 [tool.ruff.lint]
 extend-select = ["ALL"]
-ignore = [
-  "ANN401",
-  "COM812",
-  "CPY001",
-  "D201",
-  "D203",
-  "D204",
-  "D212",
-  "DOC201",
-  "N818",
-  "S101",
-  "S404",
-  "S603",
-  "TD002",
-  "UP046",
-  "UP047",
-]
+ignore = ["ANN401", "COM812", "CPY001", "D203", "D204", "D212", "N818", "S404", "S603", "TD002"]
 preview = true
 
 [tool.ruff.lint.flake8-builtins]
@@ -207,7 +197,7 @@ max-complexity = 20
 extend-ignore-names = ["test_*"]
 
 [tool.ruff.lint.per-file-ignores]
-"main.py" = ["PLR0913"]
+"xirvik/main.py" = ["PLR0913"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
@@ -222,7 +212,8 @@ max-returns = 10
 max-statements = 100
 
 [tool.uv]
-default-groups = ["dev"]
+default-groups = "all"
+exclude-newer = "1 week"
 
 [tool.yapf]
 align_closing_bracket_with_visual_indent = true

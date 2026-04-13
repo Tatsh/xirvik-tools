@@ -24,25 +24,37 @@ logger = logging.getLogger(__name__)
 
 
 def common_options_and_arguments(func: Callable[..., None]) -> Callable[..., None]:
-    """Shared options and arguments, to be used as a decorator with ``click.command()``."""
-    @click.option('-u', '--username', default=None, help='Xirvik user')
-    @click.option('-p', '--password', help='Xirvik password')
+    """
+    Shared options and arguments, to be used as a decorator with ``click.command()``.
+
+    Parameters
+    ----------
+    func : Callable[..., None]
+        The function to decorate.
+
+    Returns
+    -------
+    Callable[..., None]
+        The decorated function.
+    """
+    @click.option('-u', '--username', default=None, help='Xirvik user.')
+    @click.option('-p', '--password', help='Xirvik password.')
     @click.option('-r',
                   '--max-retries',
                   type=int,
                   default=10,
-                  help='Number of retries for each request (passed to client)')
-    @click.option('-d', '--debug', is_flag=True, help='Enable debug level logging')
+                  help='Number of retries for each request (passed to client).')
+    @click.option('-d', '--debug', is_flag=True, help='Enable debug level logging.')
     @click.option('--backoff-factor',
                   default=5,
                   type=int,
                   help=('Back-off factor used when calculating time to wait to retry '
-                        'a failed request'))
-    @click.option('--netrc', default=Path('~/.netrc').expanduser, help='netrc file path')
-    @click.option('-C', '--config', help='Configuration file')
+                        'a failed request.'))
+    @click.option('--netrc', default=Path('~/.netrc').expanduser, help='netrc file path.')
+    @click.option('-C', '--config', help='Configuration file.')
     @click.option('-H',
                   '--host',
-                  help='Xirvik host (without protocol)',
+                  help='Xirvik host (without protocol).',
                   shell_complete=complete_hosts)
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> None:  # pragma: no cover
@@ -81,7 +93,23 @@ def _read_netrc_hosts() -> Iterator[str]:
 
 
 def complete_hosts(_: Any, __: Any, incomplete: str) -> list[str]:
-    """Return a list of hosts from SSH known_hosts and ``~/.netrc`` for completion."""
+    """
+    Return a list of hosts from SSH known_hosts and ``~/.netrc`` for completion.
+
+    Parameters
+    ----------
+    _ : Any
+        Unused.
+    __ : Any
+        Unused.
+    incomplete : str
+        The incomplete string to match against.
+
+    Returns
+    -------
+    list[str]
+        A list of matching hosts.
+    """
     return [
         k for k in itertools.chain(_read_ssh_known_hosts(), _read_netrc_hosts())
         if k.startswith(incomplete)
@@ -89,7 +117,23 @@ def complete_hosts(_: Any, __: Any, incomplete: str) -> list[str]:
 
 
 def complete_ports(_: Any, __: Any, incomplete: str) -> list[str]:
-    """Return common ports for completion."""
+    """
+    Return common ports for completion.
+
+    Parameters
+    ----------
+    _ : Any
+        Unused.
+    __ : Any
+        Unused.
+    incomplete : str
+        The incomplete string to match against.
+
+    Returns
+    -------
+    list[str]
+        A list of matching ports.
+    """
     return [k for k in ('80', '443', '8080') if k.startswith(incomplete)]
 
 
@@ -105,6 +149,11 @@ def command_with_config_file(config_file_param_name: str = 'config',
 
     default_section : str | None
         Default top key of YAML to read from.
+
+    Returns
+    -------
+    type[click.Command]
+        A command class that reads from a configuration file.
     """
     default_config_file_path = f'{platformdirs.user_config_dir()}/xirvik.yml'
 

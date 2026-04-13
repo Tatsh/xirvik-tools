@@ -1,15 +1,15 @@
 local utils = import 'utils.libjsonnet';
 
 {
+  uses_user_defaults: true,
   project_name: 'xirvik-tools',
   description: 'Command line utilities for interfacing with Xirvik.',
   keywords: ['command line', 'xirvik'],
   primary_module: 'xirvik',
   version: '0.5.3',
   want_main: true,
-  copilot: {
-    intro: 'xirvik-tools is a set of command line tools for interfacing with Xirvik services.',
-  },
+  want_flatpak: true,
+  publishing+: { flathub: 'sh.tat.xirvik-tools' },
   security_policy_supported_versions: { '0.5.x': ':white_check_mark:' },
   pyproject+: {
     project+: {
@@ -66,4 +66,12 @@ local utils = import 'utils.libjsonnet';
       },
     },
   },
+  snapcraft+: {
+    apps+: {
+      'xirvik-tools'+: {
+        command: 'bin/xirvik',
+      },
+    },
+  },
+  flatpak+: { command: 'xirvik' },
 }

@@ -1,6 +1,7 @@
 addpath
 addtorrent
 anchore
+Ångström
 annots
 appdir
 appimage
@@ -25,6 +26,7 @@ colorlog
 colwidth
 commitizen
 conftest
+cooldown
 coveragerc
 coverallsapp
 ctypes
@@ -36,6 +38,7 @@ debugpy
 dets
 diskspace
 docstrings
+doctree
 doctrees
 dunder
 ecda
@@ -47,7 +50,7 @@ excinfo
 fastresume
 filevers
 flabel
-fontawesome
+flathub
 foxundermoon
 fullrows
 functools
@@ -59,6 +62,7 @@ htmlcov
 intersphinx
 isort
 itertools
+jinja
 jsonnet
 jsonschema
 kwargs
@@ -93,6 +97,7 @@ numpydoc
 onefile
 oneline
 oneshot
+optionstr
 paramiko
 parseparam
 pathlib
@@ -110,6 +115,7 @@ pydantic
 pydocstyle
 pyinstaller
 pylint
+pylock
 pypa
 pypi
 pyproject
@@ -122,6 +128,7 @@ resp
 rstcheck
 rtorrent
 schemafile
+sdist
 seedingtime
 setattr
 setlabel
@@ -162,9 +169,9 @@ virtualenv
 vsplit
 webui
 wiswa
+wiswa's
 xcrun
 xirvik
 yapf
 yapfignore
 yarnrc
-ångström

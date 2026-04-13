@@ -27,6 +27,16 @@ def parse_header(line: str) -> tuple[str, dict[str, str]]:
     Parse a Content-type like header.
 
     Return the main content-type and a dictionary of options.
+
+    Parameters
+    ----------
+    line : str
+        The header line to parse.
+
+    Returns
+    -------
+    tuple[str, dict[str, str]]
+        A tuple of the main content-type and a dictionary of options.
     """
     parts = _parseparam(';' + line)
     key = next(parts)

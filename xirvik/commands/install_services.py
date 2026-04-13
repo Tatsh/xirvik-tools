@@ -12,6 +12,7 @@ import subprocess as sp
 import sys
 
 from bascom import setup_logging
+from typing_extensions import override
 import click
 
 from .utils import complete_hosts
@@ -21,7 +22,13 @@ IS_WINDOWS = (sys.platform == 'win32' or sys.platform == 'cygwin'
               or environ.get('MSYSTEM', '').lower() == 'msys')
 
 
-@click.command()
+class _CaseSensitiveConfigParser(ConfigParser):
+    @override
+    def optionxform(self, optionstr: str) -> str:
+        return optionstr
+
+
+@click.command(context_settings={'help_option_names': ('-h', '--help')})
 @click.option('-d', '--debug', is_flag=True, help='Enable debug level logging.')
 @click.option('-i',
               '--interval',
@@ -73,8 +80,7 @@ def install_services(directories: tuple[Path, ...],
     service_output_path = Path('~/.config/systemd/user/xirvik-start-torrents.service').expanduser()
     timer_output_path = Path('~/.config/systemd/user/xirvik-start-torrents.timer').expanduser()
     with service_output_path.open('w+') as f:
-        parser = ConfigParser(delimiters=('=',))
-        parser.optionxform = str  # type: ignore[assignment,method-assign]
+        parser = _CaseSensitiveConfigParser(delimiters=('=',))
         parser['Unit'] = {
             'Description': 'Torrent sync with Xirvik',
             'After': 'network.target',
@@ -86,8 +92,7 @@ def install_services(directories: tuple[Path, ...],
         }
         parser.write(f, space_around_delimiters=False)
     with timer_output_path.open('w+') as f:
-        parser = ConfigParser(delimiters=('=',))
-        parser.optionxform = str  # type: ignore[assignment,method-assign]
+        parser = _CaseSensitiveConfigParser(delimiters=('=',))
         parser['Unit'] = {'Description': 'Trigger for Xirvik torrent sync'}
         parser['Timer'] = {
             'OnCalendar': f'*-*-* *:0/{interval}:00',

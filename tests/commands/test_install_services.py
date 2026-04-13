@@ -6,12 +6,13 @@ import plistlib
 from xirvik.commands.install_services import install_services
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from click.testing import CliRunner
     from pytest_mock.plugin import MockerFixture
 
 
 def test_install_services_windows(mocker: MockerFixture, runner: CliRunner) -> None:
-    """Test that the install_services command does not run on Windows."""
     mocker.patch('xirvik.commands.install_services.IS_WINDOWS', True)  # noqa: FBT003
     result = runner.invoke(install_services, ('/', '-H', 'example.com'))
     assert result.exit_code != 0
@@ -19,7 +20,6 @@ def test_install_services_windows(mocker: MockerFixture, runner: CliRunner) -> N
 
 
 def test_install_services_no_xirvik_command(mocker: MockerFixture, runner: CliRunner) -> None:
-    """Test that the install_services command fails if xirvik command is not found."""
     mocker.patch('xirvik.commands.install_services.IS_WINDOWS', False)  # noqa: FBT003
     mocker.patch('xirvik.commands.install_services.which', return_value=None)
     result = runner.invoke(install_services, ('/', '-H', 'example.com'))
@@ -28,7 +28,6 @@ def test_install_services_no_xirvik_command(mocker: MockerFixture, runner: CliRu
 
 
 def test_install_services_mac(mocker: MockerFixture, runner: CliRunner) -> None:
-    """Test that the install_services command runs on macOS."""
     mocker.patch('xirvik.commands.install_services.IS_WINDOWS', False)  # noqa: FBT003
     mocker.patch('xirvik.commands.install_services.IS_MAC', True)  # noqa: FBT003
     mocker.patch('xirvik.commands.install_services.which', return_value='/usr/local/bin/xirvik')
@@ -50,17 +49,26 @@ def test_install_services_mac(mocker: MockerFixture, runner: CliRunner) -> None:
     mock_sp_run.assert_called_once_with(('launchctl', 'load', '-w', mocker.ANY), check=True)
 
 
-def test_install_services_linux(mocker: MockerFixture, runner: CliRunner) -> None:
-    """Test that the install_services command runs on Linux."""
+def test_install_services_linux(mocker: MockerFixture, runner: CliRunner, tmp_path: Path) -> None:
     mocker.patch('xirvik.commands.install_services.IS_WINDOWS', False)  # noqa: FBT003
     mocker.patch('xirvik.commands.install_services.IS_MAC', False)  # noqa: FBT003
     mocker.patch('xirvik.commands.install_services.which', return_value='/usr/local/bin/xirvik')
-    mocker.patch('xirvik.commands.install_services.Path')
-    mock_parser = mocker.patch('xirvik.commands.install_services.ConfigParser')
+    service_path = tmp_path / 'xirvik-start-torrents.service'
+    timer_path = tmp_path / 'xirvik-start-torrents.timer'
+    mock_path = mocker.patch('xirvik.commands.install_services.Path')
+    mock_path.return_value.expanduser.side_effect = [service_path, timer_path]
     mock_sp_run = mocker.patch('xirvik.commands.install_services.sp.run')
     result = runner.invoke(install_services, ('/', '-H', 'example.com'))
     assert result.exit_code == 0
-    mock_parser.return_value.write.assert_called_with(mocker.ANY, space_around_delimiters=False)
+    service_content = service_path.read_text()
+    assert 'ExecStart' in service_content
+    assert 'Description' in service_content
+    assert 'After' in service_content
+    assert 'Type' in service_content
+    timer_content = timer_path.read_text()
+    assert 'OnCalendar' in timer_content
+    assert 'WantedBy' in timer_content
+    assert 'Description' in timer_content
     mock_sp_run.assert_any_call(('/bin/systemctl', '--user', 'daemon-reload'), check=True)
     mock_sp_run.assert_any_call(
         ('/bin/systemctl', '--user', 'enable', '--now', 'xirvik-start-torrents.timer'), check=True)
