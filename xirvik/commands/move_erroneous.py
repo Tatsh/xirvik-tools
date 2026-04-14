@@ -60,7 +60,14 @@ def main(
 ) -> None:
     """Move torrents in error state to another location."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         client = ruTorrentClient(host,
                                  name=username,
                                  password=password,

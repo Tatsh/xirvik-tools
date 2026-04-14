@@ -92,6 +92,9 @@ def start_torrents(
                       handlers=handlers,
                       loggers={
                           'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
                           'xirvik': {
                               'handlers': handlers_tuple,
                               'propagate': False,
@@ -153,7 +156,14 @@ def list_ftp_users(
         debug: bool = False) -> None:
     """List FTP users."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         r = await niquests.aget(f'https://{host}:{port:d}/userpanel/index.php/ftp_users',
                                 timeout=30)
         try:
@@ -195,7 +205,14 @@ def add_ftp_user(
         debug: bool = False) -> None:
     """Add an FTP user."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         uri = (f'https://{host}:{port:d}/userpanel/index.php/'
                'ftp_users/add_user')
         root_dir = root_directory if root_directory.startswith('/') else f'/{root_directory}'
@@ -236,7 +253,14 @@ def delete_ftp_user(
         debug: bool = False) -> None:
     """Delete an FTP user."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         user = b64encode(username.encode()).decode()
         uri = (f'https://{host}:{port:d}/userpanel/index.php/ftp_users/'
                f'delete/{user}')
@@ -268,7 +292,14 @@ def authorize_ip(
         debug: bool = False) -> None:
     """Authorise the current IP for access to the VM via SSH/VNC/RDP."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         uri = (f'https://{host}:{port:d}/userpanel/index.php/virtual_machine/'
                'authorize_ip')
         r = await niquests.aget(uri, timeout=30)
@@ -299,7 +330,14 @@ def fix_rtorrent(
         debug: bool = False) -> None:
     """Restart the rtorrent service in case ruTorrent cannot connect to it."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         log.info('No guarantees this will work!')
         uri = (f'https://{host}:{port:d}/userpanel/index.php/services/'
                'restart/rtorrent')
@@ -350,7 +388,14 @@ def list_torrents(
         reverse_order: bool | None = None) -> None:
     """List torrents in a given format."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         min_tz_aware = datetime(MINYEAR, 1, 1, tzinfo=timezone.utc)
 
         def sorter(x: TorrentInfo) -> Any:
@@ -425,7 +470,14 @@ def list_files(
         reverse_order: bool | None = None) -> None:
     """List a torrent's files in a given format."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         files = sorted([f async for f in ruTorrentClient(f'{host}:{port}').list_files(hash)],
                        key=lambda x: getattr(x, sort))
         if reverse_order:
@@ -473,7 +525,14 @@ def list_all_files(
         debug: bool = False) -> None:
     """List every tracked file."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         client = ruTorrentClient(f'{host}:{port}')
         click.echo('Listing torrents ...', file=sys.stderr)
         all_torrents = [info async for info in client.list_torrents()]
@@ -520,7 +579,14 @@ def list_untracked_files(
         def fix_path(res: str) -> str:
             return re.sub(fr'^/torrents/{client.name}/', '/downloads/', res)
 
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         click.echo('Getting server-side file list', file=sys.stderr)
         proc = await asyncio.create_subprocess_shell(server_list_command,
                                                      stdout=asyncio.subprocess.PIPE)
@@ -584,7 +650,15 @@ def download_untracked_files(
         debug: bool = False) -> None:
     """Download untracked files using rsync."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'fabric': {}, 'paramiko': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'fabric': {},
+                          'paramiko': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         processed: set[str] = set()
 
         def get_lines() -> Iterator[str]:

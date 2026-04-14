@@ -69,7 +69,14 @@ def main(
         dry_run: bool = False) -> None:
     """Delete torrents based on certain criteria."""
     async def _main() -> None:
-        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        setup_logging(debug=debug,
+                      loggers={
+                          'urllib3': {},
+                          'urllib3.util.retry': {
+                              'level': 'WARNING'
+                          },
+                          'xirvik': {}
+                      })
         client = ruTorrentClient(host,
                                  name=username,
                                  password=password,
