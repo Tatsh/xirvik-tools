@@ -1,13 +1,14 @@
 """Configuration for Pytest."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn
 import os
 
 from click.testing import CliRunner
 import pytest
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncIterator, Iterable
     import pathlib
 
 if os.getenv('_PYTEST_RAISE', '0') != '0':  # pragma no cover
@@ -33,3 +34,26 @@ def tmp_netrc(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> pathli
     netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     return netrc
+
+
+async def alist(ait: AsyncIterator[Any]) -> list[Any]:
+    """Collect an async iterator into a list."""
+    return [item async for item in ait]
+
+
+async def async_iter(items: Iterable[Any]) -> AsyncIterator[Any]:
+    """
+    Create an async iterator from a sync iterable.
+
+    Parameters
+    ----------
+    items : Iterable[Any]
+        Items to iterate over.
+
+    Yields
+    ------
+    Any
+        Each item from the iterable.
+    """
+    for item in items:
+        yield item

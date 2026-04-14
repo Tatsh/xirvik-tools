@@ -11,15 +11,17 @@ import inspect
 import logging
 import xmlrpc.client as xmlrpc
 
-from requests.adapters import HTTPAdapter
+from niquests import AsyncSession
+from niquests.adapters import AsyncHTTPAdapter
 from urllib3.util import Retry
-import requests
+import anyio
+import niquests
 
 from .typing import FileDownloadStrategy, FilePriority, TorrentInfo, TorrentTrackedFile
 from .utils import parse_header
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator
+    from collections.abc import AsyncIterator, Iterable
 
 __all__ = ('UnexpectedruTorrentError', 'ruTorrentClient')
 
@@ -104,8 +106,8 @@ class ruTorrentClient:  # noqa: N801
                       read=max_retries,
                       redirect=False,
                       backoff_factor=backoff_factor)
-        self._http_adapter = HTTPAdapter(max_retries=cast('Any', retry))
-        self._session = requests.Session()
+        self._http_adapter = AsyncHTTPAdapter(max_retries=cast('Any', retry))
+        self._session = AsyncSession()
         self._session.mount('http://', self._http_adapter)
         self._session.mount('https://', self._http_adapter)
         self._xmlrpc_proxy = xmlrpc.ServerProxy(f'https://{self.name}:{self.password}@{self.host}'
@@ -136,7 +138,7 @@ class ruTorrentClient:  # noqa: N801
         """Basic authentication credentials."""
         return (self.name, self.password)
 
-    def add_torrent(self, filepath: str, *, start_now: bool = True) -> None:
+    async def add_torrent(self, filepath: str, *, start_now: bool = True) -> None:
         """
         Add a torrent. Use ``start_now=False`` to start paused.
 
@@ -147,17 +149,15 @@ class ruTorrentClient:  # noqa: N801
         start_now : bool
             If the torrent should start immediately.
         """
-        with Path(filepath).open('rb') as f:
-            self._session.post(self.add_torrent_uri,
-                               data={
-                                   'torrents_start_stopped': 'on'
-                               } if not start_now else {},
-                               auth=self.auth,
-                               files={
-                                   'torrent_file': f
-                               }).raise_for_status()
+        filepath_obj = anyio.Path(filepath)
+        content = await filepath_obj.read_bytes()
+        (await self._session.post(self.add_torrent_uri,
+                                  data={'torrents_start_stopped': 'on'} if not start_now else {},
+                                  auth=self.auth,
+                                  files={'torrent_file': (str(
+                                      filepath_obj.name), content)})).raise_for_status()
 
-    def list_torrents(self) -> Iterator[TorrentInfo]:
+    async def list_torrents(self) -> AsyncIterator[TorrentInfo]:
         """
         Get all torrent information.
 
@@ -171,12 +171,12 @@ class ruTorrentClient:  # noqa: N801
         ListTorrentsError
             If the response is not as expected.
         """
-        r = self._session.post(self.multirpc_action_uri,
-                               data={
-                                   'mode': 'list',
-                                   'cmd': 'd.custom=seedingtime'
-                               },
-                               auth=self.auth)
+        r = await self._session.post(self.multirpc_action_uri,
+                                     data={
+                                         'mode': 'list',
+                                         'cmd': 'd.custom=seedingtime'
+                                     },
+                                     auth=self.auth)
         r.raise_for_status()
         possible_dict = cast('dict[str, list[Any]]', r.json()['t'])
         if not hasattr(possible_dict, 'items'):
@@ -211,7 +211,7 @@ class ruTorrentClient:  # noqa: N801
                         x[i] = val
             yield TorrentInfo(hash_, *x)
 
-    def get_torrent(self, hash_: str) -> tuple[requests.Response, str]:
+    async def get_torrent(self, hash_: str) -> tuple[niquests.Response, str]:
         r"""
         Prepare to get a torrent file given a hash.
 
@@ -222,17 +222,21 @@ class ruTorrentClient:  # noqa: N801
 
         Returns
         -------
-        tuple[requests.Response, str]
-            :py:class:`~requests.Response` object and the file name string.
+        tuple[niquests.Response, str]
+            :py:class:`~niquests.Response` object and the file name string.
         """
         source_torrent_uri = (f'{self.http_prefix}/rtorrent/plugins/source/'
                               f'action.php?hash={hash_}')
-        r = self._session.get(source_torrent_uri, auth=self.auth, stream=True)
+        r = await self._session.get(source_torrent_uri, auth=self.auth, stream=True)
         r.raise_for_status()
-        fn = parse_header(r.headers['content-disposition'])[1]['filename']
+        fn = parse_header(str(r.headers['content-disposition']))[1]['filename']
         return r, fn
 
-    def move_torrent(self, torrent_hash: str, target_dir: str, *, fast_resume: bool = True) -> None:
+    async def move_torrent(self,
+                           torrent_hash: str,
+                           target_dir: str,
+                           *,
+                           fast_resume: bool = True) -> None:
         """
         Move a torrent's files to somewhere else on the server.
 
@@ -250,21 +254,21 @@ class ruTorrentClient:  # noqa: N801
         UnexpectedruTorrentError
             If the server returns errors in the response.
         """
-        r = self._session.post(self.datadir_action_uri,
-                               data={
-                                   'hash': torrent_hash,
-                                   'datadir': target_dir,
-                                   'move_addpath': '1',
-                                   'move_datafiles': '1',
-                                   'move_fastresume': '1' if fast_resume else '0',
-                               },
-                               auth=self.auth)
+        r = await self._session.post(self.datadir_action_uri,
+                                     data={
+                                         'hash': torrent_hash,
+                                         'datadir': target_dir,
+                                         'move_addpath': '1',
+                                         'move_datafiles': '1',
+                                         'move_fastresume': '1' if fast_resume else '0',
+                                     },
+                                     auth=self.auth)
         r.raise_for_status()
         json = r.json()
         if json.get('errors'):
             raise UnexpectedruTorrentError(str(json['errors']))
 
-    def set_label_to_hashes(self, **kwargs: Any) -> None:
+    async def set_label_to_hashes(self, **kwargs: Any) -> None:
         """
         Set a label to a list of info hashes. The label can be a new label.
 
@@ -286,13 +290,6 @@ class ruTorrentClient:  # noqa: N801
         TypeError
             If the ``hashes`` or ``label`` keyword arguments are not passed.
         """
-        # The way to set a label to multiple torrents is to specify the hashes
-        # using hash=, then the v parameter as many times as there are hashes,
-        # and then the s=label for as many times as there are hashes.
-        # Example:
-        #    mode=setlabel&hash=...&hash=...&v=label&v=label&s=label&s=label
-        # This method builds this string in pieces because it is not possible to set the same key
-        # twice in a dictionary.
         hashes = kwargs.pop('hashes', [])
         label = kwargs.pop('label', None)
         allow_recursive_fix = kwargs.pop('allow_recursive_fix', True)
@@ -307,11 +304,9 @@ class ruTorrentClient:  # noqa: N801
         data += f'&v={label}'.encode() * len(hashes)
         data += b'&s=label' * len(hashes)
         log.debug('set_labels() with data: %s', data.decode())
-        r = self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
+        r = await self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
         r.raise_for_status()
         json = r.json()
-        # This may not be an error, but sometimes just `[]` is returned
-        # Even with the retries, sometimes all but one torrent gets a label
         if len(json) != len(hashes):
             log.warning(
                 'JSON returned should have been an array with same length as hashes list passed '
@@ -322,7 +317,7 @@ class ruTorrentClient:  # noqa: N801
                          '(%d out of %d)', recursion_attempt, recursion_limit)
                 data = b'mode=setlabel'
                 new_hashes = []
-                for v in self.list_torrents():
+                async for v in self.list_torrents():
                     hash_ = v.hash
                     if hash_ in hashes or not (v.custom1 or '').strip():
                         data += f'&hash={hash_}'.encode()
@@ -330,14 +325,14 @@ class ruTorrentClient:  # noqa: N801
                 if not new_hashes:
                     log.debug('Found no torrents to correct')
                     return
-                self.set_label_to_hashes(hashes=new_hashes,
-                                         label=label,
-                                         recursion_limit=recursion_limit,
-                                         recursion_attempt=recursion_attempt)
+                await self.set_label_to_hashes(hashes=new_hashes,
+                                               label=label,
+                                               recursion_limit=recursion_limit,
+                                               recursion_attempt=recursion_attempt)
             else:
                 log.warning('Passed recursion limit for label fix')
 
-    def set_label(self, label: str, torrent_hash: str) -> None:
+    async def set_label(self, label: str, torrent_hash: str) -> None:
         """
         Set a label to a torrent.
 
@@ -348,9 +343,9 @@ class ruTorrentClient:  # noqa: N801
         torrent_hash : str
             Hash of the torrent.
         """
-        self.set_label_to_hashes(hashes=[torrent_hash], label=label)
+        await self.set_label_to_hashes(hashes=[torrent_hash], label=label)
 
-    def list_files(self, hash_: str) -> Iterator[TorrentTrackedFile]:
+    async def list_files(self, hash_: str) -> AsyncIterator[TorrentTrackedFile]:
         r"""
         List files for a given torrent hash.
 
@@ -378,24 +373,23 @@ class ruTorrentClient:  # noqa: N801
         TorrentTrackedFile
             Named tuple with file information.
         """
-        r = self._session.post(self.multirpc_action_uri,
-                               data=(f'mode=fls&hash={hash_}' + '&' + '&'.join(f'cmd={x}' for x in (
-                                   quote('f.prioritize_first='),
-                                   quote('f.prioritize_last='),
-                               ))),
-                               auth=self.auth)
+        r = await self._session.post(
+            self.multirpc_action_uri,
+            data=(f'mode=fls&hash={hash_}' + '&' + '&'.join(f'cmd={x}' for x in (
+                quote('f.prioritize_first='),
+                quote('f.prioritize_last='),
+            ))),
+            auth=self.auth)
         r.raise_for_status()
         for x in r.json():
-            # Fix the numeric values which come as strings
-            x[1] = int(x[1])  # total number of pieces
-            x[2] = int(x[2])  # downloaded pieces
-            x[3] = int(x[3])  # size in bytes
-            x[4] = FilePriority(int(x[4]))  # priority ID
-            x[5] = FileDownloadStrategy(int(x[5]))  # download strategy ID
-            # x[6] = int(x[6])  # Not used  # noqa: ERA001
+            x[1] = int(x[1])
+            x[2] = int(x[2])
+            x[3] = int(x[3])
+            x[4] = FilePriority(int(x[4]))
+            x[5] = FileDownloadStrategy(int(x[5]))
             yield TorrentTrackedFile(*x[:6])
 
-    def list_all_files(self) -> Iterator[TorrentTrackedFile]:
+    async def list_all_files(self) -> AsyncIterator[TorrentTrackedFile]:
         """
         List all files tracked by rTorrent.
 
@@ -408,10 +402,11 @@ class ruTorrentClient:  # noqa: N801
         TorrentTrackedFile
             Named tuple with file information.
         """
-        for info in self.list_torrents():
-            yield from self.list_files(info.hash)
+        async for info in self.list_torrents():
+            async for tracked_file in self.list_files(info.hash):
+                yield tracked_file
 
-    def delete(self, hash_: str) -> None:
+    async def delete(self, hash_: str) -> None:
         r"""
         Delete a torrent and its files by hash.
 
@@ -423,12 +418,10 @@ class ruTorrentClient:  # noqa: N801
         ----------
         hash\_ : str
             Hash of the torrent.
-
-        Raises
-        ------
-        Fault
-            If the XML-RPC call fails, this exception is raised with the fault code and string.
         """
+        await anyio.to_thread.run_sync(self._delete_sync, hash_)
+
+    def _delete_sync(self, hash_: str) -> None:
         mc = xmlrpc.MultiCall(self._xmlrpc_proxy)
         getattr(mc, 'd.custom5.set')(hash_, '1')
         getattr(mc, 'd.delete_tied')(hash_)
@@ -438,45 +431,45 @@ class ruTorrentClient:  # noqa: N801
             if 'faultCode' in x_typed and 'faultString' in x_typed:
                 raise xmlrpc.Fault(x_typed['faultCode'], x_typed['faultString'])
 
-    def remove(self, hash_: str) -> None:
+    async def remove(self, hash_: str) -> None:
         r"""
         Remove a torrent from the client but keep the data.
 
         Use the delete() method to remove and delete the torrent data.
 
-        Returns if successful. Can raise a ``requests`` exception.
+        Returns if successful. Can raise a :py:class:`~niquests.exceptions.HTTPError` exception.
 
         Parameters
         ----------
         hash\_ : str
             Hash of the torrent.
         """
-        self._session.post(self.multirpc_action_uri,
-                           data={
-                               'mode': 'remove',
-                               'hash': hash_
-                           },
-                           auth=self.auth).raise_for_status()
+        (await self._session.post(self.multirpc_action_uri,
+                                  data={
+                                      'mode': 'remove',
+                                      'hash': hash_
+                                  },
+                                  auth=self.auth)).raise_for_status()
 
-    def stop(self, hash_: str) -> None:
+    async def stop(self, hash_: str) -> None:
         r"""
         Stop a torrent by hash.
 
-        Returns if successful. Can raise a ``requests`` exception.
+        Returns if successful. Can raise a :py:class:`~niquests.exceptions.HTTPError` exception.
 
         Parameters
         ----------
         hash\_ : str
             Hash of the torrent.
         """
-        self._session.post(self.multirpc_action_uri,
-                           data={
-                               'mode': 'stop',
-                               'hash': hash_
-                           },
-                           auth=self.auth).raise_for_status()
+        (await self._session.post(self.multirpc_action_uri,
+                                  data={
+                                      'mode': 'stop',
+                                      'hash': hash_
+                                  },
+                                  auth=self.auth)).raise_for_status()
 
-    def add_torrent_url(self, url: str) -> None:
+    async def add_torrent_url(self, url: str) -> None:
         """
         Add a torrent via URI.
 
@@ -486,16 +479,15 @@ class ruTorrentClient:  # noqa: N801
             URI to the torrent file. Must be available either under the current credentials or
             public.
         """
-        self._session.post(self.add_torrent_uri, data={
-            'url': url
-        }, auth=self.auth).raise_for_status()
+        (await self._session.post(self.add_torrent_uri, data={'url': url},
+                                  auth=self.auth)).raise_for_status()
 
-    def edit_torrents(self,
-                      hashes: Iterable[str],
-                      *,
-                      comment: str | None = None,
-                      private: bool | None = None,
-                      trackers: Iterable[str] | None = None) -> requests.Response:
+    async def edit_torrents(self,
+                            hashes: Iterable[str],
+                            *,
+                            comment: str | None = None,
+                            private: bool | None = None,
+                            trackers: Iterable[str] | None = None) -> niquests.Response:
         """
         Edit torrent properties.
 
@@ -512,21 +504,23 @@ class ruTorrentClient:  # noqa: N801
 
         Returns
         -------
-        requests.Response
+        niquests.Response
             The response object.
         """
-        r = self._session.post(
-            f'{self.http_prefix}/rtorrent/plugins/edit/action.php',
-            data=(*(({
-                'comment': comment.strip(),
-                'set_comment': '1'
-            } if comment else {}) | ({
-                'private': '1' if private else '0',
-                'set_private': '1',
-            } if private is not None else {}) | ({
-                'set_trackers': '1'
-            } if trackers else {})).items(), *(('hash', h) for h in hashes or []),
-                  *(('tracker', t) for t in trackers or [])),
-            auth=self.auth)
+        r = await self._session.post(f'{self.http_prefix}/rtorrent/plugins/edit/action.php',
+                                     data=[
+                                         *(({
+                                             'comment': comment.strip(),
+                                             'set_comment': '1'
+                                         } if comment else {}) | ({
+                                             'private': '1' if private else '0',
+                                             'set_private': '1',
+                                         } if private is not None else {}) | ({
+                                             'set_trackers': '1'
+                                         } if trackers else {})).items(),
+                                         *(('hash', h) for h in hashes or []),
+                                         *(('tracker', t) for t in trackers or [])
+                                     ],
+                                     auth=self.auth)
         r.raise_for_status()
         return r

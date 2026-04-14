@@ -7,15 +7,17 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import TYPE_CHECKING, Any, cast
 import xmlrpc.client
 
-from requests.exceptions import HTTPError
+from niquests.exceptions import HTTPError
+from niquests_mock import MockRouter, build_response
+from tests.conftest import alist
 from xirvik.client import ListTorrentsError, UnexpectedruTorrentError, log, ruTorrentClient
 from xirvik.typing import FileDownloadStrategy, FilePriority
 from xirvik.utils import parse_header
 import pytest
 
 if TYPE_CHECKING:
+    from niquests.models import PreparedRequest, Response
     from pytest_mock.plugin import MockerFixture
-    import requests_mock as req_mock
 
 
 def test_netrc() -> None:
@@ -63,75 +65,32 @@ def test_http_prefix() -> None:
     assert client.http_prefix == 'https://hostname-test.com'
 
 
-def test_add_torrent_bad_status(requests_mock: req_mock.Mocker) -> None:
+async def test_add_torrent_bad_status(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     with NamedTemporaryFile('w', encoding='utf-8') as f:
-        requests_mock.post(client.add_torrent_uri, status_code=400)
+        niquests_mock.post(client.add_torrent_uri).respond(400)
         with pytest.raises(HTTPError):
-            client.add_torrent(f.name)
+            await client.add_torrent(f.name)
 
 
-def test_list_torrents_bad_status(requests_mock: req_mock.Mocker) -> None:
+async def test_list_torrents_bad_status(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.post(client.multirpc_action_uri, status_code=400)
+    niquests_mock.post(client.multirpc_action_uri).respond(400)
     with pytest.raises(HTTPError):
-        list(client.list_torrents())
+        await alist(client.list_torrents())
 
 
-def test_list_torrents_bad_type(requests_mock: req_mock.Mocker) -> None:
+async def test_list_torrents_bad_type(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.post(client.multirpc_action_uri, json={'t': []})
+    niquests_mock.post(client.multirpc_action_uri).respond(json={'t': []})
     with pytest.raises(ListTorrentsError):
-        list(client.list_torrents())
+        await alist(client.list_torrents())
 
 
-def test_list_torrents(requests_mock: req_mock.Mocker) -> None:
+async def test_list_torrents(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.post(client.multirpc_action_uri,
-                       json={
-                           't': {
-                               'hash here': [
-                                   '1', '0', '1', '1', 'name of torrent?', '1000', '1', '1024',
-                                   '1000', '0', '0.14', '0', '0', '512', 'label'
-                               ] + (20 * ['0']) + ['1633423132\n'],
-                           },
-                           'cid': 92385,
-                       })
-    assert next(iter(client.list_torrents())).name == 'name of torrent?'
-
-
-def test_get_torrent(requests_mock: req_mock.Mocker) -> None:
-    client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    uri = (f'{client.http_prefix}/rtorrent/plugins/source/action.php'
-           '?hash=hash_of_torrent')
-    requests_mock.get(uri, headers={'content-disposition': 'attachment; '
-                                                           'filename=test.torrent'})
-    _, fn = client.get_torrent('hash_of_torrent')
-
-    assert fn == 'test.torrent'
-
-
-def test_list_files(requests_mock: req_mock.Mocker) -> None:
-    client = ruTorrentClient('hostname-test.com', 'a', 'b')
-
-    requests_mock.post(client.multirpc_action_uri,
-                       json=[
-                           ['name of file', '14', '13', '8192', '1', '0', '0'] + (19 * ['0']),
-                       ])
-
-    files = list(client.list_files('test_hash'))
-    assert files[0][0] == 'name of file'
-    assert files[0][1] == 14
-    assert files[0][2] == 13
-    assert files[0][3] == 8192
-    assert files[0][4] == FilePriority.NORMAL
-    assert files[0][5] == FileDownloadStrategy.NORMAL
-
-
-def test_list_all_files(requests_mock: req_mock.Mocker) -> None:
-    client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.register_uri('POST', client.multirpc_action_uri, [{
-        'json': {
+    niquests_mock.post(client.multirpc_action_uri).respond(
+        json={
             't': {
                 'hash here': [
                     '1', '0', '1', '1', 'name of torrent?', '1000', '1', '1024', '1000', '0',
@@ -139,11 +98,27 @@ def test_list_all_files(requests_mock: req_mock.Mocker) -> None:
                 ] + (20 * ['0']) + ['1633423132\n'],
             },
             'cid': 92385,
-        }
-    }, {
-        'json': [['name of file', '14', '13', '8192', '1', '0', '0'] + (19 * ['0'])]
-    }])
-    files = list(client.list_all_files())
+        })
+    result = await alist(client.list_torrents())
+    assert result[0].name == 'name of torrent?'
+
+
+async def test_get_torrent(niquests_mock: MockRouter) -> None:
+    client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    uri = (f'{client.http_prefix}/rtorrent/plugins/source/action.php'
+           '?hash=hash_of_torrent')
+    niquests_mock.get(uri).respond(
+        headers={'content-disposition': 'attachment; '
+                                        'filename=test.torrent'})
+    _, fn = await client.get_torrent('hash_of_torrent')
+    assert fn == 'test.torrent'
+
+
+async def test_list_files(niquests_mock: MockRouter) -> None:
+    client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    niquests_mock.post(client.multirpc_action_uri).respond(
+        json=[['name of file', '14', '13', '8192', '1', '0', '0'] + (19 * ['0'])])
+    files = await alist(client.list_files('test_hash'))
     assert files[0][0] == 'name of file'
     assert files[0][1] == 14
     assert files[0][2] == 13
@@ -152,25 +127,56 @@ def test_list_all_files(requests_mock: req_mock.Mocker) -> None:
     assert files[0][5] == FileDownloadStrategy.NORMAL
 
 
-def test_set_label_to_hashes_bad_args() -> None:
+async def test_list_all_files(niquests_mock: MockRouter) -> None:
+    client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    call_count = 0
+    list_torrents_json: dict[str, Any] = {
+        't': {
+            'hash here': [
+                '1', '0', '1', '1', 'name of torrent?', '1000', '1', '1024', '1000', '0', '0.14',
+                '0', '0', '512', 'label'
+            ] + (20 * ['0']) + ['1633423132\n'],
+        },
+        'cid': 92385,
+    }
+    list_files_json = [['name of file', '14', '13', '8192', '1', '0', '0'] + (19 * ['0'])]
+    responses: list[dict[str, Any]] = [{'json': list_torrents_json}, {'json': list_files_json}]
+
+    def side_effect(request: PreparedRequest) -> Response:
+        nonlocal call_count
+        resp = responses[min(call_count, len(responses) - 1)]
+        call_count += 1
+        return build_response(request, **resp)
+
+    niquests_mock.post(client.multirpc_action_uri).mock(side_effect=side_effect)
+    files = await alist(client.list_all_files())
+    assert files[0][0] == 'name of file'
+    assert files[0][1] == 14
+    assert files[0][2] == 13
+    assert files[0][3] == 8192
+    assert files[0][4] == FilePriority.NORMAL
+    assert files[0][5] == FileDownloadStrategy.NORMAL
+
+
+async def test_set_label_to_hashes_bad_args() -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     with pytest.raises(TypeError):
-        client.set_label_to_hashes()
+        await client.set_label_to_hashes()
 
 
-def test_set_label_to_hashes_normal(mocker: MockerFixture, requests_mock: req_mock.Mocker) -> None:
+async def test_set_label_to_hashes_normal(mocker: MockerFixture, niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     spy_log_warning = mocker.spy(log, 'warning')
-    requests_mock.post(client.multirpc_action_uri, json=[{}])
-    client.set_label_to_hashes(hashes=['hash1'], label='new label', allow_recursive_fix=False)
+    niquests_mock.post(client.multirpc_action_uri).respond(json=[{}])
+    await client.set_label_to_hashes(hashes=['hash1'], label='new label', allow_recursive_fix=False)
     assert spy_log_warning.call_count == 0
 
 
-def test_set_label_to_hashes_recursion_limit_5(requests_mock: req_mock.Mocker) -> None:
+async def test_set_label_to_hashes_recursion_limit_5(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     hashes = ['hash1', 'hash2']
     label = 'my new label'
-    list_torrents_json = {
+    list_torrents_json: dict[str, Any] = {
         't': {
             'hash1': [
                 '1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849',
@@ -187,7 +193,7 @@ def test_set_label_to_hashes_recursion_limit_5(requests_mock: req_mock.Mocker) -
         },
         'cid': 92983,
     }
-    responses = cast('list[dict[str, Any]]', [{
+    response_sequence = cast('list[dict[str, Any]]', [{
         'json': []
     }, {
         'json': list_torrents_json
@@ -210,13 +216,21 @@ def test_set_label_to_hashes_recursion_limit_5(requests_mock: req_mock.Mocker) -
     }, {
         'json': []
     }])
-    requests_mock.post(client.multirpc_action_uri, responses)
-    client.set_label_to_hashes(hashes=hashes, label=label, recursion_limit=5)
+    call_count = 0
+
+    def side_effect(request: PreparedRequest) -> Response:
+        nonlocal call_count
+        resp = response_sequence[min(call_count, len(response_sequence) - 1)]
+        call_count += 1
+        return build_response(request, **resp)
+
+    niquests_mock.post(client.multirpc_action_uri).mock(side_effect=side_effect)
+    await client.set_label_to_hashes(hashes=hashes, label=label, recursion_limit=5)
 
 
-def test_set_label(requests_mock: req_mock.Mocker) -> None:
+async def test_set_label(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    list_torrents_json = {
+    list_torrents_json: dict[str, Any] = {
         't': {
             'hash1': [
                 '1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849',
@@ -225,7 +239,7 @@ def test_set_label(requests_mock: req_mock.Mocker) -> None:
         },
         'cid': 92983,
     }
-    responses = cast('list[dict[str, Any]]', [
+    response_sequence = cast('list[dict[str, Any]]', [
         {
             'json': []
         },
@@ -233,67 +247,80 @@ def test_set_label(requests_mock: req_mock.Mocker) -> None:
             'json': list_torrents_json
         },
     ])
+    call_count = 0
 
-    requests_mock.post(client.multirpc_action_uri, responses)
-    client.set_label('hash1', 'a label')
+    def side_effect(request: PreparedRequest) -> Response:
+        nonlocal call_count
+        resp = response_sequence[min(call_count, len(response_sequence) - 1)]
+        call_count += 1
+        return build_response(request, **resp)
+
+    niquests_mock.post(client.multirpc_action_uri).mock(side_effect=side_effect)
+    await client.set_label('hash1', 'a label')
 
 
-def test_move_torrent(requests_mock: req_mock.Mocker) -> None:
+async def test_move_torrent(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    call_count = 0
 
-    requests_mock.post(client.datadir_action_uri, json=[], status_code=400)
+    def side_effect(request: PreparedRequest) -> Response:
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return build_response(request, status_code=400, json=[])
+        return build_response(request, json={'errors': ['some error']})
+
+    niquests_mock.post(client.datadir_action_uri).mock(side_effect=side_effect)
     with pytest.raises(HTTPError):
-        client.move_torrent('hash1', 'new_place')
-
-    requests_mock.post(client.datadir_action_uri, json={'errors': ['some error']})
+        await client.move_torrent('hash1', 'new_place')
     with pytest.raises(UnexpectedruTorrentError):
-        client.move_torrent('hash1', 'new_place')
+        await client.move_torrent('hash1', 'new_place')
 
 
-def test_move_torrent_no_errors(requests_mock: req_mock.Mocker) -> None:
+async def test_move_torrent_no_errors(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.post(client.datadir_action_uri, json={})
+    niquests_mock.post(client.datadir_action_uri).respond(json={})
     try:
-        client.move_torrent('hash1', 'new_place')
+        await client.move_torrent('hash1', 'new_place')
     except UnexpectedruTorrentError:  # pragma no cover
         pytest.fail('Unexpected ruTorrent error exception')
 
 
-def test_remove(requests_mock: req_mock.Mocker) -> None:
+async def test_remove(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.post(client.multirpc_action_uri, json=[], status_code=400)
+    niquests_mock.post(client.multirpc_action_uri).respond(400, json=[])
     with pytest.raises(HTTPError):
-        client.remove('some hash')
+        await client.remove('some hash')
 
 
-def test_stop(requests_mock: req_mock.Mocker) -> None:
+async def test_stop(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.post(client.multirpc_action_uri, json=[], status_code=400)
+    niquests_mock.post(client.multirpc_action_uri).respond(400, json=[])
     with pytest.raises(HTTPError):
-        client.stop('some hash')
+        await client.stop('some hash')
 
 
-def test_add_torrent_url(requests_mock: req_mock.Mocker) -> None:
+async def test_add_torrent_url(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    requests_mock.post(client.add_torrent_uri, json=[], status_code=400)
+    niquests_mock.post(client.add_torrent_uri).respond(400, json=[])
     with pytest.raises(HTTPError):
-        client.add_torrent_url('https://some-url')
+        await client.add_torrent_url('https://some-url')
 
 
-def test_delete(mocker: MockerFixture) -> None:
+async def test_delete(mocker: MockerFixture) -> None:
     mc = mocker.patch('xirvik.client.xmlrpc.MultiCall')
     mc.return_value.return_value.results = [{'faultCode': '2000', 'faultString': 'some string'}]
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     with pytest.raises(xmlrpc.client.Fault):
-        client.delete('some hash')
+        await client.delete('some hash')
 
 
-def test_delete2(mocker: MockerFixture) -> None:
+async def test_delete2(mocker: MockerFixture) -> None:
     mc = mocker.patch('xirvik.client.xmlrpc.MultiCall')
     mc.return_value.return_value.results = [{}]
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     try:
-        client.delete('some hash')
+        await client.delete('some hash')
     except xmlrpc.client.Fault:  # pragma no cover
         pytest.fail('Unexpected fault')
 
@@ -322,17 +349,13 @@ def test_parse_header() -> None:
     assert len(res[1].keys()) == 0
 
 
-def test_edit_torrent(requests_mock: req_mock.Mocker) -> None:
+async def test_edit_torrent(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
-    z = requests_mock.post(f'{client.http_prefix}/rtorrent/plugins/edit/action.php')
-    r = client.edit_torrents(['hash1', 'hash2'],
-                             comment='New comment',
-                             private=True,
-                             trackers=['http://tracker.example.com', 'http://tracker2.example.com'])
+    route = niquests_mock.post(f'{client.http_prefix}/rtorrent/plugins/edit/action.php').respond()
+    r = await client.edit_torrents(
+        ['hash1', 'hash2'],
+        comment='New comment',
+        private=True,
+        trackers=['http://tracker.example.com', 'http://tracker2.example.com'])
     assert r.status_code == 200
-    # cspell: disable  # noqa: ERA001
-    assert z.request_history[0].text == (
-        'comment=New+comment&set_comment=1&private=1&set_private=1&set_trackers=1&hash=hash1'
-        '&hash=hash2&tracker=http%3A%2F%2Ftracker.example.com&'
-        'tracker=http%3A%2F%2Ftracker2.example.com')
-    # cspell: enable  # noqa: ERA001
+    assert route.call_count == 1

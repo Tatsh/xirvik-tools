@@ -1,6 +1,9 @@
 addpath
 addtorrent
+alist
 anchore
+anyio
+apost
 Ångström
 annots
 appdir
@@ -87,6 +90,7 @@ mypy
 namedtuples
 needmessage
 netrc
+niquests
 nistp
 norecursedirs
 notarytool
@@ -106,6 +110,7 @@ pipx
 plabel
 platformdirs
 plistlib
+proc
 prodvers
 prss
 pstate

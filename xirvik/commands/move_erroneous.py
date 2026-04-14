@@ -1,12 +1,13 @@
 """Move torrents in error state to another location."""
 from __future__ import annotations
 
-from time import sleep
 from typing import TYPE_CHECKING, Any, TypeVar
+import asyncio
 import logging
 
 from bascom import setup_logging
 from xirvik.client import ruTorrentClient
+import anyio
 import click
 
 from .utils import command_with_config_file, common_options_and_arguments
@@ -58,30 +59,33 @@ def main(
         **kwargs: Any,  # noqa: ARG001
 ) -> None:
     """Move torrents in error state to another location."""
-    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
-    client = ruTorrentClient(host,
-                             name=username,
-                             password=password,
-                             max_retries=max_retries,
-                             netrc_path=netrc)
-    prefix = PREFIX.format(client.name)
-    to_delete: list[tuple[str, str]] = []
-    items = [info for info in client.list_torrents() if _should_process(info)]
-    for count, info in enumerate(items):
-        logger.info('Stopping %s.', info.name)
-        client.stop(info.hash)
-        if count > 0 and (count % 10) == 0:
-            sleep(sleep_time)
-    for count, info in enumerate(items):
-        move_to = _make_move_to(prefix, info.custom1.lower())
-        to_delete.append((info.hash, info.name))
-        logger.info('Moving %s to %s/.', info.name, move_to)
-        client.move_torrent(info.hash, move_to)
-        client.stop(info.hash)
-        if count > 0 and (count % 10) == 0:
-            sleep(sleep_time)
-    for count, (hash_, name) in enumerate(to_delete):
-        logger.info('Removing torrent "%s" (without deleting data).', name)
-        client.remove(hash_)
-        if count > 0 and (count % 10) == 0:
-            sleep(sleep_time)
+    async def _main() -> None:
+        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        client = ruTorrentClient(host,
+                                 name=username,
+                                 password=password,
+                                 max_retries=max_retries,
+                                 netrc_path=netrc)
+        prefix = PREFIX.format(client.name)
+        to_delete: list[tuple[str, str]] = []
+        items = [info async for info in client.list_torrents() if _should_process(info)]
+        for count, info in enumerate(items):
+            logger.info('Stopping %s.', info.name)
+            await client.stop(info.hash)
+            if count > 0 and (count % 10) == 0:
+                await anyio.sleep(sleep_time)
+        for count, info in enumerate(items):
+            move_to = _make_move_to(prefix, info.custom1.lower())
+            to_delete.append((info.hash, info.name))
+            logger.info('Moving %s to %s/.', info.name, move_to)
+            await client.move_torrent(info.hash, move_to)
+            await client.stop(info.hash)
+            if count > 0 and (count % 10) == 0:
+                await anyio.sleep(sleep_time)
+        for count, (hash_, name) in enumerate(to_delete):
+            logger.info('Removing torrent "%s" (without deleting data).', name)
+            await client.remove(hash_)
+            if count > 0 and (count % 10) == 0:
+                await anyio.sleep(sleep_time)
+
+    asyncio.run(_main())

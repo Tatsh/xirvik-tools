@@ -12,7 +12,6 @@ dev = [
   "types-beautifulsoup4>=4.12.0.20250516",
   "types-pyyaml>=6.0.12.20250915",
   "types-ratelimit>=2.2.0.20250501",
-  "types-requests>=2.33.0.20260402",
   "types-tabulate>=0.10.0.20260308",
   "yapf>=0.43.0",
 ]
@@ -36,7 +35,8 @@ tests = [
   "pytest-cov>=7.1.0",
   "pytest-mock>=3.15.1",
   "pytest>=9.0.2",
-  "requests-mock>=1.12.1",
+  "niquests-mock>=0.1.1; python_version >= '3.12'",
+  "pytest-asyncio>=1.0",
 ]
 
 [project]
@@ -62,7 +62,8 @@ dependencies = [
   "platformdirs>=4.9.4",
   "pyyaml>=6.0.3",
   "ratelimit>=2.2.1",
-  "requests>=2.33.1",
+  "anyio>=4.0",
+  "niquests>=3.18",
   "tabulate>=0.10.0",
   "typing-extensions>=4.15.0",
   "unidecode>=1.4.0",
@@ -152,6 +153,7 @@ venv = ".venv"
 venvPath = "."
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 mock_use_standalone_module = true
 norecursedirs = ["node_modules"]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
@@ -173,7 +175,19 @@ quote-style = "single"
 
 [tool.ruff.lint]
 extend-select = ["ALL"]
-ignore = ["ANN401", "COM812", "CPY001", "D203", "D204", "D212", "N818", "S404", "S603", "TD002"]
+ignore = [
+  "ANN401",
+  "ASYNC240",
+  "COM812",
+  "CPY001",
+  "D203",
+  "D204",
+  "D212",
+  "N818",
+  "S404",
+  "S603",
+  "TD002",
+]
 preview = true
 
 [tool.ruff.lint.flake8-builtins]
@@ -214,6 +228,7 @@ max-statements = 100
 [tool.uv]
 default-groups = "all"
 exclude-newer = "1 week"
+exclude-newer-package = { niquests-mock = "2026-04-14" }
 
 [tool.yapf]
 align_closing_bracket_with_visual_indent = true
