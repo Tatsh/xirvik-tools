@@ -30,6 +30,7 @@ class MinimalTorrentDict(NamedTuple):
 def _patch_client(mocker: MockerFixture,
                   torrents: list[MinimalTorrentDict] | None = None) -> AsyncMock:
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
+    client_mock.return_value.__aenter__.return_value = client_mock.return_value
     if torrents is not None:
         client_mock.return_value.list_torrents.return_value = async_iter(torrents)
     client_mock.return_value.delete = AsyncMock()
@@ -39,6 +40,7 @@ def _patch_client(mocker: MockerFixture,
 def test_delete_old_list_torrents_fail(runner: CliRunner, mocker: MockerFixture,
                                        tmp_netrc: pathlib.Path) -> None:
     client_mock = mocker.patch('xirvik.commands.delete_old.ruTorrentClient')
+    client_mock.return_value.__aenter__.return_value = client_mock.return_value
     client_mock.return_value.list_torrents.side_effect = HTTPError
     assert runner.invoke(xirvik, ('rtorrent', 'delete-old', '-H', 'machine.com')).exit_code != 0
 

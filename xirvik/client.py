@@ -13,6 +13,7 @@ import xmlrpc.client as xmlrpc
 
 from niquests import AsyncSession
 from niquests.adapters import AsyncHTTPAdapter
+from typing_extensions import Self
 from urllib3.util import Retry
 import anyio
 import niquests
@@ -22,6 +23,7 @@ from .utils import parse_header
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterable
+    from types import TracebackType
 
 __all__ = ('UnexpectedruTorrentError', 'ruTorrentClient')
 
@@ -112,6 +114,26 @@ class ruTorrentClient:  # noqa: N801
         self._session.mount('https://', self._http_adapter)
         self._xmlrpc_proxy = xmlrpc.ServerProxy(f'https://{self.name}:{self.password}@{self.host}'
                                                 '/rtorrent/plugins/multirpc/action.php')
+
+    async def aclose(self) -> None:
+        """Close the underlying HTTP session and release resources."""
+        await self._session.close()
+
+    async def __aenter__(self) -> Self:
+        """
+        Enter the async context manager.
+
+        Returns
+        -------
+        Self
+            The client instance.
+        """
+        return self
+
+    async def __aexit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None,
+                        exc_tb: TracebackType | None) -> None:
+        """Exit the async context manager and close the session."""
+        await self.aclose()
 
     @cached_property
     def http_prefix(self) -> str:
