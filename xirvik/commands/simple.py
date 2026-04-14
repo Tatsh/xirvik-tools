@@ -107,17 +107,16 @@ def start_torrents(
         if start_stopped:
             form_data['torrents_start_stopped'] = 'on'
         for d in (Path(x) for x in directories):
-            for item in Path(d).iterdir():
+            for item in d.iterdir():
                 if not item.name.lower().endswith('.torrent'):
                     continue
-                item_inner = d / item
-                prefix = f'{item_inner.name:s}-'
+                prefix = f'{item.name:s}-'
                 with NamedTemporaryFile(prefix=prefix,
                                         suffix='.torrent',
                                         dir=cache_dir,
                                         delete=False) as w:
-                    w.write(item_inner.read_bytes())
-                    old = item_inner
+                    w.write(item.read_bytes())
+                    old = item
                 torrent_content = await anyio.Path(w.name).read_bytes()
                 filename = unidecode(w.name)
                 log.info('Uploading torrent %s (actual name: "%s").',
