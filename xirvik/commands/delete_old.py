@@ -4,14 +4,15 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from time import sleep
+import asyncio
 import logging
 import xmlrpc.client as xmlrpc
 
 from bascom import setup_logging
-from requests.exceptions import HTTPError
+from niquests.exceptions import HTTPError
 from xirvik.client import ruTorrentClient
 from xirvik.typing import TorrentInfo
+import anyio
 import click
 
 from .utils import command_with_config_file, common_options_and_arguments
@@ -66,50 +67,52 @@ def main(
         ignore_ratio: bool = False,
         ignore_date: bool = False,
         dry_run: bool = False) -> None:
-    """Delete torrents based on certain criteria."""  # noqa: DOC501
-    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
-    client = ruTorrentClient(host,
-                             name=username,
-                             password=password,
-                             max_retries=max_retries,
-                             netrc_path=netrc or Path('~/.netrc').expanduser())
-    try:
-        torrents = client.list_torrents()
-    except HTTPError as e:
-        log.exception('Connection failed on list_torrents() call')
-        raise click.Abort from e
-    tests = {
-        'ratio': (ignore_ratio, _test_ratio),
-        'date': (ignore_date, _test_date_cb(days)),
-    }
-    for info in torrents:
-        if info.left_bytes != 0 or info.custom1 != label:
-            continue
-        reason: str | None = None
-        can_delete = False
-        for key, (can_ignore, test) in tests.items():
-            if can_ignore:
-                can_delete = True
-                reason = f'ignoring {key}'
-                break
-            reason, can_delete = test(info)
-            if can_delete:
-                break
-        if not can_delete:
-            log.info('Cannot delete %s', info.name)
-            continue
-        if dry_run:
-            log.info('Would delete %s, reason: %s', info.name, reason)
-            continue
-        log.info('Deleting %s, reason: %s', info.name, reason)
-        attempts = 0
-        while attempts < max_attempts:
-            attempts += 1
-            try:
-                client.delete(info.hash)
-            except (xmlrpc.Fault, xmlrpc.ProtocolError):
-                sleep_time = backoff_factor * (2 ** (attempts - 1))
-                sleep(sleep_time)
-            else:
-                sleep(sleep_time)
-                break
+    """Delete torrents based on certain criteria."""
+    async def _main() -> None:
+        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        client = ruTorrentClient(host,
+                                 name=username,
+                                 password=password,
+                                 max_retries=max_retries,
+                                 netrc_path=netrc or Path('~/.netrc').expanduser())
+        try:
+            torrents = [info async for info in client.list_torrents()]
+        except HTTPError as e:
+            log.exception('Connection failed on list_torrents() call')
+            raise click.Abort from e
+        tests = {
+            'ratio': (ignore_ratio, _test_ratio),
+            'date': (ignore_date, _test_date_cb(days)),
+        }
+        for info in torrents:
+            if info.left_bytes != 0 or info.custom1 != label:
+                continue
+            reason: str | None = None
+            can_delete = False
+            for key, (can_ignore, test) in tests.items():
+                if can_ignore:
+                    can_delete = True
+                    reason = f'ignoring {key}'
+                    break
+                reason, can_delete = test(info)
+                if can_delete:
+                    break
+            if not can_delete:
+                log.info('Cannot delete %s', info.name)
+                continue
+            if dry_run:
+                log.info('Would delete %s, reason: %s', info.name, reason)
+                continue
+            log.info('Deleting %s, reason: %s', info.name, reason)
+            attempts = 0
+            while attempts < max_attempts:
+                attempts += 1
+                try:
+                    await client.delete(info.hash)
+                except (xmlrpc.Fault, xmlrpc.ProtocolError):
+                    await anyio.sleep(backoff_factor * (2 ** (attempts - 1)))
+                else:
+                    await anyio.sleep(sleep_time)
+                    break
+
+    asyncio.run(_main())

@@ -2,13 +2,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from time import sleep
 from typing import TYPE_CHECKING
+import asyncio
 import logging
 
 from bascom import setup_logging
-from requests.exceptions import HTTPError
+from niquests.exceptions import HTTPError
 from xirvik.client import ruTorrentClient
+import anyio
 import click
 
 from .utils import command_with_config_file, common_options_and_arguments
@@ -76,35 +77,39 @@ def main(host: str,
          *,
          debug: bool = False,
          lower_label: bool | None = None) -> None:
-    """Move torrents according to labels assigned."""  # noqa: DOC501
-    setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
-    logger.debug('Host: %s', host)
-    logger.debug('Configuration file: %s', config)
-    logger.debug('Use lowercase labels: %s', 'true' if lower_label else 'false')
-    logger.debug('Ignoring labels: %s', ', '.join(ignore_labels))
-    client = ruTorrentClient(host,
-                             name=username,
-                             password=password,
-                             max_retries=max_retries,
-                             netrc_path=netrc or Path('~/.netrc').expanduser(),
-                             backoff_factor=backoff_factor)
-    username = client.name
-    try:
-        torrents = client.list_torrents()
-    except (ValueError, HTTPError) as e:
-        logger.exception('Connection failed on list_torrents() call')
-        raise click.Abort from e
-    count = 0
-    for info in (y for y in (x for x in torrents if _key_check(x))
-                 if _base_path_check(username, completed_dir, lower_label=lower_label or False)(y)):
-        label = info.custom1
-        if not label or label in ignore_labels:
-            continue
-        if lower_label:
-            label = label.lower()
-        move_to = f'{PREFIX.format(completed_dir)}/{label}'
-        logger.info('Moving %s from %s to %s/.', info.name, info.base_path, move_to)
-        client.move_torrent(info.hash, move_to)
-        count += 1
-        if count > 0 and (count % batch_size) == 0:
-            sleep(sleep_time)
+    """Move torrents according to labels assigned."""
+    async def _main() -> None:
+        setup_logging(debug=debug, loggers={'urllib3': {}, 'xirvik': {}})
+        logger.debug('Host: %s', host)
+        logger.debug('Configuration file: %s', config)
+        logger.debug('Use lowercase labels: %s', 'true' if lower_label else 'false')
+        logger.debug('Ignoring labels: %s', ', '.join(ignore_labels))
+        client = ruTorrentClient(host,
+                                 name=username,
+                                 password=password,
+                                 max_retries=max_retries,
+                                 netrc_path=netrc or Path('~/.netrc').expanduser(),
+                                 backoff_factor=backoff_factor)
+        uname = client.name
+        try:
+            torrents = [info async for info in client.list_torrents()]
+        except (ValueError, HTTPError) as e:
+            logger.exception('Connection failed on list_torrents() call')
+            raise click.Abort from e
+        count = 0
+        for info in (
+                y for y in (x for x in torrents if _key_check(x))
+                if _base_path_check(uname, completed_dir, lower_label=lower_label or False)(y)):
+            label = info.custom1
+            if not label or label in ignore_labels:
+                continue
+            if lower_label:
+                label = label.lower()
+            move_to = f'{PREFIX.format(completed_dir)}/{label}'
+            logger.info('Moving %s from %s to %s/.', info.name, info.base_path, move_to)
+            await client.move_torrent(info.hash, move_to)
+            count += 1
+            if count > 0 and (count % batch_size) == 0:
+                await anyio.sleep(sleep_time)
+
+    asyncio.run(_main())
