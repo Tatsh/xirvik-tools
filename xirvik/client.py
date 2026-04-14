@@ -298,6 +298,13 @@ class ruTorrentClient:  # noqa: N801
         if not hashes or not label:
             msg = '"hashes" (list) and "label" (str) keyword arguments are required.'
             raise TypeError(msg)
+        # The way to set a label to multiple torrents is to specify the hashes
+        # using hash=, then the v parameter as many times as there are hashes,
+        # and then the s=label for as many times as there are hashes.
+        # Example:
+        #    mode=setlabel&hash=...&hash=...&v=label&v=label&s=label&s=label
+        # This method builds this string in pieces because it is not possible
+        # to set the same key twice in a dictionary.
         data = b'mode=setlabel'
         for hash_ in hashes:
             data += f'&hash={hash_}'.encode()
@@ -307,10 +314,12 @@ class ruTorrentClient:  # noqa: N801
         r = await self._session.post(self.multirpc_action_uri, data=data, auth=self.auth)
         r.raise_for_status()
         json = r.json()
+        # This may not be an error, but sometimes just `[]` is returned.
         if len(json) != len(hashes):
             log.warning(
                 'JSON returned should have been an array with same length as hashes list passed '
                 'in: %s', json)
+            # Even with the retries, sometimes all but one torrent gets a label.
             if allow_recursive_fix and recursion_attempt < recursion_limit:
                 recursion_attempt += 1
                 log.info('Attempting label again '
@@ -382,11 +391,12 @@ class ruTorrentClient:  # noqa: N801
             auth=self.auth)
         r.raise_for_status()
         for x in r.json():
-            x[1] = int(x[1])
-            x[2] = int(x[2])
-            x[3] = int(x[3])
-            x[4] = FilePriority(int(x[4]))
-            x[5] = FileDownloadStrategy(int(x[5]))
+            # Fix the numeric values which come as strings.
+            x[1] = int(x[1])  # total number of pieces
+            x[2] = int(x[2])  # downloaded pieces
+            x[3] = int(x[3])  # size in bytes
+            x[4] = FilePriority(int(x[4]))  # priority ID
+            x[5] = FileDownloadStrategy(int(x[5]))  # download strategy ID
             yield TorrentTrackedFile(*x[:6])
 
     async def list_all_files(self) -> AsyncIterator[TorrentTrackedFile]:
