@@ -361,7 +361,7 @@ class ruTorrentClient:  # noqa: N801
 
         .. code-block:: python
 
-           for name, pieces, pieces_dl, size, priority, dl_strategy in client.list_files():
+           async for name, pieces, pieces_dl, size, priority, dl_strategy in client.list_files():
 
         Parameters
         ----------
