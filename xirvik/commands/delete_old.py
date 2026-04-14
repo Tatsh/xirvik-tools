@@ -77,49 +77,49 @@ def main(
                           },
                           'xirvik': {}
                       })
-        client = ruTorrentClient(host,
-                                 name=username,
-                                 password=password,
-                                 max_retries=max_retries,
-                                 netrc_path=netrc or Path('~/.netrc').expanduser())
-        try:
-            torrents = [info async for info in client.list_torrents()]
-        except HTTPError as e:
-            log.exception('Connection failed on list_torrents() call')
-            raise click.Abort from e
-        tests = {
-            'ratio': (ignore_ratio, _test_ratio),
-            'date': (ignore_date, _test_date_cb(days)),
-        }
-        for info in torrents:
-            if info.left_bytes != 0 or info.custom1 != label:
-                continue
-            reason: str | None = None
-            can_delete = False
-            for key, (can_ignore, test) in tests.items():
-                if can_ignore:
-                    can_delete = True
-                    reason = f'ignoring {key}'
-                    break
-                reason, can_delete = test(info)
-                if can_delete:
-                    break
-            if not can_delete:
-                log.info('Cannot delete %s', info.name)
-                continue
-            if dry_run:
-                log.info('Would delete %s, reason: %s', info.name, reason)
-                continue
-            log.info('Deleting %s, reason: %s', info.name, reason)
-            attempts = 0
-            while attempts < max_attempts:
-                attempts += 1
-                try:
-                    await client.delete(info.hash)
-                except (xmlrpc.Fault, xmlrpc.ProtocolError):
-                    await anyio.sleep(backoff_factor * (2 ** (attempts - 1)))
-                else:
-                    await anyio.sleep(sleep_time)
-                    break
+        async with ruTorrentClient(host,
+                                   name=username,
+                                   password=password,
+                                   max_retries=max_retries,
+                                   netrc_path=netrc or Path('~/.netrc').expanduser()) as client:
+            try:
+                torrents = [info async for info in client.list_torrents()]
+            except HTTPError as e:
+                log.exception('Connection failed on list_torrents() call')
+                raise click.Abort from e
+            tests = {
+                'ratio': (ignore_ratio, _test_ratio),
+                'date': (ignore_date, _test_date_cb(days)),
+            }
+            for info in torrents:
+                if info.left_bytes != 0 or info.custom1 != label:
+                    continue
+                reason: str | None = None
+                can_delete = False
+                for key, (can_ignore, test) in tests.items():
+                    if can_ignore:
+                        can_delete = True
+                        reason = f'ignoring {key}'
+                        break
+                    reason, can_delete = test(info)
+                    if can_delete:
+                        break
+                if not can_delete:
+                    log.info('Cannot delete %s', info.name)
+                    continue
+                if dry_run:
+                    log.info('Would delete %s, reason: %s', info.name, reason)
+                    continue
+                log.info('Deleting %s, reason: %s', info.name, reason)
+                attempts = 0
+                while attempts < max_attempts:
+                    attempts += 1
+                    try:
+                        await client.delete(info.hash)
+                    except (xmlrpc.Fault, xmlrpc.ProtocolError):
+                        await anyio.sleep(backoff_factor * (2 ** (attempts - 1)))
+                    else:
+                        await anyio.sleep(sleep_time)
+                        break
 
     asyncio.run(_main())

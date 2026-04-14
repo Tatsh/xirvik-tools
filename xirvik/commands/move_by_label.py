@@ -91,32 +91,32 @@ def main(host: str,
         logger.debug('Configuration file: %s', config)
         logger.debug('Use lowercase labels: %s', 'true' if lower_label else 'false')
         logger.debug('Ignoring labels: %s', ', '.join(ignore_labels))
-        client = ruTorrentClient(host,
-                                 name=username,
-                                 password=password,
-                                 max_retries=max_retries,
-                                 netrc_path=netrc or Path('~/.netrc').expanduser(),
-                                 backoff_factor=backoff_factor)
-        uname = client.name
-        try:
-            torrents = [info async for info in client.list_torrents()]
-        except (ValueError, HTTPError) as e:
-            logger.exception('Connection failed on list_torrents() call')
-            raise click.Abort from e
-        count = 0
-        for info in (
-                y for y in (x for x in torrents if _key_check(x))
-                if _base_path_check(uname, completed_dir, lower_label=lower_label or False)(y)):
-            label = info.custom1
-            if not label or label in ignore_labels:
-                continue
-            if lower_label:
-                label = label.lower()
-            move_to = f'{PREFIX.format(completed_dir)}/{label}'
-            logger.info('Moving %s from %s to %s/.', info.name, info.base_path, move_to)
-            await client.move_torrent(info.hash, move_to)
-            count += 1
-            if count > 0 and (count % batch_size) == 0:
-                await anyio.sleep(sleep_time)
+        async with ruTorrentClient(host,
+                                   name=username,
+                                   password=password,
+                                   max_retries=max_retries,
+                                   netrc_path=netrc or Path('~/.netrc').expanduser(),
+                                   backoff_factor=backoff_factor) as client:
+            uname = client.name
+            try:
+                torrents = [info async for info in client.list_torrents()]
+            except (ValueError, HTTPError) as e:
+                logger.exception('Connection failed on list_torrents() call')
+                raise click.Abort from e
+            count = 0
+            for info in (
+                    y for y in (x for x in torrents if _key_check(x))
+                    if _base_path_check(uname, completed_dir, lower_label=lower_label or False)(y)):
+                label = info.custom1
+                if not label or label in ignore_labels:
+                    continue
+                if lower_label:
+                    label = label.lower()
+                move_to = f'{PREFIX.format(completed_dir)}/{label}'
+                logger.info('Moving %s from %s to %s/.', info.name, info.base_path, move_to)
+                await client.move_torrent(info.hash, move_to)
+                count += 1
+                if count > 0 and (count % batch_size) == 0:
+                    await anyio.sleep(sleep_time)
 
     asyncio.run(_main())

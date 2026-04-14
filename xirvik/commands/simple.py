@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
     from logging.config import _HandlerConfiguration
 
-    from xirvik.typing import TorrentInfo
+    from xirvik.typing import TorrentInfo, TorrentTrackedFile
 
 log = logging.getLogger(__name__)
 
@@ -111,11 +111,12 @@ def start_torrents(
                 if not item.name.lower().endswith('.torrent'):
                     continue
                 prefix = f'{item.name:s}-'
+                item_bytes = await anyio.Path(item).read_bytes()
                 with NamedTemporaryFile(prefix=prefix,
                                         suffix='.torrent',
                                         dir=cache_dir,
                                         delete=False) as w:
-                    w.write(item.read_bytes())
+                    w.write(item_bytes)
                     old = item
                 torrent_content = await anyio.Path(w.name).read_bytes()
                 filename = unidecode(w.name)
@@ -404,30 +405,32 @@ def list_torrents(
                 return min_tz_aware
             return val or ''
 
-        torrents = cast('list[TorrentInfo] | Sequence[TorrentInfo]',
-                        [info async for info in ruTorrentClient(f'{host}:{port}').list_torrents()])
-        if sort:
-            torrents = sorted(torrents, key=sorter)
-        if reverse_order:
-            torrents = list(reversed(list(torrents)))
-        match table_format:
-            case fmt if fmt in tabulate_formats:
-                click.echo_via_pager(
-                    tabulate(((t.hash, t.name, t.custom1, t.finished) for t in torrents),
-                             headers=() if no_headers else ('Hash', 'Name', 'Label', 'Finished'),
-                             tablefmt=table_format))
-            case 'json':
-                click.echo(
-                    json.dumps([{
-                        'hash': x.hash,
-                        'name': x.name,
-                        'label': x.custom1,
-                        'finished': x.finished.isoformat() if x.finished else None,
-                        'base_path': x.base_path
-                    } for x in torrents]))
-            case _:  # pragma no cover
-                click.echo('Invalid table format specified.', err=True)
-                raise click.Abort
+        async with ruTorrentClient(f'{host}:{port}') as client:
+            torrents = cast('list[TorrentInfo] | Sequence[TorrentInfo]',
+                            [info async for info in client.list_torrents()])
+            if sort:
+                torrents = sorted(torrents, key=sorter)
+            if reverse_order:
+                torrents = list(reversed(list(torrents)))
+            match table_format:
+                case fmt if fmt in tabulate_formats:
+                    click.echo_via_pager(
+                        tabulate(((t.hash, t.name, t.custom1, t.finished) for t in torrents),
+                                 headers=(() if no_headers else
+                                          ('Hash', 'Name', 'Label', 'Finished')),
+                                 tablefmt=table_format))
+                case 'json':
+                    click.echo(
+                        json.dumps([{
+                            'hash': x.hash,
+                            'name': x.name,
+                            'label': x.custom1,
+                            'finished': x.finished.isoformat() if x.finished else None,
+                            'base_path': x.base_path
+                        } for x in torrents]))
+                case _:  # pragma no cover
+                    click.echo('Invalid table format specified.', err=True)
+                    raise click.Abort
 
     asyncio.run(_main())
 
@@ -477,24 +480,25 @@ def list_files(
                           },
                           'xirvik': {}
                       })
-        files = sorted([f async for f in ruTorrentClient(f'{host}:{port}').list_files(hash)],
-                       key=lambda x: getattr(x, sort))
-        if reverse_order:
-            files = list(reversed(files))
-        match table_format:
-            case fmt if fmt in tabulate_formats:
-                click.echo_via_pager(
-                    tabulate(
-                        ((f.name, f.size_bytes, f.downloaded_pieces, f.number_of_pieces,
-                          str(f.priority_id)) for f in files),
-                        headers=() if no_headers else
-                        ('Name', 'Size', 'Downloaded Pieces', 'Number of Pieces', 'Priority ID'),
-                        tablefmt=table_format))
-            case 'json':
-                click.echo(json.dumps([x._asdict() for x in files]))
-            case _:  # pragma no cover
-                click.echo('Invalid table format specified.', err=True)
-                raise click.Abort
+        async with ruTorrentClient(f'{host}:{port}') as client:
+            files = sorted([f async for f in client.list_files(hash)],
+                           key=lambda x: getattr(x, sort))
+            if reverse_order:
+                files = list(reversed(files))
+            match table_format:
+                case fmt if fmt in tabulate_formats:
+                    click.echo_via_pager(
+                        tabulate(((f.name, f.size_bytes, f.downloaded_pieces, f.number_of_pieces,
+                                   str(f.priority_id)) for f in files),
+                                 headers=(() if no_headers else
+                                          ('Name', 'Size', 'Downloaded Pieces', 'Number of Pieces',
+                                           'Priority ID')),
+                                 tablefmt=table_format))
+                case 'json':
+                    click.echo(json.dumps([x._asdict() for x in files]))
+                case _:  # pragma no cover
+                    click.echo('Invalid table format specified.', err=True)
+                    raise click.Abort
 
     asyncio.run(_main())
 
@@ -532,19 +536,19 @@ def list_all_files(
                           },
                           'xirvik': {}
                       })
-        client = ruTorrentClient(f'{host}:{port}')
-        click.echo('Listing torrents ...', file=sys.stderr)
-        all_torrents = [info async for info in client.list_torrents()]
-        with click.progressbar(all_torrents, file=sys.stderr,
-                               label='Getting file list') as progress_bar:
-            info: TorrentInfo
-            for info in progress_bar:
-                files = [f async for f in client.list_files(info.hash)]
-                if len(files) == 1:
-                    click.echo(_resolve_single_file_torrent_path(info, files[0].name))
-                else:
-                    for file in (f'{info.base_path}/{y.name}' for y in files):
-                        click.echo(file)
+        async with ruTorrentClient(f'{host}:{port}') as client:
+            click.echo('Listing torrents ...', file=sys.stderr)
+            all_torrents = [info async for info in client.list_torrents()]
+            with click.progressbar(all_torrents, file=sys.stderr,
+                                   label='Getting file list') as progress_bar:
+                info: TorrentInfo
+                for info in progress_bar:
+                    files = [f async for f in client.list_files(info.hash)]
+                    if len(files) == 1:
+                        click.echo(_resolve_single_file_torrent_path(info, files[0].name))
+                    else:
+                        for file in (f'{info.base_path}/{y.name}' for y in files):
+                            click.echo(file)
 
     asyncio.run(_main())
 
@@ -588,37 +592,44 @@ def list_untracked_files(
                       })
         click.echo('Getting server-side file list', file=sys.stderr)
         proc = await asyncio.create_subprocess_shell(server_list_command,
+                                                     stderr=asyncio.subprocess.PIPE,
                                                      stdout=asyncio.subprocess.PIPE)
-        stdout, _ = await proc.communicate()
+        stdout, stderr = await proc.communicate()
         if proc.returncode != 0:
+            detail = stderr.decode().strip()
             msg = f'Server list command failed with exit code {proc.returncode}'
+            if detail:
+                msg += f': {detail}'
             raise click.ClickException(msg)
         server_files = stdout.decode().splitlines()
-        client = ruTorrentClient(f'{host}:{port}')
-        click.echo('Listing torrents ...', file=sys.stderr)
-        all_torrents = [info async for info in client.list_torrents()]
-        with click.progressbar(all_torrents, file=sys.stderr,
-                               label='Getting file list') as progress_bar:
-            info: TorrentInfo
-            for info in progress_bar:
-                log.debug('Torrent: %s', info.name)
-                files = [f async for f in client.list_files(info.hash)]
-                if not files:
-                    continue
-                if len(files) == 1:
-                    res = fix_path(_resolve_single_file_torrent_path(info, files[0].name))
-                    log.debug('Single file: %s', res)
+
+        def _remove_tracked(info: TorrentInfo, files: list[TorrentTrackedFile]) -> None:
+            if len(files) == 1:
+                res = fix_path(_resolve_single_file_torrent_path(info, files[0].name))
+                log.debug('Single file: %s', res)
+                try:
+                    server_files.remove(res)
+                except ValueError:  # pragma: no cover
+                    log.debug('Unknown file (%s): %s', info.name, res)
+            else:
+                for file in (fix_path(f'{info.base_path}/{y.name}') for y in files):
+                    log.debug('File: %s', file)
                     try:
-                        server_files.remove(res)
+                        server_files.remove(file)
                     except ValueError:  # pragma: no cover
-                        log.debug('Unknown file (%s): %s', info.name, res)
-                else:
-                    for file in (fix_path(f'{info.base_path}/{y.name}') for y in files):
-                        log.debug('File: %s', file)
-                        try:
-                            server_files.remove(file)
-                        except ValueError:  # pragma: no cover
-                            log.debug('Unknown file (%s): %s', info.name, file)
+                        log.debug('Unknown file (%s): %s', info.name, file)
+
+        async with ruTorrentClient(f'{host}:{port}') as client:
+            click.echo('Listing torrents ...', file=sys.stderr)
+            all_torrents = [info async for info in client.list_torrents()]
+            with click.progressbar(all_torrents, file=sys.stderr,
+                                   label='Getting file list') as progress_bar:
+                info: TorrentInfo
+                for info in progress_bar:
+                    log.debug('Torrent: %s', info.name)
+                    files = [f async for f in client.list_files(info.hash)]
+                    if files:
+                        _remove_tracked(info, files)
         for file in sorted(server_files):
             click.echo(file)
 
@@ -678,12 +689,21 @@ def download_untracked_files(
                 is_directory = await anyio.to_thread.run_sync(
                     functools.partial(_is_dir_sync, conn, file_or_dir))
                 src = f'{host}:{file_or_dir}{"/" if is_directory else ""}'
-                proc = await asyncio.create_subprocess_exec('rsync', '-e', f'ssh -p {port}',
-                                                            '--progress', '-lrtNEU',
-                                                            *(('-v',) if debug else ()), src,
-                                                            str(out_file_or_dir))
-                if (await proc.wait()) != 0:
+                proc = await asyncio.create_subprocess_exec('rsync',
+                                                            '-e',
+                                                            f'ssh -p {port}',
+                                                            '--progress',
+                                                            '-lrtNEU',
+                                                            *(('-v',) if debug else ()),
+                                                            src,
+                                                            str(out_file_or_dir),
+                                                            stderr=asyncio.subprocess.PIPE)
+                _, stderr = await proc.communicate()
+                if proc.returncode != 0:
+                    detail = stderr.decode().strip()
                     msg = f'rsync failed with exit code {proc.returncode}'
+                    if detail:
+                        msg += f': {detail}'
                     raise click.ClickException(msg)
                 log.info('Finished downloading `%s` to `%s`.', src, out_file_or_dir)
 

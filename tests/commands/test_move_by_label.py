@@ -32,6 +32,7 @@ class MinimalTorrentDict(NamedTuple):
 def _patch_client(mocker: MockerFixture,
                   torrents: list[MinimalTorrentDict] | None = None) -> AsyncMock:
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
+    client_mock.return_value.__aenter__.return_value = client_mock.return_value
     client_mock.return_value.name = 'some_name'
     if torrents is not None:
         client_mock.return_value.list_torrents.return_value = async_iter(torrents)
@@ -45,6 +46,7 @@ def test_list_torrents_fail(runner: CliRunner, mocker: MockerFixture, tmp_path: 
     netrc.write_text('machine machine.com login some_name password pass\n')
     monkeypatch.setenv('HOME', str(tmp_path))
     client_mock = mocker.patch('xirvik.commands.move_by_label.ruTorrentClient')
+    client_mock.return_value.__aenter__.return_value = client_mock.return_value
     client_mock.return_value.list_torrents.side_effect = HTTPError
     assert runner.invoke(xirvik, ('rtorrent', 'move-by-label', '-H', 'machine.com')).exit_code != 0
     client_mock.return_value.list_torrents.side_effect = ValueError()

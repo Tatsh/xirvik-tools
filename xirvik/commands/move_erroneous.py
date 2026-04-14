@@ -68,31 +68,31 @@ def main(
                           },
                           'xirvik': {}
                       })
-        client = ruTorrentClient(host,
-                                 name=username,
-                                 password=password,
-                                 max_retries=max_retries,
-                                 netrc_path=netrc)
-        prefix = PREFIX.format(client.name)
-        to_delete: list[tuple[str, str]] = []
-        items = [info async for info in client.list_torrents() if _should_process(info)]
-        for count, info in enumerate(items):
-            logger.info('Stopping %s.', info.name)
-            await client.stop(info.hash)
-            if count > 0 and (count % 10) == 0:
-                await anyio.sleep(sleep_time)
-        for count, info in enumerate(items):
-            move_to = _make_move_to(prefix, info.custom1.lower())
-            to_delete.append((info.hash, info.name))
-            logger.info('Moving %s to %s/.', info.name, move_to)
-            await client.move_torrent(info.hash, move_to)
-            await client.stop(info.hash)
-            if count > 0 and (count % 10) == 0:
-                await anyio.sleep(sleep_time)
-        for count, (hash_, name) in enumerate(to_delete):
-            logger.info('Removing torrent "%s" (without deleting data).', name)
-            await client.remove(hash_)
-            if count > 0 and (count % 10) == 0:
-                await anyio.sleep(sleep_time)
+        async with ruTorrentClient(host,
+                                   name=username,
+                                   password=password,
+                                   max_retries=max_retries,
+                                   netrc_path=netrc) as client:
+            prefix = PREFIX.format(client.name)
+            to_delete: list[tuple[str, str]] = []
+            items = [info async for info in client.list_torrents() if _should_process(info)]
+            for count, info in enumerate(items):
+                logger.info('Stopping %s.', info.name)
+                await client.stop(info.hash)
+                if count > 0 and (count % 10) == 0:
+                    await anyio.sleep(sleep_time)
+            for count, info in enumerate(items):
+                move_to = _make_move_to(prefix, info.custom1.lower())
+                to_delete.append((info.hash, info.name))
+                logger.info('Moving %s to %s/.', info.name, move_to)
+                await client.move_torrent(info.hash, move_to)
+                await client.stop(info.hash)
+                if count > 0 and (count % 10) == 0:
+                    await anyio.sleep(sleep_time)
+            for count, (hash_, name) in enumerate(to_delete):
+                logger.info('Removing torrent "%s" (without deleting data).', name)
+                await client.remove(hash_)
+                if count > 0 and (count % 10) == 0:
+                    await anyio.sleep(sleep_time)
 
     asyncio.run(_main())

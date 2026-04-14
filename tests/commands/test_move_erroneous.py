@@ -32,6 +32,7 @@ class MinimalTorrentDict(NamedTuple):
 def _patch_client(mocker: MockerFixture,
                   torrents: list[MinimalTorrentDict] | None = None) -> AsyncMock:
     client_mock = mocker.patch('xirvik.commands.move_erroneous.ruTorrentClient')
+    client_mock.return_value.__aenter__.return_value = client_mock.return_value
     if torrents is not None:
         client_mock.return_value.list_torrents.return_value = async_iter(torrents)
     client_mock.return_value.move_torrent = AsyncMock()

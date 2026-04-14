@@ -60,6 +60,11 @@ def test_password_required() -> None:
         ruTorrentClient('hostname-test.com', name='a')
 
 
+async def test_async_context_manager() -> None:
+    async with ruTorrentClient('hostname-test.com', 'a', 'b') as client:
+        assert client.host == 'hostname-test.com'
+
+
 def test_http_prefix() -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     assert client.http_prefix == 'https://hostname-test.com'

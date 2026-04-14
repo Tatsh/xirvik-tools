@@ -11,12 +11,12 @@ import re
 from tests.conftest import async_iter
 from xirvik.commands.root import xirvik
 from xirvik.typing import FileDownloadStrategy, FilePriority, TorrentTrackedFile
+import pytest
 
 if TYPE_CHECKING:
     from click.testing import CliRunner
     from niquests_mock import MockRouter
     from pytest_mock.plugin import MockerFixture
-    import pytest
 
 
 def test_fix_rtorrent(niquests_mock: MockRouter, runner: CliRunner) -> None:
@@ -212,6 +212,7 @@ def _patch_client_async(mocker: MockerFixture,
                         files: list[TorrentTrackedFile] | None = None) -> AsyncMock:
     """Patch ruTorrentClient with async-compatible mocks."""
     client_mock = mocker.patch('xirvik.commands.simple.ruTorrentClient')
+    client_mock.return_value.__aenter__.return_value = client_mock.return_value
     if torrents is not None:
         client_mock.return_value.list_torrents.return_value = async_iter(torrents)
     if files is not None:
@@ -629,11 +630,24 @@ def test_list_untracked_files_empty_files(runner: CliRunner, mocker: MockerFixtu
     assert lines[-1] == '/downloads/_completed/file1'
 
 
+def test_list_untracked_files_command_fail(runner: CliRunner, mocker: MockerFixture, tmp_path: Path,
+                                           monkeypatch: pytest.MonkeyPatch) -> None:
+    netrc = tmp_path / '.netrc'
+    netrc.write_text('machine machine.com login some_name password pass\n')
+    monkeypatch.setenv('HOME', str(tmp_path))
+    mock_proc = AsyncMock()
+    mock_proc.communicate.return_value = (b'', b'ssh: connection refused\n')
+    mock_proc.returncode = 1
+    mocker.patch('asyncio.create_subprocess_shell', return_value=mock_proc)
+    result = runner.invoke(xirvik, ('rtorrent', 'list-untracked-files', '-L', 'ssh blah'))
+    assert result.exit_code != 0
+
+
 def test_download_untracked_files(runner: CliRunner, mocker: MockerFixture, tmp_path: Path,
                                   monkeypatch: pytest.MonkeyPatch) -> None:
     mocker.patch('xirvik.commands.simple.setup_logging')
     mock_proc = AsyncMock()
-    mock_proc.wait.return_value = 0
+    mock_proc.communicate.return_value = (b'', b'')
     mock_proc.returncode = 0
     mocker.patch('asyncio.create_subprocess_exec', return_value=mock_proc)
     mock_conn = mocker.patch('xirvik.commands.simple.Connection')
@@ -641,15 +655,16 @@ def test_download_untracked_files(runner: CliRunner, mocker: MockerFixture, tmp_
     (tmp_path / 'input.txt').write_text('some/dir/file1\nsome/dir/file2\nsome/dir/file2\n')
     assert runner.invoke(xirvik, ('rtorrent', 'download-untracked-files', str(
         tmp_path / 'input.txt'), str(tmp_path / 'output'))).exit_code == 0
-    assert mock_proc.wait.call_count == 2
+    assert mock_proc.communicate.call_count == 2
 
 
+@pytest.mark.parametrize('stderr_output', [b'rsync: connection refused\n', b''])
 def test_download_untracked_files_rsync_fail(runner: CliRunner, mocker: MockerFixture,
-                                             tmp_path: Path,
-                                             monkeypatch: pytest.MonkeyPatch) -> None:
+                                             tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+                                             stderr_output: bytes) -> None:
     mocker.patch('xirvik.commands.simple.setup_logging')
     mock_proc = AsyncMock()
-    mock_proc.wait.return_value = 1
+    mock_proc.communicate.return_value = (b'', stderr_output)
     mock_proc.returncode = 1
     mocker.patch('asyncio.create_subprocess_exec', return_value=mock_proc)
     mock_conn = mocker.patch('xirvik.commands.simple.Connection')
