@@ -49,7 +49,7 @@ def install_services(directories: tuple[Path, ...],
                      debug: bool = False,
                      interval: int = 2) -> None:
     """Install the xirvik-start-torrents service."""  # noqa: DOC501
-    setup_logging(debug=debug, loggers={'xirvik': {}})
+    setup_logging(debug=debug, loggers={'urllib3.util.retry': {'level': 'WARNING'}, 'xirvik': {}})
     if IS_WINDOWS:
         click.echo('This command is not supported on Windows.')
         raise click.Abort
