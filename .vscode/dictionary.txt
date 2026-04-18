@@ -2,10 +2,10 @@ addpath
 addtorrent
 alist
 anchore
-anyio
-apost
 Ångström
 annots
+anyio
+apost
 appdir
 appimage
 appinfo
@@ -47,6 +47,7 @@ dunder
 ecda
 eeyore
 elif
+esac
 esbenp
 esbonio
 excinfo
@@ -125,11 +126,13 @@ pypa
 pypi
 pyproject
 pytest
+pythonhosted
 pyyaml
 referer
 regen
 reqtimeout
 resp
+ripgreprc
 rstcheck
 rtorrent
 schemafile
@@ -152,7 +155,6 @@ speedlistul
 sphinxcontrib
 syft
 tablefmt
-tadd
 tatsh
 testpaths
 timeformat
@@ -161,6 +163,7 @@ tomlkit
 tomllib
 tomlq
 tonumber
+tostring
 tryfirst
 ubyte
 udvare
