@@ -41,7 +41,7 @@ async def alist(ait: AsyncIterator[Any]) -> list[Any]:
     return [item async for item in ait]
 
 
-async def async_iter(items: Iterable[Any]) -> AsyncIterator[Any]:
+async def async_iter(items: Iterable[Any]) -> AsyncIterator[Any]:  # noqa: RUF029
     """
     Create an async iterator from a sync iterable.
 

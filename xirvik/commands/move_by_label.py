@@ -78,6 +78,8 @@ def main(host: str,
          debug: bool = False,
          lower_label: bool | None = None) -> None:
     """Move torrents according to labels assigned."""
+    netrc_path = Path(netrc) if netrc else Path('~/.netrc').expanduser()
+
     async def _main() -> None:
         setup_logging(debug=debug,
                       loggers={
@@ -95,7 +97,7 @@ def main(host: str,
                                    name=username,
                                    password=password,
                                    max_retries=max_retries,
-                                   netrc_path=netrc or Path('~/.netrc').expanduser(),
+                                   netrc_path=netrc_path,
                                    backoff_factor=backoff_factor) as client:
             uname = client.name
             try:
