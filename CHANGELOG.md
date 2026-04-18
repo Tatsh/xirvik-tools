@@ -9,10 +9,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+## [0.6.0] - 2026-04-18
+
+### Changed
+
+- Switched the client and commands to use `asyncio` throughout, tightening `anyio` usage and
+  narrowing the scope of RUF029.
+- Release workflow now requires QA and Tests jobs to pass before running.
+- QA workflow splits steps so individual failures are visible.
+- Documentation index replaces inline badges with an include directive.
+
 ### Fixed
 
-- Catch correct exception type in `list-untracked-files` when a file is listed but is not in the
-  user command generated list.
+- Catch the correct exception type in `list-untracked-files` when a file is listed but is not in
+  the user command generated list.
+- Suppress urllib3 retry debug logging from commands.
+- Suppress S607 warnings for subprocess calls in commands.
+- Help text for the `download-untracked-files` command.
+- Command name in `commands.simple`.
+- Snapcraft command path restored to `bin/xirvik`.
+
+### Removed
+
+- `xirvik/main.py` and its tests (was never supposed to be committed).
 
 ## [0.5.3] - 2025-12-20
 
@@ -295,7 +314,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ruTorrent.set_label()` method.
 - `ruTorrent.move_torrent()` method.
 
-[unreleased]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.3...HEAD
+[unreleased]: https://github.com/Tatsh/xirvik-tools/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.3...v0.6.0
 [0.5.3]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Tatsh/xirvik-tools/compare/v0.5.0...v0.5.1

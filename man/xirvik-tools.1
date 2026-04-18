@@ -27,13 +27,17 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "XIRVIK-TOOLS" "1" "Apr 17, 2025" "0.5.0" "xirvik-tools"
+.TH "XIRVIK-TOOLS" "1" "Apr 18, 2026" "0.6.0" "xirvik-tools"
 .SH NAME
-xirvik-tools \- xirvik-tools v0.5.0
+xirvik-tools \- xirvik-tools v0.6.0
+.sp
+Command line utilities for interfacing with Xirvik.
 .SH COMMANDS
 .SS xirvik
 .sp
 Root command.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -57,6 +61,8 @@ Xirvik host (without protocol)
 .SS ftp
 .sp
 Commands for managing the FTP server.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -68,6 +74,8 @@ xirvik ftp [OPTIONS] COMMAND [ARGS]...
 .SS add\-ftp\-user
 .sp
 Add an FTP user.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -81,24 +89,27 @@ Options
 .INDENT 0.0
 .TP
 .B \-p, \-\-port <port>
+Server port.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
+Enable debug level logging.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-r, \-\-root\-directory <root_directory>
+Root directory for the FTP user.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .sp
 Arguments
@@ -115,6 +126,8 @@ Required argument
 .SS delete\-ftp\-user
 .sp
 Delete an FTP user.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -128,20 +141,22 @@ Options
 .INDENT 0.0
 .TP
 .B \-p, \-\-port <port>
+Server port.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
+Enable debug level logging.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .sp
 Arguments
@@ -153,6 +168,8 @@ Required argument
 .SS list\-ftp\-users
 .sp
 List FTP users.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -166,24 +183,28 @@ Options
 .INDENT 0.0
 .TP
 .B \-p, \-\-port <port>
+Server port.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
+Enable debug level logging.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .SS rtorrent
 .sp
 Commands for managing rTorrent.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -192,11 +213,58 @@ xirvik rtorrent [OPTIONS] COMMAND [ARGS]...
 .EE
 .UNINDENT
 .UNINDENT
+.SS download\-untracked\-files
+.sp
+Download untracked files using rsync.
+.sp
+Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+xirvik rtorrent download\-untracked\-files [OPTIONS] UNTRACKED_FILENAME TARGET
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-H, \-\-host <host>
+Xirvik host (without protocol).
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-port <port>
+Server port.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug level logging.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-u, \-\-username <username>
+SSH user name.
+.UNINDENT
+.sp
+Arguments
+.INDENT 0.0
+.TP
+.B UNTRACKED_FILENAME
+Required argument
+.UNINDENT
+.INDENT 0.0
+.TP
+.B TARGET
+Required argument
+.UNINDENT
 .SS fix\-rtorrent
 .sp
 Restart the rtorrent service in case ruTorrent cannot connect to it.
 .sp
-Not guaranteed to fix anything!
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -210,24 +278,65 @@ Options
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-p, \-\-port <port>
+Server port.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
+Enable debug level logging.
+.UNINDENT
+.SS install\-services
+.sp
+Install the xirvik\-start\-torrents service.
+.sp
+Usage
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+xirvik rtorrent install\-services [OPTIONS] [DIRECTORIES]...
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug level logging.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-i, \-\-interval <interval>
+Interval in minutes to check for new torrents.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-H, \-\-host <host>
+\fBRequired\fP Xirvik host (without protocol).
+.UNINDENT
+.sp
+Arguments
+.INDENT 0.0
+.TP
+.B DIRECTORIES
+Optional argument(s)
 .UNINDENT
 .SS list\-all\-files
 .sp
-list all tracked file paths.
+List every tracked file.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -241,24 +350,28 @@ Options
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-p, \-\-port <port>
+Server port.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
+Enable debug level logging.
 .UNINDENT
 .SS list\-files
 .sp
 List a torrent\(aqs files in a given format.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -272,37 +385,42 @@ Options
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-p, \-\-port <port>
+Server port.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
+Enable debug level logging.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-I, \-\-no\-headers
+Omit table headers.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-F, \-\-table\-format <table_format>
+Output table format.
 .INDENT 7.0
 .TP
 .B Options
-asciidoc | double_grid | double_outline | fancy_grid | fancy_outline | github | grid | heavy_grid | heavy_outline | html | jira | latex | latex_booktabs | latex_longtable | latex_raw | mediawiki | mixed_grid | mixed_outline | moinmoin | orgtbl | outline | pipe | plain | presto | pretty | psql | rounded_grid | rounded_outline | rst | simple | simple_grid | simple_outline | textile | tsv | unsafehtml | youtrack | json
+asciidoc | colon_grid | double_grid | double_outline | fancy_grid | fancy_outline | github | grid | heavy_grid | heavy_outline | html | jira | latex | latex_booktabs | latex_longtable | latex_raw | mediawiki | mixed_grid | mixed_outline | moinmoin | orgtbl | outline | pipe | plain | presto | pretty | psql | rounded_grid | rounded_outline | rst | simple | simple_grid | simple_outline | textile | tsv | unsafehtml | youtrack | json
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-S, \-\-sort <sort>
+Field to sort by.
 .INDENT 7.0
 .TP
 .B Options
@@ -312,6 +430,7 @@ name | size_bytes | priority
 .INDENT 0.0
 .TP
 .B \-R, \-\-reverse\-order
+Reverse the sort order.
 .UNINDENT
 .sp
 Arguments
@@ -323,6 +442,8 @@ Required argument
 .SS list\-torrents
 .sp
 List torrents in a given format.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -336,37 +457,42 @@ Options
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-p, \-\-port <port>
+Server port.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
+Enable debug level logging.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-I, \-\-no\-headers
+Omit table headers.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-F, \-\-table\-format <table_format>
+Output table format.
 .INDENT 7.0
 .TP
 .B Options
-asciidoc | double_grid | double_outline | fancy_grid | fancy_outline | github | grid | heavy_grid | heavy_outline | html | jira | latex | latex_booktabs | latex_longtable | latex_raw | mediawiki | mixed_grid | mixed_outline | moinmoin | orgtbl | outline | pipe | plain | presto | pretty | psql | rounded_grid | rounded_outline | rst | simple | simple_grid | simple_outline | textile | tsv | unsafehtml | youtrack | json
+asciidoc | colon_grid | double_grid | double_outline | fancy_grid | fancy_outline | github | grid | heavy_grid | heavy_outline | html | jira | latex | latex_booktabs | latex_longtable | latex_raw | mediawiki | mixed_grid | mixed_outline | moinmoin | orgtbl | outline | pipe | plain | presto | pretty | psql | rounded_grid | rounded_outline | rst | simple | simple_grid | simple_outline | textile | tsv | unsafehtml | youtrack | json
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-S, \-\-sort <sort>
+Field to sort by.
 .INDENT 7.0
 .TP
 .B Options
@@ -376,10 +502,13 @@ name | hash | label | creation_date | state_changed | finished
 .INDENT 0.0
 .TP
 .B \-R, \-\-reverse\-order
+Reverse the sort order.
 .UNINDENT
 .SS list\-untracked\-files
 .sp
-list untracked file paths.
+List all files on the server that are not tracked.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -393,22 +522,30 @@ Options
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-port <port>
+Server port.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-L, \-\-server\-list\-command <server_list_command>
 This should be a command that outputs lines where each line is a complete file path that matches the \(dqtorrents/<username>/...\(dq output from ruTorrent\(aqs API. An example using SSH:
 .sp
-ssh name\-of\-server \(aqfind /media/sf_hostshare \-type f\(aq | sed \-re \(aqs|^/media/sf_hostshare|/torrents/username|g\(aq
+ssh name\-of\-server \(aqfind /media/sf_hostshare \-type f\(aq | sed \-re \(aqs|^/media/sf_hostshare|/torrents/username|g\(aq.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
+Enable debug level logging.
 .UNINDENT
 .SS main
 .sp
 Delete torrents based on certain criteria.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -422,42 +559,42 @@ Options
 .INDENT 0.0
 .TP
 .B \-u, \-\-username <username>
-Xirvik user
+Xirvik user.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-p, \-\-password <password>
-Xirvik password
+Xirvik password.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-r, \-\-max\-retries <max_retries>
-Number of retries for each request (passed to client)
+Number of retries for each request (passed to client).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
-Enable debug level logging
+Enable debug level logging.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-backoff\-factor <backoff_factor>
-Back\-off factor used when calculating time to wait to retry a failed request
+Back\-off factor used when calculating time to wait to retry a failed request.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-netrc <netrc>
-netrc file path
+netrc file path.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -490,6 +627,8 @@ Xirvik host (without protocol)
 .SS main
 .sp
 Move torrents according to labels assigned.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -503,42 +642,42 @@ Options
 .INDENT 0.0
 .TP
 .B \-u, \-\-username <username>
-Xirvik user
+Xirvik user.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-p, \-\-password <password>
-Xirvik password
+Xirvik password.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-r, \-\-max\-retries <max_retries>
-Number of retries for each request (passed to client)
+Number of retries for each request (passed to client).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
-Enable debug level logging
+Enable debug level logging.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-backoff\-factor <backoff_factor>
-Back\-off factor used when calculating time to wait to retry a failed request
+Back\-off factor used when calculating time to wait to retry a failed request.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-netrc <netrc>
-netrc file path
+netrc file path.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -548,17 +687,17 @@ Batch size.
 .INDENT 0.0
 .TP
 .B \-c, \-\-completed\-dir <completed_dir>
-Top directory where moved torrent data will be placed
+Top directory where moved torrent data will be placed.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-t, \-\-sleep\-time <sleep_time>
-Time to sleep in seconds at certain times during this batch of requests
+Time to sleep in seconds at certain times during this batch of requests.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-l, \-\-lower\-label
-Call lower() on labels used to make directory names
+Call lower() on labels used to make directory names.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -568,6 +707,8 @@ List of labels to ignore (case\-sensitive).
 .SS main
 .sp
 Move torrents in error state to another location.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -581,50 +722,53 @@ Options
 .INDENT 0.0
 .TP
 .B \-u, \-\-username <username>
-Xirvik user
+Xirvik user.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-p, \-\-password <password>
-Xirvik password
+Xirvik password.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-r, \-\-max\-retries <max_retries>
-Number of retries for each request (passed to client)
+Number of retries for each request (passed to client).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
-Enable debug level logging
+Enable debug level logging.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-backoff\-factor <backoff_factor>
-Back\-off factor used when calculating time to wait to retry a failed request
+Back\-off factor used when calculating time to wait to retry a failed request.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-netrc <netrc>
-netrc file path
+netrc file path.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-sleep\-time <sleep_time>
+Time to sleep between batches in seconds.
 .UNINDENT
 .SS start\-torrents
 .sp
 Upload torrent files to the server.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -638,33 +782,37 @@ Options
 .INDENT 0.0
 .TP
 .B \-\-no\-verify
-Disable TLS verification (not recommended)
+Disable TLS verification (not recommended).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-start\-stopped
+Start torrents in stopped state.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
+Enable debug level logging.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-p, \-\-port <port>
+Server port.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-s, \-\-syslog
+Enable syslog logging.
 .UNINDENT
 .sp
 Arguments
@@ -676,6 +824,8 @@ Optional argument(s)
 .SS vm
 .sp
 Commands for the Linux virtual machine.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -687,6 +837,8 @@ xirvik vm [OPTIONS] COMMAND [ARGS]...
 .SS authorize\-ip
 .sp
 Authorise the current IP for access to the VM via SSH/VNC/RDP.
+.sp
+Usage
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -700,24 +852,26 @@ Options
 .INDENT 0.0
 .TP
 .B \-p, \-\-port <port>
+Server port.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-d, \-\-debug
+Enable debug level logging.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-H, \-\-host <host>
-Xirvik host (without protocol)
+Xirvik host (without protocol).
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-C, \-\-config <config>
-Configuration file
+Configuration file.
 .UNINDENT
 .SH AUTHOR
 Andrew Udvare <audvare@gmail.com>
 .SH COPYRIGHT
-2025
+2026
 .\" Generated by docutils manpage writer.
 .

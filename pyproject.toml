@@ -74,7 +74,7 @@ license = "MIT"
 name = "xirvik-tools"
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
-version = "0.5.3"
+version = "0.6.0"
 
 [[project.authors]]
 email = "audvare@gmail.com"

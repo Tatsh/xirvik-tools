@@ -6,7 +6,7 @@ local utils = import 'utils.libjsonnet';
   description: 'Command line utilities for interfacing with Xirvik.',
   keywords: ['command line', 'xirvik'],
   primary_module: 'xirvik',
-  version: '0.5.3',
+  version: '0.6.0',
   want_main: true,
   want_flatpak: true,
   publishing+: { flathub: 'sh.tat.xirvik-tools' },

@@ -16,8 +16,8 @@
       :target: https://github.com/Tatsh/xirvik-tools/blob/master/LICENSE.txt
       :alt: License
 
-   .. image:: https://img.shields.io/github/commits-since/Tatsh/xirvik-tools/v0.5.3/master
-      :target: https://github.com/Tatsh/xirvik-tools/compare/v0.5.3...master
+   .. image:: https://img.shields.io/github/commits-since/Tatsh/xirvik-tools/v0.6.0/master
+      :target: https://github.com/Tatsh/xirvik-tools/compare/v0.6.0...master
       :alt: GitHub commits since latest release (by SemVer including pre-releases)
 
    .. image:: https://github.com/Tatsh/xirvik-tools/actions/workflows/codeql.yml/badge.svg

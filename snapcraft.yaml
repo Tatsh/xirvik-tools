@@ -30,5 +30,5 @@ platforms:
 source-code: 'https://github.com/Tatsh/xirvik-tools'
 summary: 'Command line utilities for interfacing with Xirvik.'
 title: 'xirvik-tools'
-version: '0.5.3'
+version: '0.6.0'
 website: 'https://tatsh.github.io/xirvik-tools/'
