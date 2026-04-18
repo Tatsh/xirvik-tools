@@ -16,6 +16,11 @@ local utils = import 'utils.libjsonnet';
       scripts: { xirvik: 'xirvik.commands:xirvik' },
     },
     tool+: {
+      pytest+: {
+        ini_options+: {
+          asyncio_mode: 'auto',
+        },
+      },
       poetry+: {
         dependencies+: {
           beautifulsoup4: utils.latestPypiPackageVersionCaret('beautifulsoup4'),
@@ -48,6 +53,9 @@ local utils = import 'utils.libjsonnet';
             },
           },
         },
+      },
+      uv+: {
+        'exclude-newer-package': {'niquests-mock': false},
       },
     },
   },
