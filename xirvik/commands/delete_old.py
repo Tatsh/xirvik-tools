@@ -68,6 +68,8 @@ def main(
         ignore_date: bool = False,
         dry_run: bool = False) -> None:
     """Delete torrents based on certain criteria."""
+    netrc_path = Path(netrc) if netrc else Path('~/.netrc').expanduser()
+
     async def _main() -> None:
         setup_logging(debug=debug,
                       loggers={
@@ -81,7 +83,7 @@ def main(
                                    name=username,
                                    password=password,
                                    max_retries=max_retries,
-                                   netrc_path=netrc or Path('~/.netrc').expanduser()) as client:
+                                   netrc_path=netrc_path) as client:
             try:
                 torrents = [info async for info in client.list_torrents()]
             except HTTPError as e:

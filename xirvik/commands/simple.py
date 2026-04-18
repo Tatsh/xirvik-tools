@@ -4,7 +4,6 @@ from __future__ import annotations
 from base64 import b64encode
 from datetime import MINYEAR, datetime, timezone
 from logging.handlers import SysLogHandler
-from os.path import realpath
 from pathlib import Path
 from shlex import quote
 from tempfile import NamedTemporaryFile
@@ -17,6 +16,7 @@ import re
 import signal
 import sys
 
+from anyio.to_thread import run_sync
 from bascom import setup_logging
 from bs4 import BeautifulSoup as Soup
 from fabric import Connection  # type: ignore[import-untyped]
@@ -82,7 +82,8 @@ def start_torrents(
         if syslog:  # pragma: no cover
             handlers = {
                 'syslog': {
-                    'address': '/dev/log' if Path('/dev/log').exists() else '/var/run/syslog',
+                    'address': (
+                        '/dev/log' if await anyio.Path('/dev/log').exists() else '/var/run/syslog'),
                     'formatter': logging.Formatter('xirvik: %(message)s'),
                     'class': SysLogHandler,
                 }
@@ -100,8 +101,8 @@ def start_torrents(
                               'propagate': False,
                           } if handlers_tuple else {}
                       })
-        cache_dir = Path(realpath(Path('~/.cache/xirvik').expanduser()))
-        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_dir = await (await anyio.Path('~/.cache/xirvik').expanduser()).resolve()
+        await cache_dir.mkdir(parents=True, exist_ok=True)
         post_url = f'https://{host:s}:{port:d}/rtorrent/php/addtorrent.php?'
         form_data: dict[str, str] = {}
         if start_stopped:
@@ -686,8 +687,7 @@ def download_untracked_files(
             for file_or_dir in get_lines():
                 out_file_or_dir = target / '/'.join(file_or_dir.split('/')[2:])
                 await anyio.Path(out_file_or_dir.parent).mkdir(parents=True, exist_ok=True)
-                is_directory = await anyio.to_thread.run_sync(
-                    functools.partial(_is_dir_sync, conn, file_or_dir))
+                is_directory = await run_sync(functools.partial(_is_dir_sync, conn, file_or_dir))
                 src = f'{host}:{file_or_dir}{"/" if is_directory else ""}'
                 proc = await asyncio.create_subprocess_exec('rsync',
                                                             '-e',

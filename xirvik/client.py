@@ -11,6 +11,7 @@ import inspect
 import logging
 import xmlrpc.client as xmlrpc
 
+from anyio.to_thread import run_sync
 from niquests import AsyncSession
 from niquests.adapters import AsyncHTTPAdapter
 from typing_extensions import Self
@@ -451,7 +452,7 @@ class ruTorrentClient:  # noqa: N801
         hash\_ : str
             Hash of the torrent.
         """
-        await anyio.to_thread.run_sync(self._delete_sync, hash_)
+        await run_sync(self._delete_sync, hash_)
 
     def _delete_sync(self, hash_: str) -> None:
         mc = xmlrpc.MultiCall(self._xmlrpc_proxy)
