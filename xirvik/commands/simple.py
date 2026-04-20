@@ -412,7 +412,7 @@ def list_torrents(
             if sort:
                 torrents = sorted(torrents, key=sorter)
             if reverse_order:
-                torrents = list(reversed(list(torrents)))
+                torrents = list(reversed(torrents))
             match table_format:
                 case fmt if fmt in tabulate_formats:
                     click.echo_via_pager(

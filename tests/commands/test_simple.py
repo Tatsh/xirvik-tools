@@ -91,6 +91,9 @@ def test_start_torrents_start_stopped(runner: CliRunner, niquests_mock: MockRout
                                   str(Path.home()))).exit_code == 0
     assert route.call_count == 1
     assert not torrent.is_file()
+    body = route.calls[0].request.body
+    assert isinstance(body, bytes)
+    assert b'name="torrents_start_stopped"\r\n\r\non\r\n' in body
 
 
 def test_add_ftp_user(runner: CliRunner, niquests_mock: MockRouter, tmp_path: Path,

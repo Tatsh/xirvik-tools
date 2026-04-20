@@ -5,6 +5,7 @@ from os import environ
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import TYPE_CHECKING, Any, cast
+from urllib.parse import parse_qsl
 import xmlrpc.client
 
 from niquests.exceptions import HTTPError
@@ -261,7 +262,7 @@ async def test_set_label(niquests_mock: MockRouter) -> None:
         return build_response(request, **resp)
 
     niquests_mock.post(client.multirpc_action_uri).mock(side_effect=side_effect)
-    await client.set_label('hash1', 'a label')
+    await client.set_label('a label', 'hash1')
 
 
 async def test_move_torrent(niquests_mock: MockRouter) -> None:
@@ -364,3 +365,15 @@ async def test_edit_torrent(niquests_mock: MockRouter) -> None:
         trackers=['http://tracker.example.com', 'http://tracker2.example.com'])
     assert r.status_code == 200
     assert route.call_count == 1
+    body = route.calls[0].request.body
+    assert isinstance(body, (str, bytes))
+    pairs = parse_qsl(body if isinstance(body, str) else body.decode(), keep_blank_values=True)
+    assert ('comment', 'New comment') in pairs
+    assert ('set_comment', '1') in pairs
+    assert ('private', '1') in pairs
+    assert ('set_private', '1') in pairs
+    assert ('set_trackers', '1') in pairs
+    assert ('hash', 'hash1') in pairs
+    assert ('hash', 'hash2') in pairs
+    assert ('tracker', 'http://tracker.example.com') in pairs
+    assert ('tracker', 'http://tracker2.example.com') in pairs
