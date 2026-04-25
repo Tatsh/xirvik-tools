@@ -85,7 +85,7 @@ def start_torrents(
                     'address': (
                         '/dev/log' if await anyio.Path('/dev/log').exists() else '/var/run/syslog'),
                     'formatter': logging.Formatter('xirvik: %(message)s'),
-                    'class': SysLogHandler,
+                    'class': SysLogHandler
                 }
             }
             handlers_tuple = ('syslog',)
@@ -98,7 +98,7 @@ def start_torrents(
                           },
                           'xirvik': {
                               'handlers': handlers_tuple,
-                              'propagate': False,
+                              'propagate': False
                           } if handlers_tuple else {}
                       })
         cache_dir = await (await anyio.Path('~/.cache/xirvik').expanduser()).resolve()

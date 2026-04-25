@@ -68,7 +68,7 @@ def install_services(directories: tuple[Path, ...],
                         xirvik_cmd, 'rtorrent', 'add', '-s', '--host', host, *(str(x)
                                                                                for x in directories)
                     ],
-                    'StartInterval': interval * 60,
+                    'StartInterval': interval * 60
                 },
                 f,
                 fmt=plistlib.FMT_XML)
@@ -81,10 +81,7 @@ def install_services(directories: tuple[Path, ...],
     timer_output_path = Path('~/.config/systemd/user/xirvik-start-torrents.timer').expanduser()
     with service_output_path.open('w+') as f:
         parser = _CaseSensitiveConfigParser(delimiters=('=',))
-        parser['Unit'] = {
-            'Description': 'Torrent sync with Xirvik',
-            'After': 'network.target',
-        }
+        parser['Unit'] = {'Description': 'Torrent sync with Xirvik', 'After': 'network.target'}
         dirs_quoted = ' '.join(quote(str(x)) for x in directories)
         parser['Service'] = {
             'Type': 'oneshot',
@@ -94,9 +91,7 @@ def install_services(directories: tuple[Path, ...],
     with timer_output_path.open('w+') as f:
         parser = _CaseSensitiveConfigParser(delimiters=('=',))
         parser['Unit'] = {'Description': 'Trigger for Xirvik torrent sync'}
-        parser['Timer'] = {
-            'OnCalendar': f'*-*-* *:0/{interval}:00',
-        }
+        parser['Timer'] = {'OnCalendar': f'*-*-* *:0/{interval}:00'}
         parser['Install'] = {'WantedBy': 'timers.target'}
         parser.write(f, space_around_delimiters=False)
     click.echo(f'Services installed at {service_output_path} and {timer_output_path}.')

@@ -305,7 +305,7 @@ def test_list_torrents_json_sort_finished(runner: CliRunner, mocker: MockerFixtu
                                 name='The Name2',
                                 is_hash_checking=False,
                                 base_path='/downloads/_completed',
-                                finished=datetime.now(timezone.utc) - timedelta(days=7)),
+                                finished=datetime.now(timezone.utc) - timedelta(days=7))
                         ])
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--sort', 'finished', '--table-format',
@@ -334,7 +334,7 @@ def test_list_torrents_json_sort_finished_missing(runner: CliRunner, mocker: Moc
                                 name='The Name2',
                                 is_hash_checking=False,
                                 base_path='/downloads/_completed',
-                                finished=datetime.now(timezone.utc) - timedelta(days=7)),
+                                finished=datetime.now(timezone.utc) - timedelta(days=7))
                         ])
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--sort', 'finished', '--table-format',
@@ -362,7 +362,7 @@ def test_list_torrents_json_sort_missing_attr(runner: CliRunner, mocker: MockerF
                             MinimalTorrentDict('hash2',
                                                name='The Name2',
                                                is_hash_checking=False,
-                                               base_path='/downloads/_completed'),
+                                               base_path='/downloads/_completed')
                         ])
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--sort', 'label', '--table-format',
@@ -388,7 +388,7 @@ def test_list_torrents_json_sort_other_criteria(runner: CliRunner, mocker: Mocke
                             MinimalTorrentDict('hash2',
                                                name='AThe Name2',
                                                is_hash_checking=False,
-                                               base_path='/downloads/_completed'),
+                                               base_path='/downloads/_completed')
                         ])
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--sort', 'name', '--table-format',
@@ -408,7 +408,7 @@ def test_list_files(runner: CliRunner, mocker: MockerFixture, tmp_path: Path,
                             TorrentTrackedFile('file1', 512, 512, 1000, FilePriority.NORMAL,
                                                FileDownloadStrategy.NORMAL),
                             TorrentTrackedFile('file2', 512, 512, 1200, FilePriority.NORMAL,
-                                               FileDownloadStrategy.NORMAL),
+                                               FileDownloadStrategy.NORMAL)
                         ])
     data = json.loads(
         runner.invoke(xirvik,
@@ -428,7 +428,7 @@ def test_list_files_reversed(runner: CliRunner, mocker: MockerFixture, tmp_path:
                             TorrentTrackedFile('file1', 512, 512, 1000, FilePriority.NORMAL,
                                                FileDownloadStrategy.NORMAL),
                             TorrentTrackedFile('file2', 512, 512, 1200, FilePriority.NORMAL,
-                                               FileDownloadStrategy.NORMAL),
+                                               FileDownloadStrategy.NORMAL)
                         ])
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-files', '--reverse-order', '--table-format',
@@ -448,7 +448,7 @@ def test_list_files_sort_size(runner: CliRunner, mocker: MockerFixture, tmp_path
                             TorrentTrackedFile('file1', 512, 512, 1000, FilePriority.NORMAL,
                                                FileDownloadStrategy.NORMAL),
                             TorrentTrackedFile('file2', 512, 512, 1200, FilePriority.NORMAL,
-                                               FileDownloadStrategy.NORMAL),
+                                               FileDownloadStrategy.NORMAL)
                         ])
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-files', '--table-format', 'json', '--sort',
@@ -466,7 +466,7 @@ def test_list_files_normal(runner: CliRunner, mocker: MockerFixture, tmp_path: P
     _patch_client_async(mocker,
                         files=[
                             TorrentTrackedFile('file1', 512, 512, 1000, FilePriority.NORMAL,
-                                               FileDownloadStrategy.NORMAL),
+                                               FileDownloadStrategy.NORMAL)
                         ])
     lines = runner.invoke(xirvik, ('rtorrent', 'list-files', '--sort', 'size_bytes',
                                    '--reverse-order', 'hash1')).output.splitlines()

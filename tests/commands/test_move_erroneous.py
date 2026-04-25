@@ -52,7 +52,7 @@ def test_move_erroneous_normal(runner: CliRunner, mocker: MockerFixture, tmp_pat
                                                        message='unregistered torrent',
                                                        custom1='anything',
                                                        name='Test #1'),
-                                    MinimalTorrentDict('hash2', custom1='anything', name='Test #1'),
+                                    MinimalTorrentDict('hash2', custom1='anything', name='Test #1')
                                 ])
     assert runner.invoke(xirvik, ('rtorrent', 'move-erroneous', '-H', 'machine.com')).exit_code == 0
     assert client_mock.return_value.move_torrent.call_count == 1

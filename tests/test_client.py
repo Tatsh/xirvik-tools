@@ -101,9 +101,9 @@ async def test_list_torrents(niquests_mock: MockRouter) -> None:
                 'hash here': [
                     '1', '0', '1', '1', 'name of torrent?', '1000', '1', '1024', '1000', '0',
                     '0.14', '0', '0', '512', 'label'
-                ] + (20 * ['0']) + ['1633423132\n'],
+                ] + (20 * ['0']) + ['1633423132\n']
             },
-            'cid': 92385,
+            'cid': 92385
         })
     result = await alist(client.list_torrents())
     assert result[0].name == 'name of torrent?'
@@ -141,9 +141,9 @@ async def test_list_all_files(niquests_mock: MockRouter) -> None:
             'hash here': [
                 '1', '0', '1', '1', 'name of torrent?', '1000', '1', '1024', '1000', '0', '0.14',
                 '0', '0', '512', 'label'
-            ] + (20 * ['0']) + ['1633423132\n'],
+            ] + (20 * ['0']) + ['1633423132\n']
         },
-        'cid': 92385,
+        'cid': 92385
     }
     list_files_json = [['name of file', '14', '13', '8192', '1', '0', '0'] + (19 * ['0'])]
     responses: list[dict[str, Any]] = [{'json': list_torrents_json}, {'json': list_files_json}]
@@ -195,9 +195,9 @@ async def test_set_label_to_hashes_recursion_limit_5(niquests_mock: MockRouter) 
             'hash3': [
                 '1', '0', '1', '1', 'torrent name2', '250952849', '958', '958', '250952849',
                 '357999402', '1426', '0', '0', '262144', ''
-            ] + (20 * ['0']) + ['1633423132\n'],
+            ] + (20 * ['0']) + ['1633423132\n']
         },
-        'cid': 92983,
+        'cid': 92983
     }
     response_sequence = cast('list[dict[str, Any]]', [{
         'json': []
@@ -243,16 +243,9 @@ async def test_set_label(niquests_mock: MockRouter) -> None:
                 '357999402', '1426', '0', '0', '262144', 'a label'
             ] + (20 * ['0']) + ['1633423132\n']
         },
-        'cid': 92983,
+        'cid': 92983
     }
-    response_sequence = cast('list[dict[str, Any]]', [
-        {
-            'json': []
-        },
-        {
-            'json': list_torrents_json
-        },
-    ])
+    response_sequence = cast('list[dict[str, Any]]', [{'json': []}, {'json': list_torrents_json}])
     call_count = 0
 
     def side_effect(request: PreparedRequest) -> Response:

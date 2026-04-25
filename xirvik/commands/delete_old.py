@@ -28,10 +28,7 @@ def _test_date_cb(days: int = 14) -> TestCallable:
         expect = datetime.now(timezone.utc) - timedelta(days=days)
         log.debug('State changed: %s', condition1)
         log.debug('%s <= %s', condition1, expect)
-        return (
-            f'over {days} days seeded',
-            bool(condition1 and condition1 <= expect),
-        )
+        return (f'over {days} days seeded', bool(condition1 and condition1 <= expect))
 
     return test_date
 
@@ -91,7 +88,7 @@ def main(
                 raise click.Abort from e
             tests = {
                 'ratio': (ignore_ratio, _test_ratio),
-                'date': (ignore_date, _test_date_cb(days)),
+                'date': (ignore_date, _test_date_cb(days))
             }
             for info in torrents:
                 if info.left_bytes != 0 or info.custom1 != label:

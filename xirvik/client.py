@@ -283,7 +283,7 @@ class ruTorrentClient:  # noqa: N801
                                          'datadir': target_dir,
                                          'move_addpath': '1',
                                          'move_datafiles': '1',
-                                         'move_fastresume': '1' if fast_resume else '0',
+                                         'move_fastresume': '1' if fast_resume else '0'
                                      },
                                      auth=self.auth)
         r.raise_for_status()
@@ -407,10 +407,9 @@ class ruTorrentClient:  # noqa: N801
         """
         r = await self._session.post(
             self.multirpc_action_uri,
-            data=(f'mode=fls&hash={hash_}' + '&' + '&'.join(f'cmd={x}' for x in (
-                quote('f.prioritize_first='),
-                quote('f.prioritize_last='),
-            ))),
+            data=(f'mode=fls&hash={hash_}' + '&' +
+                  '&'.join(f'cmd={x}'
+                           for x in (quote('f.prioritize_first='), quote('f.prioritize_last=')))),
             auth=self.auth)
         r.raise_for_status()
         for x in r.json():
@@ -547,7 +546,7 @@ class ruTorrentClient:  # noqa: N801
                                              'set_comment': '1'
                                          } if comment else {}) | ({
                                              'private': '1' if private else '0',
-                                             'set_private': '1',
+                                             'set_private': '1'
                                          } if private is not None else {}) | ({
                                              'set_trackers': '1'
                                          } if trackers else {})).items(),

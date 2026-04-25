@@ -98,7 +98,6 @@ notarytool
 notpeter
 npmjs
 numpy
-numpydoc
 onefile
 oneline
 oneshot
