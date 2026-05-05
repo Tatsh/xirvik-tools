@@ -10,7 +10,7 @@ local utils = import 'utils.libjsonnet';
   want_main: true,
   want_flatpak: true,
   publishing+: { flathub: 'sh.tat.xirvik-tools' },
-  security_policy_supported_versions: { '0.5.x': ':white_check_mark:' },
+  security_policy_supported_versions: { '0.6.x': ':white_check_mark:' },
   pyproject+: {
     project+: {
       scripts: { xirvik: 'xirvik.commands:xirvik' },
