@@ -72,7 +72,7 @@ def _clean_host(host: str) -> str:
 
 
 def _read_ssh_known_hosts() -> Iterator[str]:
-    try:
+    try:  # noqa: PLW0717
         with Path('~/.ssh/known_hosts').expanduser().open(encoding='utf-8') as f:
             for line in f:
                 host_part = line.split()[0]

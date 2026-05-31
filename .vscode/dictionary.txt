@@ -96,7 +96,6 @@ nistp
 norecursedirs
 notarytool
 notpeter
-npmjs
 numpy
 onefile
 oneline
@@ -110,6 +109,7 @@ pipx
 plabel
 platformdirs
 plistlib
+preapproved
 proc
 prodvers
 prss
@@ -166,6 +166,8 @@ tostring
 tryfirst
 ubyte
 udvare
+undraft
+undrafted
 unexpectedru
 unidecode
 userprofile
@@ -177,6 +179,7 @@ vsplit
 webui
 wiswa
 wiswa's
+worktree
 xcrun
 xirvik
 yapf
