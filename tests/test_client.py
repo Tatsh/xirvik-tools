@@ -234,6 +234,33 @@ async def test_set_label_to_hashes_recursion_limit_5(niquests_mock: MockRouter) 
     await client.set_label_to_hashes(hashes=hashes, label=label, recursion_limit=5)
 
 
+async def test_set_label_to_hashes_no_torrents_to_correct(mocker: MockerFixture,
+                                                          niquests_mock: MockRouter) -> None:
+    client = ruTorrentClient('hostname-test.com', 'a', 'b')
+    spy_log_debug = mocker.spy(log, 'debug')
+    list_torrents_json: dict[str, Any] = {
+        't': {
+            'hash1': [
+                '1', '0', '1', '1', 'torrent name', '250952849', '958', '958', '250952849',
+                '357999402', '1426', '0', '0', '262144', 'existing label'
+            ] + (20 * ['0']) + ['1633423132\n']
+        },
+        'cid': 92983
+    }
+    response_sequence = cast('list[dict[str, Any]]', [{'json': []}, {'json': list_torrents_json}])
+    call_count = 0
+
+    def side_effect(request: PreparedRequest) -> Response:
+        nonlocal call_count
+        resp = response_sequence[min(call_count, len(response_sequence) - 1)]
+        call_count += 1
+        return build_response(request, **resp)
+
+    niquests_mock.post(client.multirpc_action_uri).mock(side_effect=side_effect)
+    await client.set_label_to_hashes(hashes=['hashX'], label='my new label')
+    spy_log_debug.assert_any_call('Found no torrents to correct')
+
+
 async def test_set_label(niquests_mock: MockRouter) -> None:
     client = ruTorrentClient('hostname-test.com', 'a', 'b')
     list_torrents_json: dict[str, Any] = {
