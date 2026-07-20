@@ -45,7 +45,8 @@ def parse_header(line: str) -> tuple[str, dict[str, str]]:
         if (i := p.find('=')) >= 0:
             name = p[:i].strip().lower()
             value = p[i + 1:].strip()
-            if len(value) >= 2 and value[0] == value[-1] == '"':  # noqa: PLR2004
+            if len(value
+                   ) >= 2 and value[0] == value[-1] == '"':  # ruff:ignore[magic-value-comparison]
                 value = value[1:-1].replace('\\\\', '\\').replace('\\"', '"')
             pdict[name] = value
     return key, pdict

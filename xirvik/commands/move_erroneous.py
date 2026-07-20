@@ -56,7 +56,7 @@ def main(
         max_retries: int = 10,
         *,
         debug: bool = False,
-        **kwargs: Any  # noqa: ARG001
+        **kwargs: Any  # ruff:ignore[unused-function-argument]
 ) -> None:
     """Move torrents in error state to another location."""
     async def _main() -> None:

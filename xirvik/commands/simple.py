@@ -68,7 +68,7 @@ def start_torrents(
         host: str,
         directories: tuple[Path, ...],
         port: int = 443,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         *,
         debug: bool = False,
         start_stopped: bool = False,
@@ -152,7 +152,7 @@ def start_torrents(
 def list_ftp_users(
         host: str,
         port: int = 443,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         *,
         debug: bool = False) -> None:
     """List FTP users."""
@@ -201,7 +201,7 @@ def add_ftp_user(
         password: str,
         port: int = 443,
         root_directory: str = '/',
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         *,
         debug: bool = False) -> None:
     """Add an FTP user."""
@@ -249,7 +249,7 @@ def delete_ftp_user(
         host: str,
         username: str,
         port: int = 443,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         *,
         debug: bool = False) -> None:
     """Delete an FTP user."""
@@ -288,7 +288,7 @@ def delete_ftp_user(
 def authorize_ip(
         host: str,
         port: int = 443,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         *,
         debug: bool = False) -> None:
     """Authorise the current IP for access to the VM via SSH/VNC/RDP."""
@@ -326,7 +326,7 @@ def authorize_ip(
 def fix_rtorrent(
         host: str,
         port: int,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         *,
         debug: bool = False) -> None:
     """Restart the rtorrent service in case ruTorrent cannot connect to it."""
@@ -379,7 +379,7 @@ STATES_FOR_SORTING = {'finished', 'creation_date', 'state_changed'}
 @click.option('-R', '--reverse-order', is_flag=True, help='Reverse the sort order.')
 def list_torrents(
         host: str,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         table_format: str = 'plain',
         sort: str | None = None,
         *,
@@ -461,10 +461,10 @@ def list_torrents(
 @click.option('-R', '--reverse-order', is_flag=True, help='Reverse the sort order.')
 @click.argument('hash')
 def list_files(
-        hash: str,  # noqa: A002
+        hash: str,  # ruff:ignore[builtin-argument-shadowing]
         host: str,
         port: int,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         table_format: str = 'plain',
         sort: str = 'name',
         *,
@@ -524,7 +524,7 @@ def _resolve_single_file_torrent_path(info: TorrentInfo, filename: str) -> str:
 def list_all_files(
         host: str,
         port: int,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         *,
         debug: bool = False) -> None:
     """List every tracked file."""
@@ -575,7 +575,7 @@ def list_untracked_files(
         host: str,
         port: int,
         server_list_command: str,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         *,
         debug: bool = False) -> None:
     """List all files on the server that are not tracked."""
@@ -655,7 +655,7 @@ def download_untracked_files(
         port: int,
         target: Path,
         untracked_filename: Path,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         username: str | None = None,
         *,
         debug: bool = False) -> None:
