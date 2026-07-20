@@ -70,7 +70,7 @@ class TorrentInfo(NamedTuple):
     free_diskspace: int
     is_private: bool
     is_multi_file: bool
-    # unk1: str  # noqa: ERA001
+    # unk1: str  # ruff:ignore[commented-out-code]
     finished: datetime | None
 
 

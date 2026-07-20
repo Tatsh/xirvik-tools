@@ -13,14 +13,16 @@ if TYPE_CHECKING:
 
 
 def test_install_services_windows(mocker: MockerFixture, runner: CliRunner) -> None:
-    mocker.patch('xirvik.commands.install_services.IS_WINDOWS', True)  # noqa: FBT003
+    mocker.patch('xirvik.commands.install_services.IS_WINDOWS',
+                 True)  # ruff:ignore[boolean-positional-value-in-call]
     result = runner.invoke(install_services, ('/', '-H', 'example.com'))
     assert result.exit_code != 0
     assert 'This command is not supported on Windows.' in result.output
 
 
 def test_install_services_no_xirvik_command(mocker: MockerFixture, runner: CliRunner) -> None:
-    mocker.patch('xirvik.commands.install_services.IS_WINDOWS', False)  # noqa: FBT003
+    mocker.patch('xirvik.commands.install_services.IS_WINDOWS',
+                 False)  # ruff:ignore[boolean-positional-value-in-call]
     mocker.patch('xirvik.commands.install_services.which', return_value=None)
     result = runner.invoke(install_services, ('/', '-H', 'example.com'))
     assert result.exit_code != 0
@@ -28,8 +30,10 @@ def test_install_services_no_xirvik_command(mocker: MockerFixture, runner: CliRu
 
 
 def test_install_services_mac(mocker: MockerFixture, runner: CliRunner) -> None:
-    mocker.patch('xirvik.commands.install_services.IS_WINDOWS', False)  # noqa: FBT003
-    mocker.patch('xirvik.commands.install_services.IS_MAC', True)  # noqa: FBT003
+    mocker.patch('xirvik.commands.install_services.IS_WINDOWS',
+                 False)  # ruff:ignore[boolean-positional-value-in-call]
+    mocker.patch('xirvik.commands.install_services.IS_MAC',
+                 True)  # ruff:ignore[boolean-positional-value-in-call]
     mocker.patch('xirvik.commands.install_services.which', return_value='/usr/local/bin/xirvik')
     mocker.patch('xirvik.commands.install_services.Path')
     mock_dump = mocker.patch('xirvik.commands.install_services.plistlib.dump')
@@ -50,8 +54,10 @@ def test_install_services_mac(mocker: MockerFixture, runner: CliRunner) -> None:
 
 
 def test_install_services_linux(mocker: MockerFixture, runner: CliRunner, tmp_path: Path) -> None:
-    mocker.patch('xirvik.commands.install_services.IS_WINDOWS', False)  # noqa: FBT003
-    mocker.patch('xirvik.commands.install_services.IS_MAC', False)  # noqa: FBT003
+    mocker.patch('xirvik.commands.install_services.IS_WINDOWS',
+                 False)  # ruff:ignore[boolean-positional-value-in-call]
+    mocker.patch('xirvik.commands.install_services.IS_MAC',
+                 False)  # ruff:ignore[boolean-positional-value-in-call]
     mocker.patch('xirvik.commands.install_services.which', return_value='/usr/local/bin/xirvik')
     service_path = tmp_path / 'xirvik-start-torrents.service'
     timer_path = tmp_path / 'xirvik-start-torrents.timer'

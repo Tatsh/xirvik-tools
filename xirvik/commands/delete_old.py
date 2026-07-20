@@ -58,7 +58,7 @@ def main(
         days: int = 14,
         backoff_factor: int = 1,
         sleep_time: int = 10,
-        config: str | None = None,  # noqa: ARG001
+        config: str | None = None,  # ruff:ignore[unused-function-argument]
         *,
         debug: bool = False,
         ignore_ratio: bool = False,

@@ -48,7 +48,7 @@ def install_services(directories: tuple[Path, ...],
                      *,
                      debug: bool = False,
                      interval: int = 2) -> None:
-    """Install the xirvik-start-torrents service."""  # noqa: DOC501
+    """Install the xirvik-start-torrents service."""  # ruff:ignore[docstring-missing-exception]
     setup_logging(debug=debug, loggers={'urllib3.util.retry': {'level': 'WARNING'}, 'xirvik': {}})
     if IS_WINDOWS:
         click.echo('This command is not supported on Windows.')
@@ -73,7 +73,8 @@ def install_services(directories: tuple[Path, ...],
                 f,
                 fmt=plistlib.FMT_XML)
         click.echo(f'Service installed at {output_path}.')
-        sp.run(('launchctl', 'load', '-w', str(output_path)), check=True)  # noqa: S607
+        sp.run(('launchctl', 'load', '-w', str(output_path)),
+               check=True)  # ruff:ignore[start-process-with-partial-path]
         click.echo(f'Service loaded. Use `launchctl list {label}` to check its status.')
         return
     # Linux

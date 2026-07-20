@@ -42,7 +42,7 @@ class ListTorrentsError(Exception):
 FIRST_YEAR_XIRVIK = 2009
 
 
-class ruTorrentClient:  # noqa: N801
+class ruTorrentClient:  # ruff:ignore[invalid-class-name]
     """
     ruTorrent client class.
 
