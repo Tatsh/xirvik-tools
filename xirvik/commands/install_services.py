@@ -73,8 +73,7 @@ def install_services(directories: tuple[Path, ...],
                 f,
                 fmt=plistlib.FMT_XML)
         click.echo(f'Service installed at {output_path}.')
-        sp.run(('launchctl', 'load', '-w', str(output_path)),
-               check=True)  # ruff:ignore[start-process-with-partial-path]
+        sp.run(('launchctl', 'load', '-w', str(output_path)), check=True)
         click.echo(f'Service loaded. Use `launchctl list {label}` to check its status.')
         return
     # Linux
