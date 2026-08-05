@@ -60,6 +60,7 @@ fullrows
 functools
 genindex
 globaltoc
+handoff
 hostshare
 hoverxref
 htmlcov
@@ -146,12 +147,12 @@ signtool
 sindex
 snapcore
 snapcraft
-softprops
 soupsieve
 speedintitle
 speedlistdl
 speedlistul
 sphinxcontrib
+statusline
 syft
 tablefmt
 tatsh
@@ -177,6 +178,7 @@ vers
 virtualenv
 vsplit
 webui
+winget
 wiswa
 wiswa's
 worktree
@@ -185,3 +187,4 @@ xirvik
 yapf
 yapfignore
 yarnrc
+zizmor

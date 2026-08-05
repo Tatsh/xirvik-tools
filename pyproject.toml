@@ -4,13 +4,13 @@ requires = ["hatchling"]
 
 [dependency-groups]
 dev = [
-  "commitizen>=4.16.2",
+  "commitizen>=4.16.5",
   "cz-path>=0.0.7",
-  "mypy>=2.1.0",
+  "mypy>=2.3.0",
   "ruff==0.16.0",
-  "ty>=0.0.39",
+  "ty>=0.0.64",
   "types-beautifulsoup4>=4.12.0.20250516",
-  "types-pyyaml>=6.0.12.20260518",
+  "types-pyyaml>=6.0.12.20260724",
   "types-ratelimit>=2.2.0.20260508",
   "types-tabulate>=0.10.0.20260508",
   "yapf>=0.43.0",
@@ -19,22 +19,22 @@ docs = [
   "autodoc-pydantic>=2.2.0",
   "doc8>=2.0.0",
   "enum-tools[sphinx]>=0.13.0",
-  "esbonio>=2.0.0",
+  "esbonio>=2.1.0",
   "restructuredtext-lint>=2.0.2",
   "sphinx-click>=6.2.0",
   "sphinx-datatables>=1.0.0",
   "sphinx-immaterial>=0.13.9",
   "sphinx>=9.1.0; python_version >= \"3.13\"",
-  "tomlkit>=0.15.0",
+  "tomlkit>=0.15.1",
 ]
 tests = [
   "coveralls>=4.1.0",
   "mock>=5.2.0",
-  "niquests-mock>=0.3.1",
-  "pytest-asyncio>=1.3.0",
+  "niquests-mock>=0.5.0",
+  "pytest-asyncio>=1.4.0",
   "pytest-cov>=7.1.0",
   "pytest-mock>=3.15.1",
-  "pytest>=9.0.3",
+  "pytest>=9.1.1",
 ]
 
 [project]
@@ -50,20 +50,20 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-  "anyio>=4.13.0",
+  "anyio>=4.14.2",
   "bascom>=0.1.3",
-  "beautifulsoup4>=4.14.3",
-  "click>=8.4.0",
+  "beautifulsoup4>=4.15.0",
+  "click>=8.4.2",
   "fabric>=3.2.3",
   "html5lib>=1.1",
   "keyring>=25.7.0",
-  "mutagen>=1.47.0",
-  "niquests>=3.18.8",
-  "platformdirs>=4.9.6",
+  "mutagen>=1.48.1",
+  "niquests>=3.20.1",
+  "platformdirs>=4.11.0",
   "pyyaml>=6.0.3",
   "ratelimit>=2.2.1",
   "tabulate>=0.10.0",
-  "typing-extensions>=4.15.0",
+  "typing-extensions>=4.16.0",
   "unidecode>=1.4.0",
 ]
 description = "Command line utilities for interfacing with Xirvik."
@@ -173,7 +173,21 @@ quote-style = "single"
 
 [tool.ruff.lint]
 extend-select = ["ALL"]
-ignore = ["ANN401", "COM812", "CPY001", "D203", "D204", "D212", "N818", "S404", "S603", "TD002"]
+ignore = [
+  "ANN401",
+  "COM812",
+  "CPY001",
+  "D203",
+  "D204",
+  "D212",
+  "N818",
+  "RUF105",
+  "RUF106",
+  "RUF201",
+  "S404",
+  "S603",
+  "TD002",
+]
 preview = true
 
 [tool.ruff.lint.flake8-builtins]
