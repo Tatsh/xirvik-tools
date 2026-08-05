@@ -55,6 +55,14 @@ jobs:
         shell: 'pwsh'
       - name: 'Install dependencies (uv)'
         run: |
+          # cryptography has no macOS x86_64 wheel, so it is built from source against Homebrew's
+          # OpenSSL, which collides with the older libssl.3.dylib PyInstaller bundles for _ssl.
+          # Linking statically leaves the extension with no libssl.3.dylib dependency at all.
+          if [[ "${RUNNER_OS}" == 'macOS' && "$(uname -m)" == 'x86_64' ]]; then
+              OPENSSL_DIR="$(brew --prefix openssl@3)"
+              export OPENSSL_DIR
+              export OPENSSL_STATIC=1
+          fi
           uv sync --all-extras --all-groups
           uv pip install pyinstaller
         shell: 'bash'
