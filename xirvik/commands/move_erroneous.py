@@ -6,9 +6,10 @@ import asyncio
 import logging
 
 from bascom import setup_logging
-from xirvik.client import ruTorrentClient
 import anyio
 import click
+
+from xirvik.client import ruTorrentClient
 
 from .utils import command_with_config_file, common_options_and_arguments
 

@@ -23,10 +23,11 @@ from fabric import Connection  # type: ignore[import-untyped]
 from niquests.exceptions import HTTPError
 from tabulate import tabulate, tabulate_formats
 from unidecode import unidecode
-from xirvik.client import ruTorrentClient
 import anyio
 import click
 import niquests
+
+from xirvik.client import ruTorrentClient
 
 from .utils import command_with_config_file, complete_hosts, complete_ports
 

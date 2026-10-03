@@ -8,10 +8,11 @@ from unittest.mock import AsyncMock
 import json
 import re
 
+import pytest
+
 from tests.conftest import async_iter
 from xirvik.commands.root import xirvik
 from xirvik.typing import FileDownloadStrategy, FilePriority, TorrentTrackedFile
-import pytest
 
 if TYPE_CHECKING:
     from click.testing import CliRunner

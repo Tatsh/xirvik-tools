@@ -10,10 +10,11 @@ import xmlrpc.client as xmlrpc
 
 from bascom import setup_logging
 from niquests.exceptions import HTTPError
-from xirvik.client import ruTorrentClient
-from xirvik.typing import TorrentInfo
 import anyio
 import click
+
+from xirvik.client import ruTorrentClient
+from xirvik.typing import TorrentInfo
 
 from .utils import command_with_config_file, common_options_and_arguments
 

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 import warnings
 
 from click.core import ParameterSource
+
 from xirvik.commands.utils import command_with_config_file
 
 if TYPE_CHECKING:

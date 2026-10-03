@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, NamedTuple
 from unittest.mock import AsyncMock
 
 from niquests.exceptions import HTTPError
+
 from tests.conftest import async_iter
 from xirvik.commands.root import xirvik
 

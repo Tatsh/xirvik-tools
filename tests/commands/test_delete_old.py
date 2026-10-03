@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock
 import xmlrpc.client as xmlrpc
 
 from niquests.exceptions import HTTPError
+
 from tests.conftest import async_iter
 from xirvik.commands.root import xirvik
 

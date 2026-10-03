@@ -10,11 +10,12 @@ import xmlrpc.client
 
 from niquests.exceptions import HTTPError
 from niquests_mock import MockRouter, build_response
+import pytest
+
 from tests.conftest import alist
 from xirvik.client import ListTorrentsError, UnexpectedruTorrentError, log, ruTorrentClient
 from xirvik.typing import FileDownloadStrategy, FilePriority
 from xirvik.utils import parse_header
-import pytest
 
 if TYPE_CHECKING:
     from niquests.models import PreparedRequest, Response
