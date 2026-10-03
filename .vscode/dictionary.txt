@@ -2,7 +2,6 @@ addpath
 addtorrent
 alist
 anchore
-Ångström
 annots
 anyio
 apost
@@ -14,6 +13,7 @@ asctime
 asyncio
 autodoc
 automodule
+autouse
 bascom
 beautifulsoup
 benc
@@ -29,7 +29,6 @@ colorlog
 colwidth
 commitizen
 conftest
-cooldown
 coveragerc
 coverallsapp
 ctypes
@@ -47,6 +46,7 @@ dunder
 ecda
 eeyore
 elif
+endswith
 esac
 esbenp
 esbonio
@@ -64,7 +64,6 @@ handoff
 hostshare
 hoverxref
 htmlcov
-intersphinx
 isort
 itertools
 jinja
@@ -94,10 +93,14 @@ needmessage
 netrc
 niquests
 nistp
+noone
+noqa
 norecursedirs
 notarytool
 notpeter
+nullglob
 numpy
+numpydoc
 onefile
 oneline
 oneshot
@@ -110,6 +113,7 @@ pipx
 plabel
 platformdirs
 plistlib
+popen
 preapproved
 proc
 prodvers
@@ -135,6 +139,7 @@ resp
 ripgreprc
 rstcheck
 rtorrent
+sbclaude
 schemafile
 sdist
 seedingtime
@@ -143,6 +148,7 @@ setlabel
 setsettings
 shellcheck
 shellformat
+shopt
 signtool
 sindex
 snapcore
@@ -181,10 +187,10 @@ webui
 winget
 wiswa
 wiswa's
-worktree
 xcrun
 xirvik
 yapf
 yapfignore
 yarnrc
 zizmor
+Ångström
