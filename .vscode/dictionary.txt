@@ -165,7 +165,6 @@ tatsh
 testpaths
 timeformat
 toctree
-tomlkit
 tomllib
 tomlq
 tonumber
