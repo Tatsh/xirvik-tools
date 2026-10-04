@@ -8,6 +8,9 @@ local utils = import 'utils.libjsonnet';
   primary_module: 'xirvik',
   version: '0.6.0',
   want_main: true,
+  // The CLI entry point is xirvik.commands:xirvik, so Wiswa must not create main.py or
+  // __main__.py.
+  has_multiple_entry_points: true,
   want_flatpak: true,
   publishing+: { flathub: 'sh.tat.xirvik-tools' },
   security_policy_supported_versions: { '0.6.x': ':white_check_mark:' },
