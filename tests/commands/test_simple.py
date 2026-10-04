@@ -1,7 +1,7 @@
 """Command line interface tests."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple
 from unittest.mock import AsyncMock
@@ -299,14 +299,13 @@ def test_list_torrents_json_sort_finished(runner: CliRunner, mocker: MockerFixtu
                                                name='The Name',
                                                is_hash_checking=False,
                                                base_path='/downloads/_completed',
-                                               finished=datetime.now(timezone.utc)),
-                            MinimalTorrentDict(
-                                'hash2',
-                                custom1='TEST me',
-                                name='The Name2',
-                                is_hash_checking=False,
-                                base_path='/downloads/_completed',
-                                finished=datetime.now(timezone.utc) - timedelta(days=7))
+                                               finished=datetime.now(UTC)),
+                            MinimalTorrentDict('hash2',
+                                               custom1='TEST me',
+                                               name='The Name2',
+                                               is_hash_checking=False,
+                                               base_path='/downloads/_completed',
+                                               finished=datetime.now(UTC) - timedelta(days=7))
                         ])
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--sort', 'finished', '--table-format',
@@ -329,13 +328,12 @@ def test_list_torrents_json_sort_finished_missing(runner: CliRunner, mocker: Moc
                                                name='The Name',
                                                is_hash_checking=False,
                                                base_path='/downloads/_completed'),
-                            MinimalTorrentDict(
-                                'hash2',
-                                custom1='TEST me',
-                                name='The Name2',
-                                is_hash_checking=False,
-                                base_path='/downloads/_completed',
-                                finished=datetime.now(timezone.utc) - timedelta(days=7))
+                            MinimalTorrentDict('hash2',
+                                               custom1='TEST me',
+                                               name='The Name2',
+                                               is_hash_checking=False,
+                                               base_path='/downloads/_completed',
+                                               finished=datetime.now(UTC) - timedelta(days=7))
                         ])
     data = json.loads(
         runner.invoke(xirvik, ('rtorrent', 'list-torrents', '--sort', 'finished', '--table-format',
@@ -353,13 +351,12 @@ def test_list_torrents_json_sort_missing_attr(runner: CliRunner, mocker: MockerF
     monkeypatch.setenv('HOME', str(tmp_path))
     _patch_client_async(mocker,
                         torrents=[
-                            MinimalTorrentDict(
-                                'hash1',
-                                custom1='TEST me',
-                                name='The Name',
-                                is_hash_checking=False,
-                                base_path='/downloads/_completed',
-                                finished=datetime.now(timezone.utc) - timedelta(days=8)),
+                            MinimalTorrentDict('hash1',
+                                               custom1='TEST me',
+                                               name='The Name',
+                                               is_hash_checking=False,
+                                               base_path='/downloads/_completed',
+                                               finished=datetime.now(UTC) - timedelta(days=8)),
                             MinimalTorrentDict('hash2',
                                                name='The Name2',
                                                is_hash_checking=False,

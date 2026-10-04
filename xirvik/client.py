@@ -1,11 +1,11 @@
 """Client for ruTorrent."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import cached_property
 from netrc import netrc
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ForwardRef, cast
+from typing import TYPE_CHECKING, Any, ForwardRef, Self, cast
 from urllib.parse import quote
 import inspect
 import logging
@@ -14,7 +14,6 @@ import xmlrpc.client as xmlrpc
 from anyio.to_thread import run_sync
 from niquests import AsyncSession
 from niquests.adapters import AsyncHTTPAdapter
-from typing_extensions import Self
 from urllib3.util import Retry
 import anyio
 import niquests
@@ -216,7 +215,7 @@ class ruTorrentClient:  # ruff:ignore[invalid-class-name]
                 match type_cls.__forward_arg__:
                     case 'datetime | None':
                         try:
-                            x[i] = datetime.fromtimestamp(float(val.strip() or '0'), timezone.utc)
+                            x[i] = datetime.fromtimestamp(float(val.strip() or '0'), UTC)
                             # First year xirvik.com existed
                             if x[i].year < FIRST_YEAR_XIRVIK:
                                 x[i] = None

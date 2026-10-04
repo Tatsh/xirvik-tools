@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from base64 import b64encode
-from datetime import MINYEAR, datetime, timezone
+from datetime import MINYEAR, UTC, datetime
 from logging.handlers import SysLogHandler
 from pathlib import Path
 from shlex import quote
@@ -398,7 +398,7 @@ def list_torrents(
                           },
                           'xirvik': {}
                       })
-        min_tz_aware = datetime(MINYEAR, 1, 1, tzinfo=timezone.utc)
+        min_tz_aware = datetime(MINYEAR, 1, 1, tzinfo=UTC)
 
         def sorter(x: TorrentInfo) -> Any:
             sort_key = sort or ''

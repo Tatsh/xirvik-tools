@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 import asyncio
 import logging
@@ -26,7 +26,7 @@ TestsDict = dict[str, tuple[bool, TestCallable]]
 def _test_date_cb(days: int = 14) -> TestCallable:
     def test_date(info: TorrentInfo) -> tuple[str, bool]:
         condition1 = info.state_changed
-        expect = datetime.now(timezone.utc) - timedelta(days=days)
+        expect = datetime.now(UTC) - timedelta(days=days)
         log.debug('State changed: %s', condition1)
         log.debug('%s <= %s', condition1, expect)
         return (f'over {days} days seeded', bool(condition1 and condition1 <= expect))
