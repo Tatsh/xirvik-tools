@@ -77,6 +77,7 @@ lextudio
 lftp
 libera
 libjsonnet
+librsvg
 libsonnet
 linters
 manylinux
@@ -138,6 +139,7 @@ reqtimeout
 resp
 ripgreprc
 rstcheck
+rsvg
 rtorrent
 sbclaude
 schemafile
