@@ -20,7 +20,8 @@ parts:
     plugin: 'python'
     python-packages:
       - '.'
-    source: '.'
+    source: 'https://github.com/Tatsh/xirvik-tools.git'
+    source-tag: 'v0.6.0'
     stage-packages: []
 platforms:
   amd64:

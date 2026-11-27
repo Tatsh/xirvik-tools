@@ -4,15 +4,15 @@ requires = ["hatchling"]
 
 [dependency-groups]
 dev = [
-  "commitizen>=4.19.0",
+  "commitizen>=4.19.4",
   "cz-path>=0.0.7",
-  "mypy>=2.3.1",
-  "ruff==0.17.5",
-  "ty>=0.0.84",
+  "mypy>=2.4.1",
+  "ruff==0.17.6",
+  "ty>=0.0.107",
   "types-beautifulsoup4>=4.12.0.20250516",
-  "types-pyyaml>=6.0.12.20260906",
+  "types-pyyaml>=6.0.12.20261113",
   "types-ratelimit>=2.2.0.20260508",
-  "types-tabulate>=0.10.0.20260508",
+  "types-tabulate>=0.10.0.20261006",
   "yapf>=0.43.0"
 ]
 docs = [
@@ -23,17 +23,17 @@ docs = [
   "restructuredtext-lint>=2.0.2",
   "sphinx-click>=6.2.0",
   "sphinx-datatables>=1.0.0",
-  "sphinx-immaterial>=0.13.9",
-  "sphinx>=9.1.0; python_version >= \"3.13\""
+  "sphinx-immaterial>=0.13.12",
+  "sphinx>=9.2.0; python_version >= \"3.13\""
 ]
 tests = [
   "coveralls>=4.1.0",
   "mock>=5.2.0",
   "niquests-mock>=0.5.1",
-  "pytest-asyncio>=1.4.0",
+  "pytest-asyncio>=1.5.0",
   "pytest-cov>=7.1.0",
-  "pytest-mock>=3.16.0",
-  "pytest>=9.1.1"
+  "pytest-mock>=3.17.0",
+  "pytest>=9.2.0"
 ]
 
 [project]
@@ -48,16 +48,16 @@ classifiers = [
   "Typing :: Typed"
 ]
 dependencies = [
-  "anyio>=4.15.1",
+  "anyio>=4.16.0",
   "bascom>=0.2.0",
   "beautifulsoup4>=4.15.0",
-  "click>=8.5.0",
+  "click>=8.5.1",
   "fabric>=3.2.3",
   "html5lib>=1.1",
   "keyring>=25.7.0",
   "mutagen>=1.48.1",
-  "niquests>=3.21.2",
-  "platformdirs>=4.12.0",
+  "niquests>=3.21.3",
+  "platformdirs>=4.14.7",
   "pyyaml>=6.0.3",
   "ratelimit>=2.2.1",
   "tabulate>=0.10.0",
@@ -69,7 +69,7 @@ keywords = ["command line", "xirvik"]
 license = "MIT"
 name = "xirvik-tools"
 readme = "README.md"
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.11.5,<4.0"
 version = "0.6.0"
 
 [[project.authors]]
